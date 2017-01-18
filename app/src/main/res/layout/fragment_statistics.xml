@@ -38,6 +38,7 @@
             android:layout_height="wrap_content"
             android:orientation="vertical">
             <TextView
+                android:id="@+id/chart_title"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
@@ -54,6 +55,7 @@
                     android:layout_marginRight="20dp"
                     android:text="\u003c"/>
                 <TextView
+                    android:id="@+id/chart_period"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="01.16 - 01.22"
@@ -80,16 +82,22 @@
                     android:layout_marginRight="10dp"
                     android:text="평균 걸음수"/>
                 <TextView
+                    android:id="@+id/chart_step_mean"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:textColor="#1c6009"
                     android:text="385"/>
             </LinearLayout>
         </LinearLayout>
-        <com.github.mikephil.charting.charts.LineChart
-            android:id="@+id/chart"
+        <RelativeLayout
             android:layout_width="match_parent"
-            android:layout_height="300dp" />
+            android:layout_height="match_parent">
+            <com.github.mikephil.charting.charts.LineChart
+                android:id="@+id/chart"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent" />
+        </RelativeLayout>
+
 
     </LinearLayout>
 </LinearLayout>
