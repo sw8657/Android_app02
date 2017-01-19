@@ -1,6 +1,11 @@
 package com.miraens.eslee.test_layout1;
 
+import android.app.Activity;
+import android.app.ActivityManager;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
@@ -30,6 +35,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     private boolean misLogin = false;
     public String mUserEmail = "Nothing Email";
+
+    Toast mToastWalk;
+    Intent intent;
+    BroadcastReceiver receiver;
+    String serviceData;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -75,6 +85,17 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         }
 
         SetNavi_info();
+
+        // 만보기
+        intent = new Intent(MainActivity.this, StepBackgroundService.class);
+        receiver = new MyMainLocalRecever();
+
+        // 서비스 시작
+        if(isServiceRunningCheck() == false){
+            IntentFilter mainFilter = new IntentFilter("com.eslee.test_layout1");
+            registerReceiver(receiver, mainFilter);
+            startService(intent);
+        }
     }
 
     @Override
@@ -103,6 +124,18 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         textViewEmail.setText(mUserEmail);
         TextView textViewName = (TextView) nav_header_view.findViewById(R.id.textViewName);
         textViewName.setText(mPref.getString("example_text", "NothingText"));
+    }
+
+    @Override
+    protected void onDestroy() {
+        try{
+            // 서비스 종료
+            unregisterReceiver(receiver);
+            stopService(intent);
+        }catch (Exception ex){
+
+        }
+        super.onDestroy();
     }
 
     @Override
@@ -180,4 +213,27 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         drawer.closeDrawer(GravityCompat.START);
         return true;
     }
+
+    public boolean isServiceRunningCheck() {
+        ActivityManager manager = (ActivityManager) this.getSystemService(Activity.ACTIVITY_SERVICE);
+        for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
+            if ("com.eslee.test_layout1".equals(service.service.getClassName())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    class MyMainLocalRecever extends BroadcastReceiver {
+
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            // TODO Auto-generated method stub
+
+            serviceData = intent.getStringExtra("serviceData");
+
+        }
+
+    }
+
 }

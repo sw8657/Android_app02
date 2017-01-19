@@ -96,6 +96,7 @@
                 <CheckBox
                     android:id="@+id/remember_login_check"
                     android:text="@string/action_remember_log_in"
+                    android:checked="true"
                     android:onClick="onClickedChk"
                     android:layout_marginRight="10dp"
                     android:layout_width="wrap_content"

@@ -17,6 +17,7 @@ import com.github.mikephil.charting.data.LineDataSet;
 import com.github.mikephil.charting.highlight.Highlight;
 import com.github.mikephil.charting.utils.ColorTemplate;
 
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 
 
@@ -29,7 +30,6 @@ public class StatisticsFragment extends Fragment {
     // TODO: Rename and change types of parameters
     private String mParam1;
     private String mParam2;
-
 
     private LineChart mLineChart;
     private TextView mChartTitle;
@@ -153,7 +153,7 @@ public class StatisticsFragment extends Fragment {
 
         mChartTitle.setText("1월 3주차");
         mChartPeriod.setText("01.16 - 01.22");
-        mChartStepMean.setText(String.valueOf(dataset.getAverage()));
+        mChartStepMean.setText(get_commaString(dataset.getAverage()));
 
         mLineChart.setData(data);
         mLineChart.animateY(2000);
@@ -240,11 +240,31 @@ public class StatisticsFragment extends Fragment {
 
         mChartTitle.setText("1월");
         mChartPeriod.setText("01.01 - 01.31");
-        mChartStepMean.setText(String.valueOf(dataset.getAverage()));
+        mChartStepMean.setText(get_commaString(dataset.getAverage()));
 
         mLineChart.setData(data);
         mLineChart.animateY(2000);
 
+    }
+
+    /**
+     * 숫자 -> 콤마 문자열 변환
+     * @param num
+     * @return
+     */
+    public static String get_commaString(float num){
+        String result = String.valueOf(num);
+
+        try {
+            int intValue = Math.round(num);
+            DecimalFormat df = new DecimalFormat("#,##0");
+            result = df.format(intValue).toString();
+        }catch (Exception ex){
+
+        }
+
+
+        return result;
     }
 
 
