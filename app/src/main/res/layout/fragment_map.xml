@@ -6,10 +6,43 @@
     tools:context="com.miraens.eslee.test_layout1.MapFragment">
 
     <!-- TODO: Update blank fragment layout -->
-    <TextView
+
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:gravity="center"
-        android:text="지도 화면" />
+        android:orientation="vertical">
+        <Button
+            android:id="@+id/map_search_button"
+            android:text="Search"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+
+        <fragment android:id="@+id/map"
+            android:name="com.google.android.gms.maps.SupportMapFragment"
+            xmlns:android="http://schemas.android.com/apk/res/android"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            tools:layout="@layout/fragment_map" />
+
+    </LinearLayout>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="bottom|center">
+        <Button
+            android:id="@+id/startBtn"
+            android:text="경보시작"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+
+        <Button
+            android:id="@+id/stopBtn"
+            android:text="경보중지"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+    </LinearLayout>
+
+
+
 
 </FrameLayout>

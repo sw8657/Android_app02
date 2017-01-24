@@ -12,6 +12,7 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.icu.text.Normalizer;
 import android.os.Build;
 import android.os.Handler;
 import android.os.IBinder;
@@ -73,6 +74,7 @@ public class StepBackgroundService extends Service implements SensorEventListene
         myServiceHandler handler = new myServiceHandler();
         thread = new StepCheckThread(handler);
         thread.start();
+
         return START_STICKY;
     }
 
