@@ -3,17 +3,17 @@
     <!-- These settings headers are only used on tablets. -->
 
     <header
-        android:fragment="com.miraens.eslee.test_layout1.SettingsActivity$GeneralPreferenceFragment"
+        android:fragment="com.point.eslee.health_free.SettingsActivity$GeneralPreferenceFragment"
         android:icon="@drawable/ic_info_black_24dp"
         android:title="@string/pref_header_general" />
 
     <header
-        android:fragment="com.miraens.eslee.test_layout1.SettingsActivity$NotificationPreferenceFragment"
+        android:fragment="com.point.eslee.health_free.SettingsActivity$NotificationPreferenceFragment"
         android:icon="@drawable/ic_notifications_black_24dp"
         android:title="@string/pref_header_notifications" />
 
     <header
-        android:fragment="com.miraens.eslee.test_layout1.SettingsActivity$DataSyncPreferenceFragment"
+        android:fragment="com.point.eslee.health_free.SettingsActivity$DataSyncPreferenceFragment"
         android:icon="@drawable/ic_sync_black_24dp"
         android:title="@string/pref_header_data_sync" />
 

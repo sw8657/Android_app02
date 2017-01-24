@@ -1,4 +1,4 @@
-package com.miraens.eslee.test_layout1;
+package com.point.eslee.health_free;
 
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -10,11 +10,9 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.github.mikephil.charting.charts.LineChart;
-import com.github.mikephil.charting.components.MarkerView;
 import com.github.mikephil.charting.data.Entry;
 import com.github.mikephil.charting.data.LineData;
 import com.github.mikephil.charting.data.LineDataSet;
-import com.github.mikephil.charting.highlight.Highlight;
 import com.github.mikephil.charting.utils.ColorTemplate;
 
 import java.text.DecimalFormat;

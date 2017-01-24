@@ -1,4 +1,4 @@
-package com.miraens.eslee.test_layout1;
+package com.point.eslee.health_free;
 
 
 import android.annotation.TargetApi;
@@ -13,7 +13,6 @@ import android.os.Bundle;
 import android.preference.ListPreference;
 import android.preference.Preference;
 import android.preference.PreferenceActivity;
-import android.support.v4.app.NavUtils;
 import android.support.v7.app.ActionBar;
 import android.preference.PreferenceFragment;
 import android.preference.PreferenceManager;

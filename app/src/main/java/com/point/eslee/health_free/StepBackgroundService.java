@@ -1,4 +1,4 @@
-package com.miraens.eslee.test_layout1;
+package com.point.eslee.health_free;
 
 
 import android.annotation.TargetApi;
@@ -12,11 +12,9 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
-import android.icu.text.Normalizer;
 import android.os.Build;
 import android.os.Handler;
 import android.os.IBinder;
-import android.preference.PreferenceManager;
 import android.view.Gravity;
 import android.widget.Toast;
 

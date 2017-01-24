@@ -3,7 +3,7 @@
     android:id="@+id/content_fragment_statistics"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="com.miraens.eslee.test_layout1.StatisticsFragment">
+    tools:context="com.point.eslee.health_free.StatisticsFragment">
 
     <!-- TODO: Update blank fragment layout -->
 <LinearLayout

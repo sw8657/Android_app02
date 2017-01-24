@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.miraens.eslee.test_layout1">
+    package="com.point.eslee.health_free">
 
     <!-- 내 프로젝트에 대한 보안 수준 설정. 내 프로젝트의 패키지가 org.androidtown.lbs.map 인 경우 -->
     <permission
@@ -52,10 +52,10 @@
             android:value="@integer/google_play_services_version" />
 
         <activity
-            android:name=".LoginActivity"
+            android:name="com.point.eslee.health_free.LoginActivity"
             android:label="@string/title_activity_login" />
         <activity
-            android:name=".MainActivity"
+            android:name="com.point.eslee.health_free.MainActivity"
             android:label="@string/app_name"
             android:theme="@style/AppTheme.NoActionBar">
             <intent-filter>
@@ -65,15 +65,15 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".SettingsActivity"
+            android:name="com.point.eslee.health_free.SettingsActivity"
             android:label="@string/title_activity_settings">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value=".MainActivity" />
+                android:value="com.point.eslee.health_free.MainActivity" />
         </activity>
 
         <service
-            android:name=".StepBackgroundService"
+            android:name="com.point.eslee.health_free.StepBackgroundService"
             android:enabled="true"
             android:exported="true"></service>
     </application>
