@@ -7,8 +7,13 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.graphics.drawable.GradientDrawable;
+import android.graphics.drawable.ShapeDrawable;
+import android.graphics.drawable.shapes.OvalShape;
+import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.support.annotation.RequiresApi;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
@@ -22,6 +27,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -120,6 +126,14 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         // 네비뷰 > 상단뷰 접근
         View nav_header_view = navigationView.getHeaderView(0);
         // 네비뷰 > 상단뷰 > 사용자정보뷰에 로그인정보 입력
+        ImageView imageViewUser = (ImageView) nav_header_view.findViewById(R.id.imageViewUser);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+            imageViewUser.setBackground(new ShapeDrawable(new OvalShape()));
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            imageViewUser.setClipToOutline(true);
+        }
+        imageViewUser.setImageResource(R.drawable.img_kongyu);
         TextView textViewEmail = (TextView) nav_header_view.findViewById(R.id.textViewEmail);
         textViewEmail.setText(mUserEmail);
         TextView textViewName = (TextView) nav_header_view.findViewById(R.id.textViewName);
