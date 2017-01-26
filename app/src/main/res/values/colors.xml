@@ -9,6 +9,7 @@
     <color name="colorWhite">#ffffff</color>
     <color name="colorDarkGray">#161616</color>
     <color name="colorDarkGray2">#212121</color>
+    <color name="colorGraySecondaryOpacity50">#7f9e9e9e</color>
     <color name="colorYellow">#EAB40D</color>
     <color name="colorYellow2">#FFC107</color>
 

@@ -53,7 +53,7 @@ public class MyinfoFragment extends Fragment implements View.OnClickListener {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_myinfo, container, false);
-        getActivity().setTitle("Myinfo Fragment");
+        getActivity().setTitle("Myinfo");
 
         Button btnReset = (Button) view.findViewById(R.id.myinfo_reset_button);
         mStepCountView = (TextView) view.findViewById(R.id.myinfo_step_count_view);

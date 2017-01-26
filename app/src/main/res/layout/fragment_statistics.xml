@@ -13,9 +13,38 @@
     android:orientation="vertical">
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="36dp"
+        android:paddingRight="10dp"
+        android:background="@color/colorGraySecondaryOpacity50"
         android:gravity="right">
 
+        <TextView
+            android:id="@+id/chart_weekly_textview"
+            android:textColor="@color/colorDarkGray"
+            android:textStyle="bold"
+            android:gravity="center"
+            android:layout_marginLeft="10dp"
+            android:layout_marginRight="10dp"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:text="Weekly"/>
+        <View
+            android:layout_centerInParent="true"
+            android:background="@color/colorDarkGray2"
+            android:layout_gravity="center"
+            android:layout_width="1dp"
+            android:layout_height="20dp" />
+        <TextView
+            android:id="@+id/chart_monthly_textview"
+            android:textColor="@color/colorDarkGray"
+            android:textStyle="bold"
+            android:gravity="center"
+            android:layout_marginLeft="10dp"
+            android:layout_marginRight="10dp"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:text="Monthly"/>
+        <!--
         <Button
             android:id="@+id/chart_weekly_button"
             android:text="Weekly"
@@ -28,6 +57,7 @@
             android:text="Monthly"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content" />
+        -->
     </LinearLayout>
     <LinearLayout
         android:layout_width="match_parent"
@@ -37,65 +67,84 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical">
-            <TextView
-                android:id="@+id/chart_title"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:textColor="@color/colorDarkGray"
-                android:text="1월 3주차"/>
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:layout_gravity="center"
-                android:gravity="center">
+            android:gravity="center"
+            android:orientation="horizontal">
+            <FrameLayout
+                android:id="@+id/chart_arrow_left"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:layout_gravity="center">
                 <ImageView
-                    android:id="@+id/chart_arrow_left"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginRight="@dimen/activity_statistics_arrow_magin"
+                    android:layout_gravity="center"
                     app:srcCompat="@drawable/ic_chevron_left_black_24dp"
                     />
-                <TextView
-                    android:id="@+id/chart_period"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="01.16 - 01.22"
-                    android:textColor="@color/colorYellow2"
-                    android:textStyle="bold"
-                    android:textSize="16sp"
-                    android:layout_marginLeft="5dp"
-                    android:layout_marginRight="5dp"/>
-                <ImageView
-                    android:id="@+id/chart_arrow_right"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginLeft="@dimen/activity_statistics_arrow_magin"
-                    app:srcCompat="@drawable/ic_chevron_right_black_24dp"
-                    />
-            </LinearLayout>
+            </FrameLayout>
             <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:layout_gravity="center"
-                android:gravity="center">
+                android:orientation="vertical">
                 <TextView
+                    android:id="@+id/chart_title"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginRight="10dp"
+                    android:layout_gravity="center"
                     android:textColor="@color/colorDarkGray"
-                    android:text="Average steps"/>
-                <TextView
-                    android:id="@+id/chart_step_mean"
+                    android:text="1월 3주차"/>
+                <LinearLayout
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:textColor="#1c6009"
-                    android:text="385"/>
+                    android:orientation="horizontal"
+                    android:layout_gravity="center"
+                    android:gravity="center">
+
+                    <TextView
+                        android:id="@+id/chart_period"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="01.16 - 01.22"
+                        android:textColor="@color/colorYellow2"
+                        android:textStyle="bold"
+                        android:textSize="16sp"
+                        android:layout_marginLeft="5dp"
+                        android:layout_marginRight="5dp"/>
+
+                </LinearLayout>
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_gravity="center"
+                    android:gravity="center">
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginRight="10dp"
+                        android:textColor="@color/colorDarkGray"
+                        android:text="Average steps"/>
+                    <TextView
+                        android:id="@+id/chart_step_mean"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textColor="#1c6009"
+                        android:text="385"/>
+                </LinearLayout>
             </LinearLayout>
+            <FrameLayout
+                android:id="@+id/chart_arrow_right"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:layout_gravity="center">
+                <ImageView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    app:srcCompat="@drawable/ic_chevron_right_black_24dp"
+                    />
+            </FrameLayout>
         </LinearLayout>
+
         <LinearLayout
             android:layout_weight="80"
             android:layout_width="match_parent"

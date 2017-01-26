@@ -21,7 +21,7 @@
             android:title="@string/nav_menuname_statistics" />
         <item
             android:id="@+id/nav_settings"
-            android:visible="false"
+            android:visible="true"
             android:icon="@drawable/ic_menu_manage"
             android:title="@string/nav_menuname_settings" />
     </group>

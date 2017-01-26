@@ -4,11 +4,11 @@
 
     <!-- 내 프로젝트에 대한 보안 수준 설정. 내 프로젝트의 패키지가 org.androidtown.lbs.map 인 경우 -->
     <permission
-        android:name="org.androidtown.lbs.map.permission.MAPS_RECEIVE"
+        android:name="com.point.eslee.health_free.map.permission.MAPS_RECEIVE"
         android:protectionLevel="signature" />
 
     <!-- 구글맵 API v2의 권한 설정 -->
-    <uses-permission android:name="org.androidtown.lbs.map.permission.MAPS_RECEIVE" />
+    <uses-permission android:name="com.point.eslee.health_free.map.permission.MAPS_RECEIVE" />
 
     <!-- 구글맵 API v2의 일반 권한 설정. -->
     <uses-permission android:name="android.permission.INTERNET" />

@@ -78,7 +78,7 @@ public class MapFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_map, container, false);
-        getActivity().setTitle("Map Fragment");
+        getActivity().setTitle("Map");
         // Inflate the layout for this fragment
 
         // 지도 객체 참조
