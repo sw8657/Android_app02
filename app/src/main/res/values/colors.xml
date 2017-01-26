@@ -6,6 +6,7 @@
     <color name="colorContentBackground">#313131</color>
 
 
+    <color name="colorWhite">#ffffff</color>
     <color name="colorDarkGray">#161616</color>
     <color name="colorDarkGray2">#212121</color>
     <color name="colorYellow">#EAB40D</color>

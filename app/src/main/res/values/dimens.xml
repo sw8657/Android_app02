@@ -6,4 +6,9 @@
     <dimen name="activity_horizontal_margin">16dp</dimen>
     <dimen name="activity_vertical_margin">16dp</dimen>
     <dimen name="fab_margin">16dp</dimen>
+
+    <dimen name="activity_barcode_width_vertical">260dp</dimen>
+    <dimen name="activity_barcode_height_vertical">160dp</dimen>
+    <dimen name="activity_barcode_width_horizontal">260dp</dimen>
+    <dimen name="activity_barcode_height_horizontal">160dp</dimen>
 </resources>

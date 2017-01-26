@@ -52,11 +52,12 @@
             android:value="@integer/google_play_services_version" />
 
         <activity
-            android:name="com.point.eslee.health_free.LoginActivity"
+            android:name=".LoginActivity"
             android:label="@string/title_activity_login" />
         <activity
-            android:name="com.point.eslee.health_free.MainActivity"
+            android:name=".MainActivity"
             android:label="@string/app_name"
+            android:screenOrientation="portrait"
             android:theme="@style/AppTheme.NoActionBar">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -65,7 +66,7 @@
             </intent-filter>
         </activity>
         <activity
-            android:name="com.point.eslee.health_free.SettingsActivity"
+            android:name=".SettingsActivity"
             android:label="@string/title_activity_settings">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
@@ -73,9 +74,15 @@
         </activity>
 
         <service
-            android:name="com.point.eslee.health_free.StepBackgroundService"
+            android:name=".StepBackgroundService"
             android:enabled="true"
-            android:exported="true"></service>
+            android:exported="true" />
+
+        <activity
+            android:name=".BarcodeActivity"
+            android:theme="@android:style/Theme.Dialog">
+
+        </activity>
     </application>
 
 </manifest>

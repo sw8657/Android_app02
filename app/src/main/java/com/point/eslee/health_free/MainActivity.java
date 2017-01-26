@@ -7,6 +7,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.graphics.Bitmap;
+import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.GradientDrawable;
 import android.graphics.drawable.ShapeDrawable;
 import android.graphics.drawable.shapes.OvalShape;
@@ -18,6 +20,7 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
+import android.view.Gravity;
 import android.view.View;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
@@ -27,7 +30,9 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.WindowManager;
 import android.widget.ImageView;
+import android.widget.PopupWindow;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -38,6 +43,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private Fragment mMapFragment;
     private Fragment mStatisticsFragment;
     private SharedPreferences mPref;
+    private PopupWindow mPopupWindow;
 
     private boolean misLogin = false;
     public String mUserEmail = "Nothing Email";
@@ -58,8 +64,28 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
+//                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
+//                        .setAction("Action", null).show();
+
+//                View popupView = getLayoutInflater().inflate(R.layout.activity_barcode,null);
+//                mPopupWindow = new PopupWindow(popupView);
+//                mPopupWindow.setWindowLayoutMode(WindowManager.LayoutParams.FLAG_BLUR_BEHIND,WindowManager.LayoutParams.FLAG_BLUR_BEHIND);
+//
+//                // 팝업 터치 가능
+//                mPopupWindow.setTouchable(true);
+//                mPopupWindow.setFocusable(true);
+//                // 팝업 외부 터치 가능(외부터치 나갈수있게)
+//                mPopupWindow.setOutsideTouchable(true);
+//                // 외부터치 인식을 위한 추가 설정
+//                mPopupWindow.setBackgroundDrawable(new BitmapDrawable());
+//                // 애니메이션 활성화
+//                mPopupWindow.setAnimationStyle(R.style.Animation_AppCompat_DropDownUp);
+//                // 한가운데 팝업 생성
+//                mPopupWindow.showAtLocation(popupView, Gravity.BOTTOM,0,10);
+
+                Intent mainIntent = new Intent(MainActivity.this, BarcodeActivity.class);
+                MainActivity.this.startActivity(mainIntent);
+
             }
         });
 
@@ -127,13 +153,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         View nav_header_view = navigationView.getHeaderView(0);
         // 네비뷰 > 상단뷰 > 사용자정보뷰에 로그인정보 입력
         ImageView imageViewUser = (ImageView) nav_header_view.findViewById(R.id.imageViewUser);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
-            imageViewUser.setBackground(new ShapeDrawable(new OvalShape()));
-        }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            imageViewUser.setClipToOutline(true);
-        }
-        imageViewUser.setImageResource(R.drawable.img_kongyu);
+        BitmapDrawable pDrawable = (BitmapDrawable) getResources().getDrawable(R.drawable.img_kongyu);
+        RoundedAvatarDrawable pRoundDrawable = new RoundedAvatarDrawable(pDrawable.getBitmap());
+        imageViewUser.setImageDrawable(pRoundDrawable);
+
         TextView textViewEmail = (TextView) nav_header_view.findViewById(R.id.textViewEmail);
         textViewEmail.setText(mUserEmail);
         TextView textViewName = (TextView) nav_header_view.findViewById(R.id.textViewName);
