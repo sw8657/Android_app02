@@ -11,4 +11,5 @@
     <dimen name="activity_barcode_height_vertical">160dp</dimen>
     <dimen name="activity_barcode_width_horizontal">260dp</dimen>
     <dimen name="activity_barcode_height_horizontal">160dp</dimen>
+    <dimen name="activity_statistics_arrow_magin">20dp</dimen>
 </resources>

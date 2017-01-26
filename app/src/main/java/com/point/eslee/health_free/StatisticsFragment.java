@@ -6,13 +6,16 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.github.mikephil.charting.charts.LineChart;
+import com.github.mikephil.charting.components.XAxis;
 import com.github.mikephil.charting.data.Entry;
 import com.github.mikephil.charting.data.LineData;
 import com.github.mikephil.charting.data.LineDataSet;
+import com.github.mikephil.charting.formatter.FillFormatter;
 import com.github.mikephil.charting.utils.ColorTemplate;
 
 import java.text.DecimalFormat;
@@ -65,6 +68,8 @@ public class StatisticsFragment extends Fragment {
 
         Button btnChartWeekly = (Button) view.findViewById(R.id.chart_weekly_button);
         Button btnChartMonthly = (Button) view.findViewById(R.id.chart_monthly_button);
+        ImageView viewChartArrowLeft = (ImageView) view.findViewById(R.id.chart_arrow_left);
+        ImageView viewChartArrowRight = (ImageView) view.findViewById(R.id.chart_arrow_right);
         mLineChart = (LineChart) view.findViewById(R.id.chart);
         mChartTitle = (TextView) view.findViewById(R.id.chart_title);
         mChartPeriod = (TextView) view.findViewById(R.id.chart_period);
@@ -74,25 +79,56 @@ public class StatisticsFragment extends Fragment {
         btnChartWeekly.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Toast.makeText(getActivity(),"주간",Toast.LENGTH_SHORT).show();
-                CreateChartView1();
+                Toast.makeText(getActivity(), "주간", Toast.LENGTH_SHORT).show();
+                CreateChartView_Week_1();
             }
         });
 
         btnChartMonthly.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Toast.makeText(getActivity(),"월간",Toast.LENGTH_SHORT).show();
+                Toast.makeText(getActivity(), "월간", Toast.LENGTH_SHORT).show();
                 CreateChartView2();
             }
         });
+
+        viewChartArrowLeft.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+            }
+        });
+
+        viewChartArrowRight.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+            }
+        });
+
+        // 차트 디자인 옵션
+        mLineChart.getLegend().setEnabled(false); // 범례
+        mLineChart.setDescription(""); // 설명
+        mLineChart.getAxisLeft().setDrawAxisLine(false); // 좌측 라인
+        mLineChart.getAxisRight().setDrawAxisLine(false); // 우측 라인
+        mLineChart.getAxisRight().setDrawGridLines(false); // 우측 그리드 라인
+        mLineChart.getAxisLeft().setDrawGridLines(false); // 좌측 그리드 라인
+        mLineChart.getAxisRight().setDrawLabels(false); // 우측 Y축 값표시
+        mLineChart.getAxisLeft().setDrawLabels(false); // 좌측 Y축 값표시
+        mLineChart.getXAxis().setPosition(XAxis.XAxisPosition.BOTTOM); // X축 값 밑으로
+        mLineChart.getXAxis().setDrawGridLines(false); // X축 그리드라인
+        mLineChart.setDrawGridBackground(false); // 배경
+        mLineChart.setDoubleTapToZoomEnabled(false); // 더블탭 줌인
+        mLineChart.setPinchZoom(false); // 피치 줌인
+        mLineChart.setScaleEnabled(false); // 축척 사용
+        mLineChart.setHighlightPerTapEnabled(true);
 
         btnChartWeekly.callOnClick(); // 주간 버튼 클릭
 
         return view;
     }
 
-    private void CreateChartView(){
+    private void CreateChartView() {
         ArrayList<Entry> entries = new ArrayList<>();
         entries.add(new Entry(4f, 0));
         entries.add(new Entry(8f, 1));
@@ -122,7 +158,7 @@ public class StatisticsFragment extends Fragment {
 
     }
 
-    private void CreateChartView1(){
+    private void CreateChartView_Week_1() {
         ArrayList<Entry> entries = new ArrayList<>();
         entries.add(new Entry(3010f, 0));
         entries.add(new Entry(1405f, 1));
@@ -145,6 +181,7 @@ public class StatisticsFragment extends Fragment {
 
         LineData data = new LineData(labels, dataset);
         dataset.setColors(ColorTemplate.COLORFUL_COLORS); //
+        dataset.setDrawHighlightIndicators(true);
         dataset.setDrawCubic(true); //커브
         dataset.setDrawFilled(true); //선아래로 색상표시
         dataset.setDrawValues(true); //값 표시
@@ -155,11 +192,45 @@ public class StatisticsFragment extends Fragment {
 
         mLineChart.setData(data);
         mLineChart.animateY(2000);
-
-
     }
 
-    private void CreateChartView2(){
+    private void CreateChartView_Week_2() {
+        ArrayList<Entry> entries = new ArrayList<>();
+        entries.add(new Entry(3010f, 0));
+        entries.add(new Entry(2405f, 1));
+        entries.add(new Entry(3050f, 2));
+        entries.add(new Entry(4240f, 3));
+        entries.add(new Entry(4508f, 4));
+        entries.add(new Entry(6344f, 5));
+        entries.add(new Entry(4457f, 6));
+
+        LineDataSet dataset = new LineDataSet(entries, "# of Calls");
+
+        ArrayList<String> labels = new ArrayList<String>();
+        labels.add("S");
+        labels.add("M");
+        labels.add("T");
+        labels.add("W");
+        labels.add("T");
+        labels.add("F");
+        labels.add("S");
+
+        LineData data = new LineData(labels, dataset);
+        dataset.setColors(ColorTemplate.COLORFUL_COLORS); //
+        dataset.setDrawHighlightIndicators(true);
+        dataset.setDrawCubic(true); //커브
+        dataset.setDrawFilled(true); //선아래로 색상표시
+        dataset.setDrawValues(true); //값 표시
+
+        mChartTitle.setText("1월 4주차");
+        mChartPeriod.setText("01.23 - 01.29");
+        mChartStepMean.setText(get_commaString(dataset.getAverage()));
+
+        mLineChart.setData(data);
+        mLineChart.animateY(2000);
+    }
+
+    private void CreateChartView2() {
         ArrayList<Entry> entries = new ArrayList<>();
         entries.add(new Entry(3233f, 0));
         entries.add(new Entry(2342f, 1));
@@ -242,22 +313,22 @@ public class StatisticsFragment extends Fragment {
 
         mLineChart.setData(data);
         mLineChart.animateY(2000);
-
     }
 
     /**
      * 숫자 -> 콤마 문자열 변환
+     *
      * @param num
      * @return
      */
-    public static String get_commaString(float num){
+    public static String get_commaString(float num) {
         String result = String.valueOf(num);
 
         try {
             int intValue = Math.round(num);
             DecimalFormat df = new DecimalFormat("#,##0");
             result = df.format(intValue).toString();
-        }catch (Exception ex){
+        } catch (Exception ex) {
 
         }
 
