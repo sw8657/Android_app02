@@ -89,9 +89,9 @@ public class MapFragment extends Fragment {
         getActivity().setTitle("Map");
         // Inflate the layout for this fragment
 
-        MapView mapView = (MapView) view.findViewById(R.id.map);
-        mapView.onCreate(savedInstanceState);
-        mapView.onResume();
+        // 지도 객체 참조
+//        m_map = ((SupportMapFragment) getActivity().getSupportFragmentManager().findFragmentById(R.id.map)).getMap();
+        m_map = ((SupportMapFragment) getChildFragmentManager().findFragmentById(R.id.map)).getMap();
 
         // 일부 단말의 문제로 인해 초기화 코드 추가
         try {
@@ -99,10 +99,6 @@ public class MapFragment extends Fragment {
         } catch (Exception e) {
             e.printStackTrace();
         }
-
-        // 지도 객체 참조
-//        m_map = ((SupportMapFragment) getActivity().getSupportFragmentManager().findFragmentById(R.id.map)).getMap();
-        m_map = mapView.getMap();
 
         // 위치 확인하여 위치 표시 시작
         startLocationService();
@@ -379,7 +375,7 @@ public class MapFragment extends Fragment {
         proximityIntent.putExtra("longitude", longitude);
         proximityIntent.putExtra("name", name);
         proximityIntent.putExtra("url", url);
-        PendingIntent intent = PendingIntent.getBroadcast(getActivity(), id, proximityIntent, PendingIntent.FLAG_CANCEL_CURRENT);
+        PendingIntent intent = PendingIntent.getBroadcast(getActivity(), id, proximityIntent, PendingIntent.FLAG_UPDATE_CURRENT);
 
         mLocationManager.addProximityAlert(latitude, longitude, radius, expiration, intent);
 
@@ -420,7 +416,7 @@ public class MapFragment extends Fragment {
                 double latitude = intent.getDoubleExtra("latitude", 0.0D);
                 double longitude = intent.getDoubleExtra("longitude", 0.0D);
 
-                Toast.makeText(context, "근접한 마커 : " + name, Toast.LENGTH_LONG).show();
+                //Toast.makeText(context, "근접한 마커 : " + name, Toast.LENGTH_LONG).show();
 
 
                 //알림(Notification)을 관리하는 NotificationManager 얻어오기
@@ -596,6 +592,8 @@ public class MapFragment extends Fragment {
         m_map.addPolyline(new PolylineOptions().geodesic(true)
                 .add(new LatLng(old_latitude, old_longitude))
                 .add(new LatLng(latitude, longitude))
+                .width(10)
+                .color(Color.BLUE)
         );
         old_latitude = latitude;
         old_longitude = longitude;

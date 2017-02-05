@@ -345,7 +345,7 @@ public class StatisticsFragment extends Fragment {
         mDataMonth.add(dataset2);
     }
 
-    String[] mDataWeekTitle = {"1월 2주차", "1월 3주차", "1월 4주차"};
+    String[] mDataWeekTitle = {"2 Week January", "3 Week January", "4 Week January"};
     String[] mDataWeekTitle2 = {"01.09 - 01.15", "01.16 - 01.22", "01.23 - 01.29"};
 
     private void CreateChartView_Week_1(int week_num) {
@@ -378,7 +378,7 @@ public class StatisticsFragment extends Fragment {
         mLineChart.animateY(2000);
     }
 
-    String[] mDataMonthTitle = {"11월", "12월", "1월"};
+    String[] mDataMonthTitle = {"November", "December", "January"};
     String[] mDataMonthTitle2 = {"11.01 - 11.30", "12.01 - 12.31", "01.01 - 01.31"};
 
     private void CreateChartView_Month_1(int month_num) {
@@ -436,7 +436,7 @@ public class StatisticsFragment extends Fragment {
         dataset.setDrawFilled(true); //선아래로 색상표시
         dataset.setDrawValues(true); //값 표시
 
-        mChartTitle.setText("1월 4주차");
+        mChartTitle.setText("4 Week January");
         mChartPeriod.setText("01.23 - 01.29");
         mChartStepMean.setText(Common.get_commaString(dataset.getAverage()));
 
@@ -521,7 +521,7 @@ public class StatisticsFragment extends Fragment {
         dataset.setDrawCircleHole(false);
         dataset.setDrawCircles(false);
 
-        mChartTitle.setText("1월");
+        mChartTitle.setText("January");
         mChartPeriod.setText("01.01 - 01.31");
         mChartStepMean.setText(Common.get_commaString(dataset.getAverage()));
 

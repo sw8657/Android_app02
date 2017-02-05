@@ -152,7 +152,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         super.onActivityResult(requestCode, resultCode, data);
 
         if(requestCode == 1004 && resultCode == RESULT_OK){
-            Toast.makeText(MainActivity.this,"로그인 성공!!",Toast.LENGTH_SHORT).show();
+            //Toast.makeText(MainActivity.this,"로그인 성공!!",Toast.LENGTH_SHORT).show();
             misLogin = true;
 
             // 로그인창에서 넘어온 로그인정보
