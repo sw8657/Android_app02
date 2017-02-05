@@ -12,4 +12,9 @@
     <dimen name="activity_barcode_width_horizontal">260dp</dimen>
     <dimen name="activity_barcode_height_horizontal">160dp</dimen>
     <dimen name="activity_statistics_arrow_magin">20dp</dimen>
+
+
+    <dimen name="activity_home_contents_height">60dp</dimen>
+    <dimen name="myinfo_current_point_textsize">50sp</dimen>
+    <dimen name="myinfo_total_point_textsize">30sp</dimen>
 </resources>

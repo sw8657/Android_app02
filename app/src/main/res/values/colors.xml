@@ -4,7 +4,10 @@
     <color name="colorPrimaryDark">#161616</color>
     <color name="colorAccent">#FFC107</color>
     <color name="colorContentBackground">#313131</color>
+    <color name="colorContentOpacity80">#e1313131</color>
 
+    <color name="colorGray">#848484</color>
+    <color name="colorGrayLight">#c2c2c2</color>
 
     <color name="colorWhite">#ffffff</color>
     <color name="colorDarkGray">#161616</color>

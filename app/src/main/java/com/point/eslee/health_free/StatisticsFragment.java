@@ -372,7 +372,7 @@ public class StatisticsFragment extends Fragment {
 
         mChartTitle.setText(mDataWeekTitle[week_num]);
         mChartPeriod.setText(mDataWeekTitle2[week_num]);
-        mChartStepMean.setText(get_commaString(dataset.getAverage()));
+        mChartStepMean.setText(Common.get_commaString(dataset.getAverage()));
 
         mLineChart.setData(data);
         mLineChart.animateY(2000);
@@ -402,7 +402,7 @@ public class StatisticsFragment extends Fragment {
 
         mChartTitle.setText(mDataMonthTitle[month_num]);
         mChartPeriod.setText(mDataMonthTitle2[month_num]);
-        mChartStepMean.setText(get_commaString(dataset.getAverage()));
+        mChartStepMean.setText(Common.get_commaString(dataset.getAverage()));
 
         mLineChart.setData(data);
         mLineChart.animateY(2000);
@@ -438,7 +438,7 @@ public class StatisticsFragment extends Fragment {
 
         mChartTitle.setText("1월 4주차");
         mChartPeriod.setText("01.23 - 01.29");
-        mChartStepMean.setText(get_commaString(dataset.getAverage()));
+        mChartStepMean.setText(Common.get_commaString(dataset.getAverage()));
 
         mLineChart.setData(data);
         mLineChart.animateY(2000);
@@ -523,31 +523,10 @@ public class StatisticsFragment extends Fragment {
 
         mChartTitle.setText("1월");
         mChartPeriod.setText("01.01 - 01.31");
-        mChartStepMean.setText(get_commaString(dataset.getAverage()));
+        mChartStepMean.setText(Common.get_commaString(dataset.getAverage()));
 
         mLineChart.setData(data);
         mLineChart.animateY(2000);
-    }
-
-    /**
-     * 숫자 -> 콤마 문자열 변환
-     *
-     * @param num
-     * @return
-     */
-    public static String get_commaString(float num) {
-        String result = String.valueOf(num);
-
-        try {
-            int intValue = Math.round(num);
-            DecimalFormat df = new DecimalFormat("#,##0");
-            result = df.format(intValue).toString();
-        } catch (Exception ex) {
-
-        }
-
-
-        return result;
     }
 
 

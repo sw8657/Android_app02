@@ -5,6 +5,10 @@ import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
+
+import java.util.Timer;
+import java.util.TimerTask;
 
 
 public class HomeFragment extends Fragment {
@@ -17,10 +21,13 @@ public class HomeFragment extends Fragment {
     private String mParam1;
     private String mParam2;
 
+    private TextView mStepView;
+    private TimerTask mTask;
+    private Timer mTimer;
+
     public HomeFragment() {
         // Required empty public constructor
     }
-
 
     // TODO: Rename and change types and number of parameters
     public static HomeFragment newInstance(String param1, String param2) {
@@ -42,11 +49,39 @@ public class HomeFragment extends Fragment {
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
-        getActivity().setTitle("Home Fragment");
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        View view = inflater.inflate(R.layout.fragment_home, container, false);
+        getActivity().setTitle("Home");
         // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_home, container, false);
+
+        mStepView = (TextView) view.findViewById(R.id.home_step_value); // 걸음수 뷰
+        mStepView.setText(Common.get_commaString(values.Step));
+
+        // 타이머 가져오기
+        mTask = new TimerTask() {
+            @Override
+            public void run() {
+                getActivity().runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+//                        Toast.makeText(getActivity(), "" + values.Step, Toast.LENGTH_SHORT);
+                        mStepView.setText(Common.get_commaString(values.Step));
+                    }
+                });
+            }
+        };
+
+        mTimer = new Timer();
+        mTimer.scheduleAtFixedRate(mTask, 0, 3000);
+
+        return view;
     }
 
+    @Override
+    public void onDestroyView() {
+        if (mTimer != null) {
+            mTimer.cancel();
+        }
+        super.onDestroyView();
+    }
 }

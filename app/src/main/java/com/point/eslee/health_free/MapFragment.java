@@ -1,15 +1,20 @@
 package com.point.eslee.health_free;
 
 import android.Manifest;
+import android.app.Notification;
+import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
+import android.graphics.BitmapFactory;
+import android.graphics.Color;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
@@ -23,8 +28,11 @@ import android.widget.Toast;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.MapView;
+import com.google.android.gms.maps.MapsInitializer;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
 
@@ -34,7 +42,7 @@ import java.util.ArrayList;
 public class MapFragment extends Fragment {
 
     private GoogleMap m_map;
-
+    private MapView m_mapView;
 
     private static final String TAG = "MapFragment";
 
@@ -81,70 +89,256 @@ public class MapFragment extends Fragment {
         getActivity().setTitle("Map");
         // Inflate the layout for this fragment
 
+        MapView mapView = (MapView) view.findViewById(R.id.map);
+        mapView.onCreate(savedInstanceState);
+        mapView.onResume();
+
+        // 일부 단말의 문제로 인해 초기화 코드 추가
+        try {
+            MapsInitializer.initialize(getActivity().getApplicationContext());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
         // 지도 객체 참조
-        setUpMapIfNeeded();
-//        MapView mapView = (MapView) view.findViewById(R.id.map);
-//        mapView.onCreate(savedInstanceState);
-//        mapView.onResume();
-//        // 일부 단말의 문제로 인해 초기화 코드 추가
-//        try {
-//            MapsInitializer.initialize(getActivity().getApplicationContext());
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//        }
-//        m_map = mapView.getMap();
+//        m_map = ((SupportMapFragment) getActivity().getSupportFragmentManager().findFragmentById(R.id.map)).getMap();
+        m_map = mapView.getMap();
 
         // 위치 확인하여 위치 표시 시작
         startLocationService();
-        checkDangerousPermissions();
-
-        if (ActivityCompat.checkSelfPermission(getActivity(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(getActivity(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            // TODO: Consider calling
-            //    ActivityCompat#requestPermissions
-            // here to request the missing permissions, and then overriding
-            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-            //                                          int[] grantResults)
-            // to handle the case where the user grants the permission. See the documentation
-            // for ActivityCompat#requestPermissions for more details.
-            m_map.setMyLocationEnabled(true);
-        }
+//        checkDangerousPermissions(); //Main에서 수행
+        m_map.setMyLocationEnabled(true);
         // 지도 유형 설정. 지형도인 경우에는 GoogleMap.MAP_TYPE_TERRAIN, 위성 지도인 경우에는 GoogleMap.MAP_TYPE_SATELLITE
         m_map.setMapType(GoogleMap.MAP_TYPE_NORMAL);
 
-        m_map.addMarker(new MarkerOptions().position(new LatLng(37.527630, 126.892189)).title("1001"));
-        m_map.addMarker(new MarkerOptions().position(new LatLng(37.526659, 126.896738)).title("1002"));
-        m_map.addMarker(new MarkerOptions().position(new LatLng(37.526800, 126.891876)).title("1003"));
+        m_map.addMarker(new MarkerOptions().position(new LatLng(37.5571895, 126.923642)).title("스타벅스 홍대역점"));
+        m_map.addMarker(new MarkerOptions().position(new LatLng(37.5568004, 126.9199674)).title("스타벅스 동교점"));
+        m_map.addMarker(new MarkerOptions().position(new LatLng(37.5532579, 126.9248262)).title("스타벅스 홍대갤러리점"));
+        m_map.addMarker(new MarkerOptions().position(new LatLng(37.5518991, 126.9232424)).title("스타벅스 홍대공원점"));
+        m_map.addMarker(new MarkerOptions().position(new LatLng(37.558898, 126.9275124)).title("스타벅스 동교삼거리점"));
+        m_map.addMarker(new MarkerOptions().position(new LatLng(37.5529804, 126.9218637)).title("스타벅스 홍대로데오점"));
+        m_map.addMarker(new MarkerOptions().position(new LatLng(37.5501915, 126.9232343)).title("스타벅스 홍대삼거리점"));
+        m_map.addMarker(new MarkerOptions().position(new LatLng(37.5513451, 126.9169083)).title("스타벅스 서교점"));
+        m_map.addMarker(new MarkerOptions().position(new LatLng(37.5533397, 126.918578)).title("스타벅스 서교동사거리점"));
+        m_map.addMarker(new MarkerOptions().position(new LatLng(37.5523765, 126.9377746)).title("스타벅스 서강대점"));
+        m_map.addMarker(new MarkerOptions().position(new LatLng(37.55649, 126.9371201)).title("스타벅스 신촌점"));
+        m_map.addMarker(new MarkerOptions().position(new LatLng(37.5586535, 126.9366775)).title("스타벅스 연대점"));
+        m_map.addMarker(new MarkerOptions().position(new LatLng(37.5587566, 126.9402234)).title("스타벅스 신촌기차역점"));
+        m_map.addMarker(new MarkerOptions().position(new LatLng(37.5577519, 126.9381461)).title("스타벅스 신촌명물거리점"));
+        m_map.addMarker(new MarkerOptions().position(new LatLng(37.5561264, 126.9392538)).title("스타벅스 신촌대로점"));
+        m_map.addMarker(new MarkerOptions().position(new LatLng(37.5584238, 126.9265576)).title("카페베네 동교동로터리점"));
+        m_map.addMarker(new MarkerOptions().position(new LatLng(37.5567823, 126.9199795)).title("카페베네 동교중앙점"));
+        m_map.addMarker(new MarkerOptions().position(new LatLng(37.5546741, 126.9218087)).title("카페베네 홍대역점"));
+        m_map.addMarker(new MarkerOptions().position(new LatLng(37.5592297, 126.9398063)).title("카페베네 신촌점"));
+        m_map.addMarker(new MarkerOptions().position(new LatLng(37.557535, 126.9190876)).title("파리바게트 서교점"));
+        m_map.addMarker(new MarkerOptions().position(new LatLng(37.5557298, 126.9203644)).title("파리바게트 홍대점"));
+        m_map.addMarker(new MarkerOptions().position(new LatLng(37.5516471, 126.9163089)).title("파리바게트 합정역점"));
+        m_map.addMarker(new MarkerOptions().position(new LatLng(37.5530505, 126.933188)).title("파리바게트 마포창천"));
+        m_map.addMarker(new MarkerOptions().position(new LatLng(37.5585631, 126.9278075)).title("파리바게트"));
+        m_map.addMarker(new MarkerOptions().position(new LatLng(37.5554523, 126.9233054)).title("커피빈 홍대역점"));
+        m_map.addMarker(new MarkerOptions().position(new LatLng(37.5585482, 126.9367567)).title("맥도날드 연세대점"));
+        m_map.addMarker(new MarkerOptions().position(new LatLng(37.5556182, 126.937167)).title("맥도날드 신촌점"));
+        m_map.addMarker(new MarkerOptions().position(new LatLng(37.5550759, 126.9219723)).title("맥도날드 홍익대점"));
+        m_map.addMarker(new MarkerOptions().position(new LatLng(37.5560626, 126.9097254)).title("맥도날드 망원점"));
+        m_map.addMarker(new MarkerOptions().position(new LatLng(37.5529559, 126.9238713)).title("롯데리아 홍대점"));
+        m_map.addMarker(new MarkerOptions().position(new LatLng(37.554606, 126.9356838)).title("롯데리아 신촌로터리점"));
+        m_map.addMarker(new MarkerOptions().position(new LatLng(37.5556735, 126.9235575)).title("버거킹 홍대역점"));
+        m_map.addMarker(new MarkerOptions().position(new LatLng(37.555599, 126.9372851)).title("버거킹 신촌점"));
+        m_map.addMarker(new MarkerOptions().position(new LatLng(37.5559796, 126.9351688)).title("KFC 신촌점"));
+        m_map.addMarker(new MarkerOptions().position(new LatLng(37.5559796, 126.923115)).title("KFC 홍대점"));
+        m_map.addMarker(new MarkerOptions().position(new LatLng(37.5556458, 126.936585)).title("투썸플레이스 신촌점"));
+        m_map.addMarker(new MarkerOptions().position(new LatLng(37.5511761, 126.9392511)).title("투썸플레이스 서강대점"));
+        m_map.addMarker(new MarkerOptions().position(new LatLng(37.558814, 126.9419172)).title("투썸플레이스 신촌기차역점"));
 
         // 위치 관리자 객체 참조
         mLocationManager = (LocationManager) getActivity().getSystemService(Context.LOCATION_SERVICE);
         mPendingIntentList = new ArrayList();
 
-        Button btnSearch = (Button) view.findViewById(R.id.map_search_button);
-        btnSearch.setOnClickListener(onClickSearchButton);
 
-        Button startBtn = (Button) view.findViewById(R.id.startBtn);
-        startBtn.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) {
-                // register two targets
-                int countTargets = 3;
-                register(1001, 37.527630, 126.892189, 500, -1);
-                register(1002, 37.526659, 126.896738, 500, -1);
-                register(1003, 37.526800, 126.891876, 500, -1);
+        register(1001, 37.5571895, 126.923642, 500, "스타벅스 홍대역점", "http://www.istarbucks.co.kr/store/store_map.do?in_biz_cd=9872", -1);
+        register(1002, 37.5568004, 126.9199674, 500, "스타벅스 동교점", "http://www.istarbucks.co.kr/store/store_map.do?in_biz_cd=9837", -1);
+        register(1003, 37.5532579, 126.9248262, 500, "스타벅스 홍대갤러리점", "http://www.istarbucks.co.kr", -1);
+        register(1004, 37.5518991, 126.9232424, 500, "스타벅스 홍대공원점", "http://www.istarbucks.co.kr/store/store_map.do?in_biz_cd=9986", -1);
+        register(1005, 37.558898, 126.9275124, 500, "스타벅스 동교삼거리점", "http://www.istarbucks.co.kr/store/store_map.do?in_biz_cd=9888", -1);
+        register(1006, 37.5529804, 126.9218637, 500, "스타벅스 홍대로데오점", "http://www.istarbucks.co.kr", -1);
+        register(1007, 37.5501915, 126.9232343, 500, "스타벅스 홍대삼거리점", "http://www.istarbucks.co.kr/store/store_map.do?in_biz_cd=9602", -1);
+        register(1008, 37.5513451, 126.9169083, 500, "스타벅스 서교점", "http://www.istarbucks.co.kr/store/store_map.do?in_biz_cd=3056", -1);
+        register(1009, 37.5533397, 126.918578, 500, "스타벅스 서교동사거리점", "http://www.istarbucks.co.kr", -1);
+        register(1010, 37.5523765, 126.9377746, 500, "스타벅스 서강대점", "http://www.istarbucks.co.kr/store/store_map.do?in_biz_cd=9983", -1);
+        register(1011, 37.55649, 126.9371201, 500, "스타벅스 신촌점", "http://www.istarbucks.co.kr", -1);
+        register(1012, 37.5586535, 126.9366775, 500, "스타벅스 연대점", "http://www.istarbucks.co.kr/store/store_map.do?in_biz_cd=9639", -1);
+        register(1013, 37.5587566, 126.9402234, 500, "스타벅스 신촌기차역점", "http://www.istarbucks.co.kr", -1);
+        register(1014, 37.5577519, 126.9381461, 500, "스타벅스 신촌명물거리점", "http://www.istarbucks.co.kr/store/store_map.do?in_biz_cd=9530", -1);
+        register(1015, 37.5561264, 126.9392538, 500, "스타벅스 신촌대로점", "http://www.istarbucks.co.kr", -1);
+        register(1016, 37.5584238, 126.9265576, 500, "카페베네 동교동로터리점", "http://www.caffebene.co.kr", -1);
+        register(1017, 37.5567823, 126.9199795, 500, "카페베네 동교중앙점", "http://www.caffebene.co.kr", -1);
+        register(1018, 37.5546741, 126.9218087, 500, "카페베네 홍대역점", "http://www.caffebene.co.kr", -1);
+        register(1019, 37.5592297, 126.9398063, 500, "카페베네 신촌점", "http://www.caffebene.co.kr", -1);
+        register(1020, 37.557535, 126.9190876, 500, "파리바게트 서교점", "http://www.paris.co.kr", -1);
+        register(1021, 37.5557298, 126.9203644, 500, "파리바게트 홍대점", "http://www.paris.co.kr", -1);
+        register(1022, 37.5516471, 126.9163089, 500, "파리바게트 합정역점", "http://www.paris.co.kr", -1);
+        register(1023, 37.5530505, 126.933188, 500, "파리바게트 마포창천", "http://www.paris.co.kr", -1);
+        register(1024, 37.5585631, 126.9278075, 500, "파리바게트", "http://www.paris.co.kr", -1);
+        register(1025, 37.5554523, 126.9233054, 500, "커피빈 홍대역점", "http://www.coffeebeankorea.com", -1);
+        register(1026, 37.5585482, 126.9367567, 500, "맥도날드 연세대점", "http://www.mcdonalds.co.kr", -1);
+        register(1027, 37.5556182, 126.937167, 500, "맥도날드 신촌점", "http://www.mcdonalds.co.kr", -1);
+        register(1028, 37.5550759, 126.9219723, 500, "맥도날드 홍익대점", "http://www.mcdonalds.co.kr", -1);
+        register(1029, 37.5560626, 126.9097254, 500, "맥도날드 망원점", "http://www.mcdonalds.co.kr", -1);
+        register(1030, 37.5529559, 126.9238713, 500, "롯데리아 홍대점", "http://www.lotteria.com", -1);
+        register(1031, 37.554606, 126.9356838, 500, "롯데리아 신촌로터리점", "http://www.lotteria.com", -1);
+        register(1032, 37.5556735, 126.9235575, 500, "버거킹 홍대역점", "http://www.burgerking.co.kr", -1);
+        register(1033, 37.555599, 126.9372851, 500, "버거킹 신촌점", "http://www.burgerking.co.kr", -1);
+        register(1034, 37.5559796, 126.9351688, 500, "KFC 신촌점", "http://www.kfckorea.com", -1);
+        register(1035, 37.5559796, 126.923115, 500, "KFC 홍대점", "http://www.kfckorea.com", -1);
+        register(1036, 37.5556458, 126.936585, 500, "투썸플레이스 신촌점", "https://www.twosome.co.kr", -1);
+        register(1037, 37.5511761, 126.9392511, 500, "투썸플레이스 서강대점", "https://www.twosome.co.kr", -1);
+        register(1038, 37.558814, 126.9419172, 500, "투썸플레이스 신촌기차역점", "https://www.twosome.co.kr", -1);
 
-                // 수신자 객체 생성하여 등록
-                mIntentReceiver = new CoffeeIntentReceiver(intentKey);
-                getActivity().registerReceiver(mIntentReceiver, mIntentReceiver.getFilter());
-                Toast.makeText(getActivity().getApplicationContext(), countTargets + "개 지점에 대한 근접 리스너 등록", Toast.LENGTH_LONG).show();
+        m_map.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
+            @Override
+            public boolean onMarkerClick(Marker marker) {
+                //Toast.makeText(getApplicationContext(), "마커클릭테스트", Toast.LENGTH_LONG).show();
+                // TODO Auto-generated method stub
+                return false;
             }
         });
 
-        Button stopBtn = (Button) view.findViewById(R.id.stopBtn);
+        m_map.setOnInfoWindowClickListener(new GoogleMap.OnInfoWindowClickListener() {
+            @Override
+            public void onInfoWindowClick(Marker marker) {
+                //Toast.makeText(getApplicationContext(), "(" + marker.getTitle() + ")", Toast.LENGTH_LONG).show();
+                String Url = "";
+                if (marker.getTitle().contains("스타벅스 홍대역점")) {
+                    Url = "http://www.istarbucks.co.kr/store/store_map.do?in_biz_cd=9872";
+                }
+                if (marker.getTitle().contains("스타벅스 동교점")) {
+                    Url = "http://www.istarbucks.co.kr/store/store_map.do?in_biz_cd=9837";
+                }
+                if (marker.getTitle().contains("스타벅스 홍대갤러리점")) {
+                    Url = "http://www.istarbucks.co.kr";
+                }
+                if (marker.getTitle().contains("스타벅스 홍대공원점")) {
+                    Url = "http://www.istarbucks.co.kr/store/store_map.do?in_biz_cd=9986";
+                }
+                if (marker.getTitle().contains("스타벅스 동교삼거리점")) {
+                    Url = "http://www.istarbucks.co.kr/store/store_map.do?in_biz_cd=9888";
+                }
+                if (marker.getTitle().contains("스타벅스 홍대로데오점")) {
+                    Url = "http://www.istarbucks.co.kr";
+                }
+                if (marker.getTitle().contains("스타벅스 홍대삼거리점")) {
+                    Url = "http://www.istarbucks.co.kr/store/store_map.do?in_biz_cd=9602";
+                }
+                if (marker.getTitle().contains("스타벅스 서교점")) {
+                    Url = "http://www.istarbucks.co.kr/store/store_map.do?in_biz_cd=3056";
+                }
+                if (marker.getTitle().contains("스타벅스 서교동사거리점")) {
+                    Url = "http://www.istarbucks.co.kr";
+                }
+                if (marker.getTitle().contains("스타벅스 서강대점")) {
+                    Url = "http://www.istarbucks.co.kr/store/store_map.do?in_biz_cd=9983";
+                }
+                if (marker.getTitle().contains("스타벅스 신촌점")) {
+                    Url = "http://www.istarbucks.co.kr";
+                }
+                if (marker.getTitle().contains("스타벅스 연대점")) {
+                    Url = "http://www.istarbucks.co.kr/store/store_map.do?in_biz_cd=9639";
+                }
+                if (marker.getTitle().contains("스타벅스 신촌기차역점")) {
+                    Url = "http://www.istarbucks.co.kr";
+                }
+                if (marker.getTitle().contains("스타벅스 신촌명물거리점")) {
+                    Url = "http://www.istarbucks.co.kr/store/store_map.do?in_biz_cd=9530";
+                }
+                if (marker.getTitle().contains("스타벅스 신촌대로점")) {
+                    Url = "http://www.istarbucks.co.kr";
+                }
+                if (marker.getTitle().contains("카페베네 동교동로터리점")) {
+                    Url = "http://www.caffebene.co.kr";
+                }
+                if (marker.getTitle().contains("카페베네 동교중앙점")) {
+                    Url = "http://www.caffebene.co.kr";
+                }
+                if (marker.getTitle().contains("카페베네 홍대역점")) {
+                    Url = "http://www.caffebene.co.kr";
+                }
+                if (marker.getTitle().contains("카페베네 신촌점")) {
+                    Url = "http://www.caffebene.co.kr";
+                }
+                if (marker.getTitle().contains("파리바게트 서교점")) {
+                    Url = "http://www.paris.co.kr";
+                }
+                if (marker.getTitle().contains("파리바게트 홍대점")) {
+                    Url = "http://www.paris.co.kr";
+                }
+                if (marker.getTitle().contains("파리바게트 합정역점")) {
+                    Url = "http://www.paris.co.kr";
+                }
+                if (marker.getTitle().contains("파리바게트 마포창천")) {
+                    Url = "http://www.paris.co.kr";
+                }
+                if (marker.getTitle().contains("파리바게트")) {
+                    Url = "http://www.paris.co.kr";
+                }
+                if (marker.getTitle().contains("커피빈 홍대역점")) {
+                    Url = "http://www.coffeebeankorea.com";
+                }
+                if (marker.getTitle().contains("맥도날드 연세대점")) {
+                    Url = "http://www.mcdonalds.co.kr";
+                }
+                if (marker.getTitle().contains("맥도날드 신촌점")) {
+                    Url = "http://www.mcdonalds.co.kr";
+                }
+                if (marker.getTitle().contains("맥도날드 홍익대점")) {
+                    Url = "http://www.mcdonalds.co.kr";
+                }
+                if (marker.getTitle().contains("맥도날드 망원점")) {
+                    Url = "http://www.mcdonalds.co.kr";
+                }
+                if (marker.getTitle().contains("롯데리아 홍대점")) {
+                    Url = "http://www.lotteria.com";
+                }
+                if (marker.getTitle().contains("롯데리아 신촌로터리점")) {
+                    Url = "http://www.lotteria.com";
+                }
+                if (marker.getTitle().contains("버거킹 홍대역점")) {
+                    Url = "http://www.burgerking.co.kr";
+                }
+                if (marker.getTitle().contains("버거킹 신촌점")) {
+                    Url = "http://www.burgerking.co.kr";
+                }
+                if (marker.getTitle().contains("KFC 신촌점")) {
+                    Url = "http://www.kfckorea.com";
+                }
+                if (marker.getTitle().contains("KFC 홍대점")) {
+                    Url = "http://www.kfckorea.com";
+                }
+                if (marker.getTitle().contains("투썸플레이스 신촌점")) {
+                    Url = "https://www.twosome.co.kr";
+                }
+                if (marker.getTitle().contains("투썸플레이스 서강대점")) {
+                    Url = "https://www.twosome.co.kr";
+                }
+                if (marker.getTitle().contains("투썸플레이스 신촌기차역점")) {
+                    Url = "https://www.twosome.co.kr";
+                }
+                Intent internet = new Intent(Intent.ACTION_VIEW, Uri.parse(Url));
+                startActivity(internet);
+            }
+        });
+
+        // 수신자 객체 생성하여 등록
+        mIntentReceiver = new CoffeeIntentReceiver(intentKey);
+        getActivity().registerReceiver(mIntentReceiver, mIntentReceiver.getFilter());
+        //Toast.makeText(getApplicationContext(), countTargets + "개 지점에 대한 근접 리스너 등록", Toast.LENGTH_LONG).show();
+
+        /*Button stopBtn = (Button) findViewById(R.id.stopBtn);
         stopBtn.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 unregister();
-                Toast.makeText(getActivity().getApplicationContext(), "근접 리스너 해제", Toast.LENGTH_LONG).show();
+                Toast.makeText(getApplicationContext(), "근접 리스너 해제", Toast.LENGTH_LONG).show();
             }
-        });
+        });*/
 
         return view;
     }
@@ -157,23 +351,6 @@ public class MapFragment extends Fragment {
         super.onDestroyView();
     }
 
-    private void setUpMapIfNeeded() {
-        // Do a null check to confirm that we have not already instantiated the map.
-        if (m_map == null) {
-            // Try to obtain the map from the SupportMapFragment.
-            // m_map = ((SupportMapFragment) getActivity().getSupportFragmentManager().findFragmentById(R.id.map)).getMap();
-            m_map = ((SupportMapFragment) getChildFragmentManager().findFragmentById(R.id.map)).getMap();
-            // Check if we were successful in obtaining the map.
-            if (m_map != null) {
-                setUpMap();
-            }
-        }
-    }
-
-    private void setUpMap() {
-        m_map.addMarker(new MarkerOptions().position(new LatLng(0, 0)).title("Marker"));
-    }
-
     /**
      * 등록한 정보 해제
      */
@@ -181,16 +358,7 @@ public class MapFragment extends Fragment {
         if (mPendingIntentList != null) {
             for (int i = 0; i < mPendingIntentList.size(); i++) {
                 PendingIntent curIntent = (PendingIntent) mPendingIntentList.get(i);
-                if (ActivityCompat.checkSelfPermission(getActivity(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(getActivity(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-                    // TODO: Consider calling
-                    //    ActivityCompat#requestPermissions
-                    // here to request the missing permissions, and then overriding
-                    //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-                    //                                          int[] grantResults)
-                    // to handle the case where the user grants the permission. See the documentation
-                    // for ActivityCompat#requestPermissions for more details.
-                    mLocationManager.removeProximityAlert(curIntent);
-                }
+                mLocationManager.removeProximityAlert(curIntent);
                 mPendingIntentList.remove(i);
             }
         }
@@ -204,23 +372,16 @@ public class MapFragment extends Fragment {
     /**
      * register the proximity intent receiver
      */
-    private void register(int id, double latitude, double longitude, float radius, long expiration) {
+    private void register(int id, double latitude, double longitude, float radius, String name, String url, long expiration) {
         Intent proximityIntent = new Intent(intentKey);
         proximityIntent.putExtra("id", id);
         proximityIntent.putExtra("latitude", latitude);
         proximityIntent.putExtra("longitude", longitude);
+        proximityIntent.putExtra("name", name);
+        proximityIntent.putExtra("url", url);
         PendingIntent intent = PendingIntent.getBroadcast(getActivity(), id, proximityIntent, PendingIntent.FLAG_CANCEL_CURRENT);
 
-        if (ActivityCompat.checkSelfPermission(getActivity(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(getActivity(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            // TODO: Consider calling
-            //    ActivityCompat#requestPermissions
-            // here to request the missing permissions, and then overriding
-            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-            //                                          int[] grantResults)
-            // to handle the case where the user grants the permission. See the documentation
-            // for ActivityCompat#requestPermissions for more details.
-            mLocationManager.addProximityAlert(latitude, longitude, radius, expiration, intent);
-        }
+        mLocationManager.addProximityAlert(latitude, longitude, radius, expiration, intent);
 
         mPendingIntentList.add(intent);
     }
@@ -254,11 +415,35 @@ public class MapFragment extends Fragment {
                 mLastReceivedIntent = intent;
 
                 int id = intent.getIntExtra("id", 0);
+                String name = intent.getStringExtra("name");
+                String url = intent.getStringExtra("url");
                 double latitude = intent.getDoubleExtra("latitude", 0.0D);
                 double longitude = intent.getDoubleExtra("longitude", 0.0D);
 
-                Toast.makeText(context, "근접한 마커 : " + id + ", " + latitude + ", " + longitude, Toast.LENGTH_LONG).show();
+                Toast.makeText(context, "근접한 마커 : " + name, Toast.LENGTH_LONG).show();
 
+
+                //알림(Notification)을 관리하는 NotificationManager 얻어오기
+                NotificationManager manager = (NotificationManager) getActivity().getSystemService(Context.NOTIFICATION_SERVICE);
+                //알림(Notification)을 만들어내는 Builder 객체 생성
+                //API 11 버전 이하도 지원하기 위해 NotificationCampat 클래스 사용
+                //만약 minimum SDK가 API 11 이상이면 Notification 클래스 사용 가능
+                Notification.Builder builder = new Notification.Builder(getActivity());
+                //Notification.Builder에게 Notification 제목, 내용, 이미지 등을 설정//////////////////////////////////////
+                builder.setSmallIcon(android.R.drawable.ic_menu_myplaces);//상태표시줄에 보이는 아이콘 모양
+                builder.setTicker("There is a partner of HeathFree around!"); //알림이 발생될 때 잠시 보이는 글씨
+                //상태바를 드래그하여 아래로 내리면 보이는 알림창(확장 상태바)의 아이콘 모양 지정
+                builder.setLargeIcon(BitmapFactory.decodeResource(getResources(), android.R.drawable.ic_menu_myplaces));
+
+                builder.setContentTitle("There is  " + name + "  around.");    //알림창에서의 제목
+                builder.setContentText("Touch it.");   //알림창에서의 글씨
+
+                Intent naver = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+                PendingIntent pi = PendingIntent.getActivity(getActivity(), (int) System.currentTimeMillis(), naver, 0);
+                builder.setContentIntent(pi);
+
+                Notification notification = builder.build();   //Notification 객체 생성
+                manager.notify(1, notification);             //NotificationManager가 알림(Notification)을 표시
 
             }
         }
@@ -305,16 +490,16 @@ public class MapFragment extends Fragment {
                     gpsListener);
 
             // 네트워크 기반 위치 요청
-            manager.requestLocationUpdates(
+/*            manager.requestLocationUpdates(
                     LocationManager.NETWORK_PROVIDER,
                     minTime,
                     minDistance,
-                    gpsListener);
+                    gpsListener);*/
         } catch (SecurityException ex) {
             ex.printStackTrace();
         }
 
-        Toast.makeText(getActivity().getApplicationContext(), "위치 확인 시작함. 로그를 확인하세요.", Toast.LENGTH_SHORT).show();
+        //Toast.makeText(getActivity().getApplicationContext(), "위치 확인 시작함. 로그를 확인하세요.", Toast.LENGTH_SHORT).show();
     }
 
     private void checkDangerousPermissions() {
