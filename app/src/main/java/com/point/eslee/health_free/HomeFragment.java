@@ -72,7 +72,7 @@ public class HomeFragment extends Fragment {
         };
 
         mTimer = new Timer();
-        mTimer.scheduleAtFixedRate(mTask, 0, 3000);
+        mTimer.scheduleAtFixedRate(mTask, 0, 500);
 
         return view;
     }

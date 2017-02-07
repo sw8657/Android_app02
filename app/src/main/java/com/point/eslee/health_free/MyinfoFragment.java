@@ -60,12 +60,13 @@ public class MyinfoFragment extends Fragment implements View.OnClickListener {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_myinfo, container, false);
-        getActivity().setTitle("Myinfo");
+        getActivity().setTitle(R.string.nav_menuname_myinfo);
         // Inflate the layout for this fragment
 
         mCurrentPointView = (TextView) view.findViewById(R.id.myinfo_current_point); // 현재 포인트
         mTotalPointView = (TextView) view.findViewById(R.id.myinfo_total_point); // 누적 포인트
         mRefreshView = (View) view.findViewById(R.id.myinfo_refresh_point); // 새로고침
+        Spinner spinner_search_option1 = (Spinner) view.findViewById(R.id.myinfo_search_option1); // 검색옵션
         Spinner spinner_search_option = (Spinner) view.findViewById(R.id.myinfo_search_option); // 검색옵션
         mDetailListView = (ListView) view.findViewById(R.id.myinfo_details_listview); // 사용내역
 
@@ -89,7 +90,7 @@ public class MyinfoFragment extends Fragment implements View.OnClickListener {
             }
         });
 
-        String[] List_values = {"LIST1", "LIST2", "LIST3", "LIST1", "LIST2", "LIST3", "LIST1", "LIST2", "LIST3"};
+        String[] List_values = {"No Search results are currently selected."};
         mAdapter = new ArrayAdapter<String>(getActivity(),android.R.layout.simple_list_item_1,List_values);
         mDetailListView.setAdapter(mAdapter);
 

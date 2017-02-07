@@ -101,7 +101,7 @@
     <string name="action_remember_log_in">Remember Login</string>
     <string name="action_sign_up">Sign up</string>
     <string name="nav_menuname_home">Home</string>
-    <string name="nav_menuname_myinfo">My Info</string>
+    <string name="nav_menuname_myinfo">My Point</string>
     <string name="nav_menuname_map">Map</string>
     <string name="nav_menuname_statistics">Statistics</string>
     <string name="nav_menuname_settings">Settings</string>
