@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="horizontal"
+    android:padding="10dp"
+    android:background="@color/colorGraySecondaryOpacity50"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <LinearLayout
+        android:layout_weight="4"
+        android:orientation="vertical"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent">
+        <TextView
+            android:id="@+id/listitem_title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="New Title"
+            android:textSize="20dp"
+            android:textColor="@color/colorDarkGray"
+            android:gravity="center_vertical"
+            android:layout_weight="2"
+            />
+        <TextView
+            android:id="@+id/listitem_datetime"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="New date"
+            android:textSize="14dp"
+            android:textColor="@color/colorDarkGray3"
+            android:layout_weight="1"/>
+    </LinearLayout>
+    <LinearLayout
+        android:layout_weight="1"
+        android:orientation="vertical"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent">
+        <TextView
+            android:id="@+id/listitem_point"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Point"
+            android:textSize="24dp"
+            android:textColor="@color/colorPoint1"
+            android:layout_weight="2"
+            android:gravity="center_vertical|right"/>
+        <TextView
+            android:id="@+id/listitem_pointdetail"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="New detail"
+            android:textColor="@color/colorDarkGray2"
+            android:textSize="14dp"
+            android:gravity="right"
+            android:layout_weight="1" />
+    </LinearLayout>
+
+
+</LinearLayout>

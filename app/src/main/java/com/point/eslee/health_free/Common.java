@@ -47,4 +47,19 @@ public class Common {
 
         return result;
     }
+
+    // 포인트가 양수 음수에 따라서
+    public static String get_pointString(int point){
+        String result = get_commaString(point);
+
+        try{
+            if(point > 0){
+                result = "+" + result;
+            }
+        }catch (Exception ex){
+
+        }
+
+        return result;
+    }
 }
