@@ -440,10 +440,11 @@ public class MapFragment extends Fragment {
          * @param context
          * @param intent
          */
+        int j = 0;
         public void onReceive(Context context, Intent intent) {
             if (intent != null) {
                 mLastReceivedIntent = intent;
-
+                j=j+1;
                 int id = intent.getIntExtra("id", 0);
                 String name = intent.getStringExtra("name");
                 String url = intent.getStringExtra("url");
@@ -467,13 +468,13 @@ public class MapFragment extends Fragment {
 
                 builder.setContentTitle("There is  " + name + "  around.");    //알림창에서의 제목
                 builder.setContentText("Touch it.");   //알림창에서의 글씨
-
+                builder.setVibrate(new long[] { 1000, 1000 });
                 Intent naver = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
                 PendingIntent pi = PendingIntent.getActivity(getActivity(), (int) System.currentTimeMillis(), naver, 0);
                 builder.setContentIntent(pi);
 
                 Notification notification = builder.build();   //Notification 객체 생성
-                manager.notify(1, notification);             //NotificationManager가 알림(Notification)을 표시
+                manager.notify(j, notification);             //NotificationManager가 알림(Notification)을 표시
 
             }
         }
@@ -613,6 +614,7 @@ public class MapFragment extends Fragment {
     double old_latitude;
     double old_longitude;
     int i = 0;
+    double Sum = 0;
 
     private void showCurrentLocation(Double latitude, Double longitude) {
         // 현재 위치를 이용해 LatLon 객체 생성
@@ -629,6 +631,17 @@ public class MapFragment extends Fragment {
                 .width(10)
                 .color(Color.BLUE)
         );
+
+        Location locationS = new Location("point S");
+        Location locationE = new Location("point E");
+        locationS.setLatitude(Double.parseDouble(Double.toString(old_latitude)));
+        locationS.setLongitude(Double.parseDouble(Double.toString(old_longitude)));
+        locationE.setLatitude(Double.parseDouble(Double.toString(latitude)));
+        locationE.setLongitude(Double.parseDouble(Double.toString(longitude)));
+        double distance = locationS.distanceTo(locationE);
+        Sum = Sum + distance; //총 이동거리
+        values.Distance_sum = Sum;
+
         old_latitude = latitude;
         old_longitude = longitude;
         i = 1;

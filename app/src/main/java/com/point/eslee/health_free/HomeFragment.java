@@ -22,6 +22,7 @@ public class HomeFragment extends Fragment {
     private String mParam2;
 
     private TextView mStepView;
+    private TextView mDistanceView;
     private TimerTask mTask;
     private Timer mTimer;
 
@@ -55,7 +56,10 @@ public class HomeFragment extends Fragment {
         // Inflate the layout for this fragment
 
         mStepView = (TextView) view.findViewById(R.id.home_step_value); // 걸음수 뷰
+        mDistanceView = (TextView) view.findViewById(R.id.home_distance_value); // 거리 뷰
+
         mStepView.setText(Common.get_commaString(values.Step));
+        mDistanceView.setText(String.valueOf(values.Distance_sum));
 
         // 타이머 가져오기
         mTask = new TimerTask() {
@@ -66,6 +70,7 @@ public class HomeFragment extends Fragment {
                     public void run() {
 //                        Toast.makeText(getActivity(), "" + values.Step, Toast.LENGTH_SHORT);
                         mStepView.setText(Common.get_commaString(values.Step));
+                        mDistanceView.setText(String.valueOf((double)Math.round(values.Distance_sum/100)/10));
                     }
                 });
             }
