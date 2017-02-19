@@ -7,20 +7,13 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
-import android.widget.Button;
 import android.widget.ListView;
 import android.widget.ScrollView;
 import android.widget.Spinner;
 import android.widget.TextView;
-import android.widget.Toast;
-
-import java.util.List;
-import java.util.Timer;
-import java.util.TimerTask;
 
 
-public class MyinfoFragment extends Fragment implements View.OnClickListener {
+public class MypointFragment extends Fragment implements View.OnClickListener {
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private static final String ARG_PARAM1 = "param1";
@@ -37,13 +30,13 @@ public class MyinfoFragment extends Fragment implements View.OnClickListener {
     private ListView mDetailListView;
     private ListViewAdapter mAdapter;
 
-    public MyinfoFragment() {
+    public MypointFragment() {
         // Required empty public constructor
     }
 
     // TODO: Rename and change types and number of parameters
-    public static MyinfoFragment newInstance(String param1, String param2) {
-        MyinfoFragment fragment = new MyinfoFragment();
+    public static MypointFragment newInstance(String param1, String param2) {
+        MypointFragment fragment = new MypointFragment();
         Bundle args = new Bundle();
         args.putString(ARG_PARAM1, param1);
         args.putString(ARG_PARAM2, param2);
@@ -62,17 +55,17 @@ public class MyinfoFragment extends Fragment implements View.OnClickListener {
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_myinfo, container, false);
+        View view = inflater.inflate(R.layout.fragment_mypoint, container, false);
         getActivity().setTitle(R.string.nav_menuname_myinfo);
         // Inflate the layout for this fragment
 
-        mCurrentPointView = (TextView) view.findViewById(R.id.myinfo_current_point); // 현재 포인트
-        mTotalPointView = (TextView) view.findViewById(R.id.myinfo_total_point); // 누적 포인트
-        mRefreshView = (View) view.findViewById(R.id.myinfo_refresh_point); // 새로고침
-        final Spinner spinner_search_option1 = (Spinner) view.findViewById(R.id.myinfo_search_option1); // 검색옵션
-        Spinner spinner_search_option = (Spinner) view.findViewById(R.id.myinfo_search_option); // 검색옵션
-        mDetailListView = (ListView) view.findViewById(R.id.myinfo_details_listview); // 사용내역
-        mScrollView = (ScrollView) view.findViewById(R.id.myinfo_scroll); // 스크롤뷰
+        mCurrentPointView = (TextView) view.findViewById(R.id.mypoint_current_point); // 현재 포인트
+        mTotalPointView = (TextView) view.findViewById(R.id.mypoint_total_point); // 누적 포인트
+        mRefreshView = (View) view.findViewById(R.id.mypoint_refresh_point); // 새로고침
+        final Spinner spinner_search_option_year = (Spinner) view.findViewById(R.id.mypoint_search_option_year); // 검색옵션
+        Spinner spinner_search_option_month = (Spinner) view.findViewById(R.id.mypoint_search_option_month); // 검색옵션
+        mDetailListView = (ListView) view.findViewById(R.id.mypoint_details_listview); // 사용내역
+        mScrollView = (ScrollView) view.findViewById(R.id.mypoint_scroll); // 스크롤뷰
 
         // 포인트 조회
         mCurrentPointView.setText(Common.get_commaString(1027));
@@ -86,10 +79,10 @@ public class MyinfoFragment extends Fragment implements View.OnClickListener {
         mRefreshView.setOnClickListener(this);
 
         // 검색 옵션 선택 (월)
-        spinner_search_option.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+        spinner_search_option_month.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
-                String year = String.valueOf(spinner_search_option1.getSelectedItem());
+                String year = String.valueOf(spinner_search_option_year.getSelectedItem());
                 String month = String.valueOf(adapterView.getItemAtPosition(i));
 //                Toast.makeText(getActivity().getApplicationContext(), value, Toast.LENGTH_SHORT).show();
                 setDetailList(year, month); // 리스트 뷰 표출
@@ -116,7 +109,7 @@ public class MyinfoFragment extends Fragment implements View.OnClickListener {
     @Override
     public void onClick(View view) {
         switch (view.getId()) {
-            case R.id.myinfo_refresh_point:
+            case R.id.mypoint_refresh_point:
                 try {
                     // 포인트 새로고침
                     int ran = (int) (Math.random() * 1500) + 500;

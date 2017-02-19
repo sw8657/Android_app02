@@ -23,6 +23,8 @@
     </string>
     <string name="title_activity_settings">Settings</string>
 
+    <string name="user_name">user_name</string>
+
     <!-- Strings related to Settings -->
 
     <!-- Example General settings -->

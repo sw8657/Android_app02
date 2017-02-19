@@ -4,11 +4,11 @@
     android:id="@+id/content_fragment_myinfo"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="com.point.eslee.health_free.MyinfoFragment">
+    tools:context="com.point.eslee.health_free.MypointFragment">
 
     <!-- TODO: Update blank fragment layout -->
     <ScrollView
-        android:id="@+id/myinfo_scroll"
+        android:id="@+id/mypoint_scroll"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:scrollbars="vertical"
@@ -49,7 +49,7 @@
                         android:gravity="center_vertical|right">
 
                         <TextView
-                            android:id="@+id/myinfo_current_point"
+                            android:id="@+id/mypoint_current_point"
                             android:text="0"
                             android:textColor="@color/colorAccent"
                             android:textSize="@dimen/myinfo_current_point_textsize"
@@ -64,7 +64,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content" />
                         <LinearLayout
-                            android:id="@+id/myinfo_refresh_point"
+                            android:id="@+id/mypoint_refresh_point"
                             android:layout_width="30dp"
                             android:layout_height="match_parent"
                             android:gravity="center">
@@ -101,7 +101,7 @@
                         android:gravity="center_vertical|right">
 
                         <TextView
-                            android:id="@+id/myinfo_total_point"
+                            android:id="@+id/mypoint_total_point"
                             android:text="0"
                             android:textColor="@color/colorGray"
                             android:textSize="@dimen/myinfo_total_point_textsize"
@@ -137,13 +137,13 @@
                     android:layout_weight="1"></View>
 
                 <Spinner
-                    android:id="@+id/myinfo_search_option1"
+                    android:id="@+id/mypoint_search_option_year"
                     android:layout_width="100dp"
                     android:layout_height="match_parent"
                     android:entries="@array/search_month_option1"></Spinner>
 
                 <Spinner
-                    android:id="@+id/myinfo_search_option"
+                    android:id="@+id/mypoint_search_option_month"
                     android:layout_width="120dp"
                     android:layout_height="match_parent"
                     android:entries="@array/search_month_option"></Spinner>
@@ -151,7 +151,7 @@
 
             </LinearLayout>
             <ListView
-                android:id="@+id/myinfo_details_listview"
+                android:id="@+id/mypoint_details_listview"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:choiceMode="none"
