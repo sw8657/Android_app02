@@ -1,5 +1,6 @@
 package com.point.eslee.health_free;
 
+import android.database.Cursor;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
@@ -11,6 +12,9 @@ import android.widget.ListView;
 import android.widget.ScrollView;
 import android.widget.Spinner;
 import android.widget.TextView;
+
+import com.point.eslee.health_free.database.DataBases;
+import com.point.eslee.health_free.database.DbOpenHelper;
 
 
 public class MypointFragment extends Fragment implements View.OnClickListener {
@@ -27,8 +31,12 @@ public class MypointFragment extends Fragment implements View.OnClickListener {
     private TextView mTotalPointView;
     private View mRefreshView;
     private ScrollView mScrollView;
+
     private ListView mDetailListView;
-    private ListViewAdapter mAdapter;
+    private ListViewPointAdapter mAdapter;
+
+    private DbOpenHelper mDbOpenHelper;
+    private Cursor mCursor;
 
     public MypointFragment() {
         // Required empty public constructor
@@ -71,12 +79,16 @@ public class MypointFragment extends Fragment implements View.OnClickListener {
         mCurrentPointView.setText(Common.get_commaString(1027));
         mTotalPointView.setText(Common.get_commaString(3520));
 
+        // DB연결
+        mDbOpenHelper = new DbOpenHelper(getActivity());
+        mDbOpenHelper.open();
+
         // 리스트 뷰 초기화
-        mAdapter = new ListViewAdapter();
+        mAdapter = new ListViewPointAdapter();
         mDetailListView.setAdapter(mAdapter);
         mDetailListView.setClickable(false); // 클릭 여부
 
-        mRefreshView.setOnClickListener(this);
+        mRefreshView.setOnClickListener(this); // 새로고침 클릭이벤트
 
         // 검색 옵션 선택 (월)
         spinner_search_option_month.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
@@ -137,59 +149,78 @@ public class MypointFragment extends Fragment implements View.OnClickListener {
 
 
     private void setDetailList(String year, String month){
+        int id = -1;
+        String sTitle = "";
+        String sUseDate = "";
+        int sPoint = 0;
+        String sUseDetail = "";
+
         mAdapter.clearItem();
+        mCursor =  null;
+        mCursor = mDbOpenHelper.getPointWhereDate(year,month);
 
-        if(year.equals("2016")){
-            switch (month){
-                case "12":{
-                    mAdapter.addItem("Starbucks", "2016.12.31 13:03",-300,"Use");
-                    mAdapter.addItem("Walking","2016.12.27 19:00",500,"Save Walking");
-                    mAdapter.addItem("Walking","2016.12.24 19:00",450,"Save Walking");
-                    mAdapter.addItem("Starbucks", "2016.12.23 14:10",-500,"Use");
-                    mAdapter.addItem("Starbucks", "2016.12.17 17:03",-300,"Use");
-                    mAdapter.addItem("Weekly Event","2016.12.15 09:10",1000,"Event");
-                    mAdapter.addItem("Starbucks", "2016.12.15 10:43",-500,"Use");
-                    mAdapter.addItem("Walking","2016.12.10 19:00",500,"Save Walking");
-                    mAdapter.addItem("Walking","2016.12.03 19:00",450,"Save Walking");
-                    mAdapter.addItem("Burgerking","2016.12.01 12:20",-400,"Use");
-                    break;
-                }
-                case "11":{
-                    mAdapter.addItem("Weekly Event","2017.02.11 15:28",1000,"Event");
-                    mAdapter.addItem("Starbucks", "2017.02.05 10:43",-500,"Use");
-                    mAdapter.addItem("Walking","2017.02.04 19:00",500,"Save Walking");
-                    mAdapter.addItem("Walking","2017.02.03 19:00",450,"Save Walking");
-                    mAdapter.addItem("Burgerking","2017.02.01 12:20",-400,"Use");
-                    break;
-                }
-            }
+        while (mCursor.moveToNext()){
+            id = mCursor.getInt(mCursor.getColumnIndex(DataBases.PointTable._ID));
+            sTitle = mCursor.getString(mCursor.getColumnIndex(DataBases.PointTable.USE_WHERE));
+            sUseDate = mCursor.getString(mCursor.getColumnIndex(DataBases.PointTable.USE_DATE));
+            sPoint = mCursor.getInt(mCursor.getColumnIndex(DataBases.PointTable.USE_POINT));
+            sUseDetail = mCursor.getString(mCursor.getColumnIndex(DataBases.PointTable.USE_TYPE));
 
-        }else{
-            // 2017
-            switch (month){
-                case "1":{
-                    mAdapter.addItem("Starbucks", "2017.01.23 14:10",-500,"Use");
-                    mAdapter.addItem("Starbucks", "2017.01.17 17:03",-300,"Use");
-                    mAdapter.addItem("Weekly Event","2017.01.15 09:10",1000,"Event");
-                    mAdapter.addItem("Starbucks", "2017.01.15 10:43",-500,"Use");
-                    mAdapter.addItem("Walking","2017.01.10 19:00",500,"Save Walking");
-                    mAdapter.addItem("Walking","2017.01.03 19:00",450,"Save Walking");
-                    mAdapter.addItem("Burgerking","2017.01.01 12:20",-400,"Use");
-                    break;
-                }
-                case "2":{
-                    mAdapter.addItem("Weekly Event","2017.02.11 15:28",1000,"Event");
-                    mAdapter.addItem("Starbucks", "2017.02.05 10:43",-500,"Use");
-                    mAdapter.addItem("Walking","2017.02.04 19:00",500,"Save Walking");
-                    mAdapter.addItem("Walking","2017.02.03 19:00",450,"Save Walking");
-                    mAdapter.addItem("Burgerking","2017.02.01 12:20",-400,"Use");
-                    break;
-                }
-            }
-
+            mAdapter.addItem(id,sTitle,sUseDate,sPoint,sUseDetail);
         }
-
+        mCursor.close();
         mAdapter.notifyDataSetChanged();
+
+//        if(year.equals("2016")){
+//            switch (month){
+//                case "12":{
+//                    mAdapter.addItem("Starbucks", "2016.12.31 13:03",-300,"Use");
+//                    mAdapter.addItem("Walking","2016.12.27 19:00",500,"Save Walking");
+//                    mAdapter.addItem("Walking","2016.12.24 19:00",450,"Save Walking");
+//                    mAdapter.addItem("Starbucks", "2016.12.23 14:10",-500,"Use");
+//                    mAdapter.addItem("Starbucks", "2016.12.17 17:03",-300,"Use");
+//                    mAdapter.addItem("Weekly Event","2016.12.15 09:10",1000,"Event");
+//                    mAdapter.addItem("Starbucks", "2016.12.15 10:43",-500,"Use");
+//                    mAdapter.addItem("Walking","2016.12.10 19:00",500,"Save Walking");
+//                    mAdapter.addItem("Walking","2016.12.03 19:00",450,"Save Walking");
+//                    mAdapter.addItem("Burgerking","2016.12.01 12:20",-400,"Use");
+//                    break;
+//                }
+//                case "11":{
+//                    mAdapter.addItem("Weekly Event","2017.02.11 15:28",1000,"Event");
+//                    mAdapter.addItem("Starbucks", "2017.02.05 10:43",-500,"Use");
+//                    mAdapter.addItem("Walking","2017.02.04 19:00",500,"Save Walking");
+//                    mAdapter.addItem("Walking","2017.02.03 19:00",450,"Save Walking");
+//                    mAdapter.addItem("Burgerking","2017.02.01 12:20",-400,"Use");
+//                    break;
+//                }
+//            }
+//
+//        }else{
+//            // 2017
+//            switch (month){
+//                case "1":{
+//                    mAdapter.addItem("Starbucks", "2017.01.23 14:10",-500,"Use");
+//                    mAdapter.addItem("Starbucks", "2017.01.17 17:03",-300,"Use");
+//                    mAdapter.addItem("Weekly Event","2017.01.15 09:10",1000,"Event");
+//                    mAdapter.addItem("Starbucks", "2017.01.15 10:43",-500,"Use");
+//                    mAdapter.addItem("Walking","2017.01.10 19:00",500,"Save Walking");
+//                    mAdapter.addItem("Walking","2017.01.03 19:00",450,"Save Walking");
+//                    mAdapter.addItem("Burgerking","2017.01.01 12:20",-400,"Use");
+//                    break;
+//                }
+//                case "2":{
+//                    mAdapter.addItem("Weekly Event","2017.02.11 15:28",1000,"Event");
+//                    mAdapter.addItem("Starbucks", "2017.02.05 10:43",-500,"Use");
+//                    mAdapter.addItem("Walking","2017.02.04 19:00",500,"Save Walking");
+//                    mAdapter.addItem("Walking","2017.02.03 19:00",450,"Save Walking");
+//                    mAdapter.addItem("Burgerking","2017.02.01 12:20",-400,"Use");
+//                    break;
+//                }
+//            }
+//
+//        }
+
     }
 
 
