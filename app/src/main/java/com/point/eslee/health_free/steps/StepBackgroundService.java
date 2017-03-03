@@ -1,4 +1,4 @@
-package com.point.eslee.health_free;
+package com.point.eslee.health_free.steps;
 
 
 import android.annotation.TargetApi;
@@ -17,6 +17,9 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.view.Gravity;
 import android.widget.Toast;
+
+import com.point.eslee.health_free.MainActivity;
+import com.point.eslee.health_free.values;
 
 public class StepBackgroundService extends Service implements SensorEventListener {
 

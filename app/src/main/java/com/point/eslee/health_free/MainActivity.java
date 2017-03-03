@@ -24,6 +24,7 @@ import android.support.annotation.RequiresApi;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
@@ -43,17 +44,21 @@ import android.widget.Toast;
 
 import com.google.android.gms.maps.MapsInitializer;
 import com.google.android.gms.maps.model.LatLng;
+import com.point.eslee.health_free.point.MypointFragment;
+import com.point.eslee.health_free.steps.StepBackgroundService;
 
 import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
 
-    private Fragment mHomeFragment;
-    private Fragment mMyinfoFragment;
-    private Fragment mMapFragment;
-    private Fragment mStatisticsFragment;
     private SharedPreferences mPref;
-    private PopupWindow mPopupWindow;
+
+    public enum Fragments {
+        Home,
+        MyPoint,
+        Map,
+        Statistics
+    }
 
     //private boolean misLogin = false;
     public String mUserEmail = "Nothing Email";
@@ -81,32 +86,13 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
+        // 플로팅액션버튼
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-//                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-//                        .setAction("Action", null).show();
-
-//                View popupView = getLayoutInflater().inflate(R.layout.activity_barcode,null);
-//                mPopupWindow = new PopupWindow(popupView);
-//                mPopupWindow.setWindowLayoutMode(WindowManager.LayoutParams.FLAG_BLUR_BEHIND,WindowManager.LayoutParams.FLAG_BLUR_BEHIND);
-//
-//                // 팝업 터치 가능
-//                mPopupWindow.setTouchable(true);
-//                mPopupWindow.setFocusable(true);
-//                // 팝업 외부 터치 가능(외부터치 나갈수있게)
-//                mPopupWindow.setOutsideTouchable(true);
-//                // 외부터치 인식을 위한 추가 설정
-//                mPopupWindow.setBackgroundDrawable(new BitmapDrawable());
-//                // 애니메이션 활성화
-//                mPopupWindow.setAnimationStyle(R.style.Animation_AppCompat_DropDownUp);
-//                // 한가운데 팝업 생성
-//                mPopupWindow.showAtLocation(popupView, Gravity.BOTTOM,0,10);
-
                 Intent mainIntent = new Intent(MainActivity.this, BarcodeActivity.class);
                 MainActivity.this.startActivity(mainIntent);
-
             }
         });
 
@@ -115,18 +101,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
         drawer.setDrawerListener(toggle);
         toggle.syncState();
-
-        // Fragment 생성
-        mHomeFragment = new HomeFragment();
-        mMyinfoFragment = new MypointFragment();
-        mMapFragment = new MapFragment();
-        mStatisticsFragment = new StatisticsFragment();
-
-        // 기본 플래그 화면 지도 떴다가
-        FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-        transaction.add(R.id.content_fragment_main, mHomeFragment);
-        transaction.addToBackStack(null);
-        transaction.commit();
 
         // 환경설정 불러오기
         mPref = PreferenceManager.getDefaultSharedPreferences(this);
@@ -210,6 +184,41 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         mIntentReceiver = new CoffeeIntentReceiver(intentKey);
         registerReceiver(mIntentReceiver, mIntentReceiver.getFilter());
 
+        // 기본 플래그 화면 홈으로 설정
+        replaceFragment(Fragments.Home);
+    }
+
+    // 플래그 화면 전환
+    public void replaceFragment(Fragments frag) {
+        Fragment fragment = null;
+        switch (frag) {
+            case Home: {
+                fragment = new HomeFragment();
+                break;
+            }
+            case MyPoint: {
+                fragment = new MypointFragment();
+                break;
+            }
+            case Map: {
+                fragment = new MapFragment();
+                break;
+            }
+            case Statistics:{
+                fragment = new StatisticsFragment();
+                break;
+            }
+            default:{
+                fragment = new HomeFragment();
+                break;
+            }
+        }
+
+        FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+//        transaction.add(R.id.content_fragment_main, fragment);
+        transaction.replace(R.id.content_fragment_main, fragment);
+        transaction.addToBackStack(null);
+        transaction.commit();
     }
 
     @Override
@@ -299,32 +308,26 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     @SuppressWarnings("StatementWithEmptyBody")
     @Override
     public boolean onNavigationItemSelected(MenuItem item) {
-
-        FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-
         // Handle navigation view item clicks here.
         int id = item.getItemId();
 
         if (id == R.id.nav_home) {
-            transaction.replace(R.id.content_fragment_main, mHomeFragment);
+            replaceFragment(Fragments.Home);
         } else if (id == R.id.nav_myinfo) {
             // 내 정보
-            transaction.replace(R.id.content_fragment_main, mMyinfoFragment);
+            replaceFragment(Fragments.MyPoint);
         } else if (id == R.id.nav_map) {
             // 지도
-            transaction.replace(R.id.content_fragment_main, mMapFragment);
+            replaceFragment(Fragments.Map);
         } else if (id == R.id.nav_stat) {
             // 통계 (오늘 걸음수, 주간, 월간)
-            transaction.replace(R.id.content_fragment_main, mStatisticsFragment);
+            replaceFragment(Fragments.Statistics);
         } else if (id == R.id.nav_settings) {
             // 환경설정
             Intent mainIntent = new Intent(MainActivity.this, SettingsActivity.class);
             mainIntent.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
             MainActivity.this.startActivity(mainIntent);
         }
-
-        transaction.addToBackStack(null);
-        transaction.commit();
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
@@ -509,9 +512,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 old_latitude = latitude;
                 old_longitude = longitude;
 
-                MapFragment mapF = (MapFragment) mMapFragment;
-                // MapFragment mapF = (MapFragment) getSupportFragmentManager().findFragmentById(R.id.content_fragment_map);
-                mapF.showCurrentLocation(i,old_latitude,old_longitude, latitude,longitude);
+                // MapFragment mapF = (MapFragment) mMapFragment;
+                MapFragment mapF = (MapFragment) getSupportFragmentManager().findFragmentById(R.id.content_fragment_map);
+                mapF.showCurrentLocation(i, old_latitude, old_longitude, latitude, longitude);
             }
 
             Location locationS = new Location("point S");
@@ -565,11 +568,12 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
          * @param intent
          */
         int j = 0;
+
         @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
         public void onReceive(Context context, Intent intent) {
             if (intent != null) {
                 mLastReceivedIntent = intent;
-                j=j+1;
+                j = j + 1;
                 int id = intent.getIntExtra("id", 0);
                 String name = intent.getStringExtra("name");
                 String url = intent.getStringExtra("url");
@@ -593,7 +597,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
                 builder.setContentTitle("There is  " + name + "  around.");    //알림창에서의 제목
                 builder.setContentText("Touch it.");   //알림창에서의 글씨
-                builder.setVibrate(new long[] { 1000, 1000 });
+                builder.setVibrate(new long[]{1000, 1000});
                 Intent naver = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
                 PendingIntent pi = PendingIntent.getActivity(MainActivity.this, (int) System.currentTimeMillis(), naver, 0);
                 builder.setContentIntent(pi);

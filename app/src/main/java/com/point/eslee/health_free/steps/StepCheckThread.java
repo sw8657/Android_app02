@@ -1,4 +1,4 @@
-package com.point.eslee.health_free;
+package com.point.eslee.health_free.steps;
 
 import android.os.Handler;
 

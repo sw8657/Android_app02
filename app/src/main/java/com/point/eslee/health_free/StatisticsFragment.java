@@ -188,6 +188,12 @@ public class StatisticsFragment extends Fragment {
         public int DataIndex = 0;
     }
 
+    // TODO: 주간 검색
+    // 오늘날짜 입력시 이번주 (일-토) 통계 표출
+    // 왼쪽화살표 클릭 - 7일전 통계표출
+    // 오른쪽화살표 클릭 - 7일후 통계표출
+
+
     List<LineDataSet> mDataWeek;
     List<LineDataSet> mDataMonth;
 

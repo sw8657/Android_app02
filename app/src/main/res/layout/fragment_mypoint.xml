@@ -4,7 +4,7 @@
     android:id="@+id/content_fragment_myinfo"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="com.point.eslee.health_free.MypointFragment">
+    tools:context="com.point.eslee.health_free.point.MypointFragment">
 
     <!-- TODO: Update blank fragment layout -->
     <ScrollView

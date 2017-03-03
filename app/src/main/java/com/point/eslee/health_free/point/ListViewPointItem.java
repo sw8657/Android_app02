@@ -1,4 +1,4 @@
-package com.point.eslee.health_free;
+package com.point.eslee.health_free.point;
 
 /**
  * Created by eslee on 2017-02-12.
@@ -9,14 +9,14 @@ public class ListViewPointItem {
     private String titleStr;
     private String datetimeStr;
     private int point_value;
-    private String pointStr;
+    private String point_type;
 
-    public ListViewPointItem(int id, String title, String datetime, int point, String pointString){
+    public ListViewPointItem(int id, String pointType, String title, int point, String datetime){
         _id = id;
         titleStr = title;
         datetimeStr = datetime;
         point_value = point;
-        pointStr = pointString;
+        point_type = pointType;
     }
 
     public void setId(int id) {
@@ -51,12 +51,12 @@ public class ListViewPointItem {
         return this.point_value;
     }
 
-    public void setPointStr(String pointString) {
-        pointStr = pointString;
+    public void setPointType(String pointType) {
+        point_type = pointType;
     }
 
-    public String getPointStr() {
-        return this.pointStr;
+    public String getPointType() {
+        return this.point_type;
     }
 
 }

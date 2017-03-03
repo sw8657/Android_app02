@@ -74,7 +74,7 @@
         </activity>
 
         <service
-            android:name=".StepBackgroundService"
+            android:name=".steps.StepBackgroundService"
             android:enabled="true"
             android:exported="true" />
 

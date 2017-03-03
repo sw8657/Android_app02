@@ -1,4 +1,4 @@
-package com.point.eslee.health_free;
+package com.point.eslee.health_free.point;
 
 import android.content.Context;
 import android.view.LayoutInflater;
@@ -8,6 +8,9 @@ import android.widget.BaseAdapter;
 import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
+
+import com.point.eslee.health_free.Common;
+import com.point.eslee.health_free.R;
 
 import java.util.ArrayList;
 
@@ -73,7 +76,7 @@ public class ListViewPointAdapter extends BaseAdapter {
         } else {
             pointView.setTextColor(view.getResources().getColor(R.color.colorPoint1));
         }
-        pointDetailView.setText(listViewItem.getPointStr());
+        pointDetailView.setText(listViewItem.getPointType());
 
        // setListViewHeight((ListView) view); // 높이 조절
         return view;
