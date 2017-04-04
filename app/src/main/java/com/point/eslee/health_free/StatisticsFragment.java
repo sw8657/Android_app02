@@ -126,8 +126,9 @@ public class StatisticsFragment extends Fragment {
                 mViewMonthly.setTag(1);
                 //Toast.makeText(getActivity(), "월간", Toast.LENGTH_SHORT).show();
                 try {
+                    // 오늘날짜 기준
                     mDateString = getStringCurrentDate();
-//                    CreateChartView_Month_1(1);
+                    ViewData_TodayMonth();
                 } catch (Exception e) {
                 }
             }
@@ -138,14 +139,12 @@ public class StatisticsFragment extends Fragment {
             public void onClick(View v) {
                 if ((int) mViewWeekly.getTag() == 1) {
                     // 주간
-                    mDateString = getStringCalWeekDate(mDateString,false);
+                    mDateString = getStringCalWeekDate(mDateString, false);
                     ViewData_TodayWeek();
                 } else {
                     // 월간
-//                    if (mDataIndex > 0) {
-//                        CreateChartView_Month_1(mDataIndex - 1);
-//                        mDataIndex--;
-//                    }
+                    mDateString = getStringCalMonthDate(mDateString, false);
+                    ViewData_TodayMonth();
                 }
             }
         });
@@ -155,14 +154,12 @@ public class StatisticsFragment extends Fragment {
             public void onClick(View v) {
                 if ((int) mViewWeekly.getTag() == 1) {
                     // 주간
-                    mDateString = getStringCalWeekDate(mDateString,true);
+                    mDateString = getStringCalWeekDate(mDateString, true);
                     ViewData_TodayWeek();
                 } else {
                     // 월간
-//                    if (mDataIndex < (mDataMonth.size() - 1)) {
-//                        CreateChartView_Month_1(mDataIndex + 1);
-//                        mDataIndex++;
-//                    }
+                    mDateString = getStringCalMonthDate(mDateString, true);
+                    ViewData_TodayMonth();
                 }
             }
         });
@@ -214,9 +211,9 @@ public class StatisticsFragment extends Fragment {
         labels.add("S");
 
         // DB 읽기
-        // 이번달 몇째주 표출
+        // 이번달 몇째주 표출 // ex : 2 Week of January
         sTitle = getStringWeekNumberInMonth(mDateString);
-        // 오늘날짜 기준 이번주 날짜 표출
+        // 오늘날짜 기준 이번주 날짜 표출 ex : 2017-01-01 ~
         sDates = mRecordDB.SelectFirstAndEndDate(mDateString);
         sSubTitle = sDates[0] + " - " + sDates[1];
         // 오늘날짜 입력시 이번주 (일-토) 통계 표출
@@ -252,11 +249,11 @@ public class StatisticsFragment extends Fragment {
         // DB 읽기
         // 이번달 몇째주 표출
         sTitle = getStringMonth(mDateString);
-        // 오늘날짜 기준 이번주 날짜 표출
-        sDates = mRecordDB.SelectFirstAndEndDate(mDateString);
+        // 오늘날짜 기준 이번달 날짜 표출
+        sDates = getStringFirstEndMonth(mDateString);
         sSubTitle = sDates[0] + " - " + sDates[1];
-        // 오늘날짜 입력시 이번주 (일-토) 통계 표출
-        entries = mRecordDB.SelectStatStepWeek(mDateString);
+        // 오늘날짜 기준 이번달 통계 표출
+        entries = mRecordDB.SelectStatStepMonth(mDateString);
         dataset = new LineDataSet(entries, "# of Calls");
         data = new LineData(labels, dataset);
 
@@ -283,30 +280,30 @@ public class StatisticsFragment extends Fragment {
     }
 
     // 오늘 날짜 구하기
-    private String getStringCurrentDate(){
+    private String getStringCurrentDate() {
         String result = "2017-01-01";
 
-        try{
+        try {
             // 오늘 날짜 구하기
             long now = System.currentTimeMillis();
             Date date = new Date(now);
             SimpleDateFormat CurDateFormat = new SimpleDateFormat("yyyy-MM-dd");
             result = CurDateFormat.format(date);
-        }catch (Exception ex){
+        } catch (Exception ex) {
 
         }
 
         return result;
     }
 
-    private String getStringWeekNumberInMonth(String sCurrentDate){
+    private String getStringWeekNumberInMonth(String sCurrentDate) {
         String result = "2017-01-01";
 
-        try{
+        try {
             // 오늘 날짜 구하기
             // 기준 날짜 구하기
             SimpleDateFormat CurDateFormat = new SimpleDateFormat("yyyy-MM-dd");
-            SimpleDateFormat EngMonth = new SimpleDateFormat("MMM", new Locale("en","US"));
+            SimpleDateFormat EngMonth = new SimpleDateFormat("MMM", new Locale("en", "US"));
             Date date = CurDateFormat.parse(sCurrentDate);
             Calendar cal = Calendar.getInstance();
             cal.setTime(date);
@@ -314,25 +311,25 @@ public class StatisticsFragment extends Fragment {
             result = String.valueOf(cal.get(Calendar.WEEK_OF_MONTH));
             result = cal.get(Calendar.WEEK_OF_MONTH) + " Week of " + EngMonth.format(date);
             // ex : 2 Week of January
-        }catch (Exception ex){
+        } catch (Exception ex) {
 
         }
 
         return result;
     }
 
-    private String getStringMonth(String sCurrentDate){
+    private String getStringMonth(String sCurrentDate) {
         String result = "2017-01-01";
 
-        try{
+        try {
             // 오늘 날짜 구하기
             // 기준 날짜 구하기
             SimpleDateFormat CurDateFormat = new SimpleDateFormat("yyyy-MM-dd");
-            SimpleDateFormat EngMonth = new SimpleDateFormat("yyyy MMM", new Locale("en","US"));
+            SimpleDateFormat EngMonth = new SimpleDateFormat("yyyy MMM", new Locale("en", "US"));
             Date date = CurDateFormat.parse(sCurrentDate);
             result = EngMonth.format(date);
             // ex : 2017 January
-        }catch (Exception ex){
+        } catch (Exception ex) {
 
         }
 
@@ -340,10 +337,10 @@ public class StatisticsFragment extends Fragment {
     }
 
     // 기준날짜에 계산하기
-    private String getStringCalWeekDate(String sCurrentDate, boolean bPlus7days){
+    private String getStringCalWeekDate(String sCurrentDate, boolean bPlus7days) {
         String result = "2017-01-08";
 
-        try{
+        try {
             // 기준 날짜 구하기
             SimpleDateFormat CurDateFormat = new SimpleDateFormat("yyyy-MM-dd");
             Date date = CurDateFormat.parse(sCurrentDate);
@@ -351,20 +348,52 @@ public class StatisticsFragment extends Fragment {
             cal.setTime(date);
 
             // 기준 날짜에 7일 더하기
-            if(bPlus7days) {
-                cal.add(Calendar.DATE,7);
-            }else{
-                cal.add(Calendar.DATE,-7);
+            if (bPlus7days) {
+                cal.add(Calendar.DATE, 7);
+            } else {
+                cal.add(Calendar.DATE, -7);
             }
 
             // 계산된 날이 현재 날짜보다 이후이면 현재날짜로 반환하기
-            if(cal.getTime().after(new Date(System.currentTimeMillis()))) {
+            if (cal.getTime().after(new Date(System.currentTimeMillis()))) {
                 result = CurDateFormat.format(new Date(System.currentTimeMillis()));
-            }else{
+            } else {
                 result = CurDateFormat.format(cal.getTime());
             }
 
-        }catch (Exception ex){
+        } catch (Exception ex) {
+
+        }
+
+        return result;
+    }
+
+    // 기준날짜에 계산하기
+    private String getStringCalMonthDate(String sCurrentDate, boolean bPlusMonth) {
+        String result = "2017-01-08";
+
+        try {
+            // 기준 날짜 구하기
+            SimpleDateFormat CurDateFormat = new SimpleDateFormat("yyyy-MM-dd");
+            Date date = CurDateFormat.parse(sCurrentDate);
+            Calendar cal = Calendar.getInstance();
+            cal.setTime(date);
+
+            // 기준 날짜에 1개월 더하기
+            if (bPlusMonth) {
+                cal.add(Calendar.MONTH, 1);
+            } else {
+                cal.add(Calendar.MONTH, -1);
+            }
+
+            // 계산된 날이 현재 날짜보다 이후이면 현재날짜로 반환하기
+            if (cal.getTime().after(new Date(System.currentTimeMillis()))) {
+                result = CurDateFormat.format(new Date(System.currentTimeMillis()));
+            } else {
+                result = CurDateFormat.format(cal.getTime());
+            }
+
+        } catch (Exception ex) {
 
         }
 
@@ -372,26 +401,20 @@ public class StatisticsFragment extends Fragment {
     }
 
     // 첫번째 일 마지막 일 구하기
-    private String getStringFirstEndMonth(String sCurrentDate){
-        String result = "2017-01-08";
+    private String[] getStringFirstEndMonth(String sCurrentDate) {
+        String[] result = new String[2];
 
-        try{
+        try {
             // 기준 날짜 구하기
             SimpleDateFormat CurDateFormat = new SimpleDateFormat("yyyy-MM-dd");
+            SimpleDateFormat yyyyMMFormat = new SimpleDateFormat("yyyy-MM");
             Date date = CurDateFormat.parse(sCurrentDate);
             Calendar cal = Calendar.getInstance();
             cal.setTime(date);
 
-
-
-            // 계산된 날이 현재 날짜보다 이후이면 현재날짜로 반환하기
-            if(cal.getTime().after(new Date(System.currentTimeMillis()))) {
-                result = CurDateFormat.format(new Date(System.currentTimeMillis()));
-            }else{
-                result = CurDateFormat.format(cal.getTime());
-            }
-
-        }catch (Exception ex){
+            result[0] = yyyyMMFormat.format(date) + "-01"; // 첫번째 날
+            result[1] = yyyyMMFormat.format(date) + "-" + cal.getMaximum(Calendar.DAY_OF_MONTH); // 마지막날
+        } catch (Exception ex) {
 
         }
 
