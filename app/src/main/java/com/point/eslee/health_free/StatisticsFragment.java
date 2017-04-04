@@ -1,5 +1,6 @@
 package com.point.eslee.health_free;
 
+import android.database.Cursor;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
@@ -18,10 +19,16 @@ import com.github.mikephil.charting.data.LineData;
 import com.github.mikephil.charting.data.LineDataSet;
 import com.github.mikephil.charting.formatter.FillFormatter;
 import com.github.mikephil.charting.utils.ColorTemplate;
+import com.point.eslee.health_free.database.DbOpenHelper;
+import com.point.eslee.health_free.database.RecordDB;
 
 import java.text.DecimalFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 import static com.point.eslee.health_free.R.color.colorAccent;
 
@@ -43,7 +50,8 @@ public class StatisticsFragment extends Fragment {
 
     TextView mViewWeekly;
     TextView mViewMonthly;
-    int mDataIndex = 0;
+    String mDateString = "";
+    RecordDB mRecordDB;
 
     public StatisticsFragment() {
         // Required empty public constructor
@@ -66,8 +74,6 @@ public class StatisticsFragment extends Fragment {
             mParam1 = getArguments().getString(ARG_PARAM1);
             mParam2 = getArguments().getString(ARG_PARAM2);
         }
-        CreateChartData_Week();
-        CreateChartData_Month();
     }
 
     @Override
@@ -88,6 +94,9 @@ public class StatisticsFragment extends Fragment {
         mChartPeriod = (TextView) view.findViewById(R.id.chart_period);
         mChartStepMean = (TextView) view.findViewById(R.id.chart_step_mean);
 
+        // DB 연결
+        mRecordDB = new RecordDB(this.getContext());
+
         // 버튼 이벤트 핸들러 생성
         mViewWeekly.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -99,8 +108,9 @@ public class StatisticsFragment extends Fragment {
                 mViewMonthly.setTag(0);
                 //Toast.makeText(getActivity(), "주간", Toast.LENGTH_SHORT).show();
                 try {
-                    mDataIndex = mDataWeek.size() - 1;
-                    CreateChartView_Week_1(mDataIndex);
+                    // 오늘날짜 기준
+                    mDateString = getStringCurrentDate();
+                    ViewData_TodayWeek();
                 } catch (Exception e) {
                 }
             }
@@ -116,8 +126,8 @@ public class StatisticsFragment extends Fragment {
                 mViewMonthly.setTag(1);
                 //Toast.makeText(getActivity(), "월간", Toast.LENGTH_SHORT).show();
                 try {
-                    mDataIndex = mDataMonth.size() - 1;
-                    CreateChartView_Month_1(mDataIndex);
+                    mDateString = getStringCurrentDate();
+//                    CreateChartView_Month_1(1);
                 } catch (Exception e) {
                 }
             }
@@ -128,16 +138,14 @@ public class StatisticsFragment extends Fragment {
             public void onClick(View v) {
                 if ((int) mViewWeekly.getTag() == 1) {
                     // 주간
-                    if (mDataIndex > 0) {
-                        CreateChartView_Week_1(mDataIndex - 1);
-                        mDataIndex--;
-                    }
+                    mDateString = getStringCalWeekDate(mDateString,false);
+                    ViewData_TodayWeek();
                 } else {
                     // 월간
-                    if(mDataIndex > 0){
-                        CreateChartView_Month_1(mDataIndex - 1);
-                        mDataIndex--;
-                    }
+//                    if (mDataIndex > 0) {
+//                        CreateChartView_Month_1(mDataIndex - 1);
+//                        mDataIndex--;
+//                    }
                 }
             }
         });
@@ -147,16 +155,14 @@ public class StatisticsFragment extends Fragment {
             public void onClick(View v) {
                 if ((int) mViewWeekly.getTag() == 1) {
                     // 주간
-                    if (mDataIndex < (mDataWeek.size() - 1)) {
-                        CreateChartView_Week_1(mDataIndex + 1);
-                        mDataIndex++;
-                    }
+                    mDateString = getStringCalWeekDate(mDateString,true);
+                    ViewData_TodayWeek();
                 } else {
                     // 월간
-                    if(mDataIndex < (mDataMonth.size() -1)){
-                        CreateChartView_Month_1(mDataIndex + 1);
-                        mDataIndex++;
-                    }
+//                    if (mDataIndex < (mDataMonth.size() - 1)) {
+//                        CreateChartView_Month_1(mDataIndex + 1);
+//                        mDataIndex++;
+//                    }
                 }
             }
         });
@@ -183,184 +189,22 @@ public class StatisticsFragment extends Fragment {
         return view;
     }
 
-    class ChartInfo {
-        public boolean using = false;
-        public int DataIndex = 0;
+    // 레이아웃 초기화
+    private void SetLayOut() {
+
     }
 
-    // TODO: 주간 검색
-    // 오늘날짜 입력시 이번주 (일-토) 통계 표출
-    // 왼쪽화살표 클릭 - 7일전 통계표출
-    // 오른쪽화살표 클릭 - 7일후 통계표출
-
-
-    List<LineDataSet> mDataWeek;
-    List<LineDataSet> mDataMonth;
-
-    private void CreateChartData_Week() {
-        if (mDataWeek != null) {
-            mDataWeek.clear();
-        } else {
-            mDataWeek = new ArrayList<LineDataSet>();
-        }
-
-        ArrayList<Entry> entries = new ArrayList<>();
-        entries.add(new Entry(3010f, 0));
-        entries.add(new Entry(1405f, 1));
-        entries.add(new Entry(4050f, 2));
-        entries.add(new Entry(5240f, 3));
-        entries.add(new Entry(3508f, 4));
-        entries.add(new Entry(4344f, 5));
-        entries.add(new Entry(3457f, 6));
-        LineDataSet dataset = new LineDataSet(entries, "# of Calls");
-        mDataWeek.add(dataset);
-
-        ArrayList<Entry> entries1 = new ArrayList<>();
-        entries1.add(new Entry(3010f, 0));
-        entries1.add(new Entry(3040f, 1));
-        entries1.add(new Entry(2030f, 2));
-        entries1.add(new Entry(5063f, 3));
-        entries1.add(new Entry(4230f, 4));
-        entries1.add(new Entry(3256f, 5));
-        entries1.add(new Entry(2030f, 6));
-        LineDataSet dataset1 = new LineDataSet(entries1, "# of Calls");
-        mDataWeek.add(dataset1);
-
-        ArrayList<Entry> entries2 = new ArrayList<>();
-        entries2.add(new Entry(3948f, 0));
-        entries2.add(new Entry(3183f, 1));
-        entries2.add(new Entry(2957f, 2));
-        entries2.add(new Entry(9694f, 3));
-        entries2.add(new Entry(3819f, 4));
-        entries2.add(new Entry(1273f, 5));
-        entries2.add(new Entry(5348f, 6));
-        LineDataSet dataset2 = new LineDataSet(entries2, "# of Calls");
-        mDataWeek.add(dataset2);
-    }
-
-    private void CreateChartData_Month() {
-        if (mDataMonth != null) {
-            mDataMonth.clear();
-        } else {
-            mDataMonth = new ArrayList<LineDataSet>();
-        }
-
-        ArrayList<Entry> entries = new ArrayList<>();
-        entries.add(new Entry(3010f, 0));
-        entries.add(new Entry(1403f, 1));
-        entries.add(new Entry(3040f, 2));
-        entries.add(new Entry(2030f, 3));
-        entries.add(new Entry(5063f, 4));
-        entries.add(new Entry(4230f, 5));
-        entries.add(new Entry(3256f, 6));
-        entries.add(new Entry(3010f, 7));
-        entries.add(new Entry(3040f, 8));
-        entries.add(new Entry(2030f, 9));
-        entries.add(new Entry(5063f, 10));
-        entries.add(new Entry(4230f, 11));
-        entries.add(new Entry(3256f, 12));
-        entries.add(new Entry(2030f, 13));
-        entries.add(new Entry(3531f, 14));
-        entries.add(new Entry(3577f, 15));
-        entries.add(new Entry(3622f, 16));
-        entries.add(new Entry(3667f, 17));
-        entries.add(new Entry(3712f, 18));
-        entries.add(new Entry(3758f, 19));
-        entries.add(new Entry(3803f, 20));
-        entries.add(new Entry(3848f, 21));
-        entries.add(new Entry(3894f, 22));
-        entries.add(new Entry(3939f, 23));
-        entries.add(new Entry(3984f, 24));
-        entries.add(new Entry(4029f, 25));
-        entries.add(new Entry(4075f, 26));
-        entries.add(new Entry(4120f, 27));
-        entries.add(new Entry(4165f, 28));
-        entries.add(new Entry(4211f, 29));
-        entries.add(new Entry(3939f, 30));
-        LineDataSet dataset = new LineDataSet(entries, "# of Calls");
-        mDataMonth.add(dataset);
-
-        ArrayList<Entry> entries1 = new ArrayList<>();
-        entries1.add(new Entry(3010f, 0));
-        entries1.add(new Entry(3040f, 1));
-        entries1.add(new Entry(2030f, 2));
-        entries1.add(new Entry(5063f, 3));
-        entries1.add(new Entry(4230f, 4));
-        entries1.add(new Entry(3256f, 5));
-        entries1.add(new Entry(2030f, 6));
-        entries1.add(new Entry(3010f, 7));
-        entries1.add(new Entry(1403f, 8));
-        entries1.add(new Entry(3040f, 9));
-        entries1.add(new Entry(2030f, 10));
-        entries1.add(new Entry(3040f, 11));
-        entries1.add(new Entry(2030f, 12));
-        entries1.add(new Entry(5063f, 13));
-        entries1.add(new Entry(4230f, 14));
-        entries1.add(new Entry(3256f, 15));
-        entries1.add(new Entry(2030f, 16));
-        entries1.add(new Entry(3010f, 17));
-        entries1.add(new Entry(2790f, 18));
-        entries1.add(new Entry(2749f, 19));
-        entries1.add(new Entry(2709f, 20));
-        entries1.add(new Entry(2668f, 21));
-        entries1.add(new Entry(2627f, 22));
-        entries1.add(new Entry(2587f, 23));
-        entries1.add(new Entry(2546f, 24));
-        entries1.add(new Entry(2506f, 25));
-        entries1.add(new Entry(2465f, 26));
-        entries1.add(new Entry(2425f, 27));
-        entries1.add(new Entry(2384f, 28));
-        entries1.add(new Entry(2344f, 29));
-        entries1.add(new Entry(2587f, 30));
-        LineDataSet dataset1 = new LineDataSet(entries1, "# of Calls");
-        mDataMonth.add(dataset1);
-
-        ArrayList<Entry> entries2 = new ArrayList<>();
-        entries2.add(new Entry(3948f, 0));
-        entries2.add(new Entry(3183f, 1));
-        entries2.add(new Entry(2957f, 2));
-        entries2.add(new Entry(9694f, 3));
-        entries2.add(new Entry(3819f, 4));
-        entries2.add(new Entry(1273f, 5));
-        entries2.add(new Entry(5348f, 6));
-        entries2.add(new Entry(3256f, 7));
-        entries2.add(new Entry(3010f, 8));
-        entries2.add(new Entry(3040f, 9));
-        entries2.add(new Entry(2030f, 10));
-        entries2.add(new Entry(5063f, 11));
-        entries2.add(new Entry(3819f, 12));
-        entries2.add(new Entry(1273f, 13));
-        entries2.add(new Entry(5348f, 14));
-        entries2.add(new Entry(3256f, 15));
-        entries2.add(new Entry(3294f, 16));
-        entries2.add(new Entry(3248f, 17));
-        entries2.add(new Entry(3203f, 18));
-        entries2.add(new Entry(3157f, 19));
-        entries2.add(new Entry(3112f, 20));
-        entries2.add(new Entry(3067f, 21));
-        entries2.add(new Entry(3021f, 22));
-        entries2.add(new Entry(2976f, 23));
-        entries2.add(new Entry(2930f, 24));
-        entries2.add(new Entry(2885f, 25));
-        entries2.add(new Entry(2839f, 26));
-        entries2.add(new Entry(2794f, 27));
-        entries2.add(new Entry(2748f, 28));
-        entries2.add(new Entry(2703f, 29));
-        entries2.add(new Entry(2976f, 30));
-        LineDataSet dataset2 = new LineDataSet(entries2, "# of Calls");
-        mDataMonth.add(dataset2);
-    }
-
-    String[] mDataWeekTitle = {"2 Week January", "3 Week January", "4 Week January"};
-    String[] mDataWeekTitle2 = {"01.09 - 01.15", "01.16 - 01.22", "01.23 - 01.29"};
-
-    private void CreateChartView_Week_1(int week_num) {
-        if (mDataWeek == null || mDataWeek.isEmpty()) {
-            CreateChartData_Week();
-        }
-        LineDataSet dataset = mDataWeek.get(week_num);
-
+    // 해당 날짜 주간(일-토) 통계 표출
+    private void ViewData_TodayWeek() {
+        ArrayList<Entry> entries = null;
+        LineDataSet dataset = null;
+        LineData data = null;
         ArrayList<String> labels = new ArrayList<String>();
+        String sTitle = "";
+        String sSubTitle = "";
+        String[] sDates = null;
+
+        // 초기값 입력
         labels.add("S");
         labels.add("M");
         labels.add("T");
@@ -369,36 +213,59 @@ public class StatisticsFragment extends Fragment {
         labels.add("F");
         labels.add("S");
 
-        LineData data = new LineData(labels, dataset);
+        // DB 읽기
+        // 이번달 몇째주 표출
+        sTitle = getStringWeekNumberInMonth(mDateString);
+        // 오늘날짜 기준 이번주 날짜 표출
+        sDates = mRecordDB.SelectFirstAndEndDate(mDateString);
+        sSubTitle = sDates[0] + " - " + sDates[1];
+        // 오늘날짜 입력시 이번주 (일-토) 통계 표출
+        entries = mRecordDB.SelectStatStepWeek(mDateString);
+        dataset = new LineDataSet(entries, "# of Calls");
+        data = new LineData(labels, dataset);
+
+        // 차트 옵션
         dataset.setColors(ColorTemplate.COLORFUL_COLORS); //
         dataset.setDrawHighlightIndicators(true);
         dataset.setDrawCubic(true); //커브
         dataset.setDrawFilled(true); //선아래로 색상표시
         dataset.setDrawValues(true); //값 표시
 
-        mChartTitle.setText(mDataWeekTitle[week_num]);
-        mChartPeriod.setText(mDataWeekTitle2[week_num]);
+        // 값 표출
+        mChartTitle.setText(sTitle);
+        mChartPeriod.setText(sSubTitle);
         mChartStepMean.setText(Common.get_commaString(dataset.getAverage()));
 
         mLineChart.setData(data);
         mLineChart.animateY(2000);
     }
 
-    String[] mDataMonthTitle = {"November", "December", "January"};
-    String[] mDataMonthTitle2 = {"11.01 - 11.30", "12.01 - 12.31", "01.01 - 01.31"};
-
-    private void CreateChartView_Month_1(int month_num) {
-        if (mDataMonth == null || mDataMonth.isEmpty()) {
-            CreateChartData_Month();
-        }
-        LineDataSet dataset = mDataMonth.get(month_num);
-
+    private void ViewData_TodayMonth() {
+        ArrayList<Entry> entries = null;
+        LineDataSet dataset = null;
+        LineData data = null;
         ArrayList<String> labels = new ArrayList<String>();
+        String sTitle = "";
+        String sSubTitle = "";
+        String[] sDates = null;
+
+        // DB 읽기
+        // 이번달 몇째주 표출
+        sTitle = getStringMonth(mDateString);
+        // 오늘날짜 기준 이번주 날짜 표출
+        sDates = mRecordDB.SelectFirstAndEndDate(mDateString);
+        sSubTitle = sDates[0] + " - " + sDates[1];
+        // 오늘날짜 입력시 이번주 (일-토) 통계 표출
+        entries = mRecordDB.SelectStatStepWeek(mDateString);
+        dataset = new LineDataSet(entries, "# of Calls");
+        data = new LineData(labels, dataset);
+
+        // X 축 입력
         for (int i = 0; i < dataset.getEntryCount(); i++) {
             labels.add(String.valueOf(i + 1));
         }
 
-        LineData data = new LineData(labels, dataset);
+        // 차트 옵션
         dataset.setColors(ColorTemplate.COLORFUL_COLORS); //
         dataset.setDrawCubic(true); //커브
         dataset.setDrawFilled(true); //선아래로 색상표시
@@ -406,134 +273,129 @@ public class StatisticsFragment extends Fragment {
         dataset.setDrawCircleHole(false);
         dataset.setDrawCircles(false);
 
-        mChartTitle.setText(mDataMonthTitle[month_num]);
-        mChartPeriod.setText(mDataMonthTitle2[month_num]);
+        // 값 표출
+        mChartTitle.setText(sTitle);
+        mChartPeriod.setText(sSubTitle);
         mChartStepMean.setText(Common.get_commaString(dataset.getAverage()));
 
         mLineChart.setData(data);
         mLineChart.animateY(2000);
     }
 
-    private void CreateChartView_Week_2() {
-        ArrayList<Entry> entries = new ArrayList<>();
-        entries.add(new Entry(3010f, 0));
-        entries.add(new Entry(2405f, 1));
-        entries.add(new Entry(3050f, 2));
-        entries.add(new Entry(4240f, 3));
-        entries.add(new Entry(4508f, 4));
-        entries.add(new Entry(6344f, 5));
-        entries.add(new Entry(4457f, 6));
+    // 오늘 날짜 구하기
+    private String getStringCurrentDate(){
+        String result = "2017-01-01";
 
-        LineDataSet dataset = new LineDataSet(entries, "# of Calls");
+        try{
+            // 오늘 날짜 구하기
+            long now = System.currentTimeMillis();
+            Date date = new Date(now);
+            SimpleDateFormat CurDateFormat = new SimpleDateFormat("yyyy-MM-dd");
+            result = CurDateFormat.format(date);
+        }catch (Exception ex){
 
-        ArrayList<String> labels = new ArrayList<String>();
-        labels.add("S");
-        labels.add("M");
-        labels.add("T");
-        labels.add("W");
-        labels.add("T");
-        labels.add("F");
-        labels.add("S");
+        }
 
-        LineData data = new LineData(labels, dataset);
-        dataset.setColors(ColorTemplate.COLORFUL_COLORS); //
-        dataset.setDrawHighlightIndicators(true);
-        dataset.setDrawCubic(true); //커브
-        dataset.setDrawFilled(true); //선아래로 색상표시
-        dataset.setDrawValues(true); //값 표시
-
-        mChartTitle.setText("4 Week January");
-        mChartPeriod.setText("01.23 - 01.29");
-        mChartStepMean.setText(Common.get_commaString(dataset.getAverage()));
-
-        mLineChart.setData(data);
-        mLineChart.animateY(2000);
+        return result;
     }
 
-    private void CreateChartView2() {
-        ArrayList<Entry> entries = new ArrayList<>();
-        entries.add(new Entry(3233f, 0));
-        entries.add(new Entry(2342f, 1));
-        entries.add(new Entry(3122f, 2));
-        entries.add(new Entry(2500f, 3));
-        entries.add(new Entry(3012f, 4));
-        entries.add(new Entry(1900f, 5));
-        entries.add(new Entry(2003f, 6));
-        entries.add(new Entry(3041f, 7));
-        entries.add(new Entry(3000f, 8));
-        entries.add(new Entry(5060f, 9));
-        entries.add(new Entry(3010f, 10));
-        entries.add(new Entry(3405f, 11));
-        entries.add(new Entry(4040f, 12));
-        entries.add(new Entry(3095f, 13));
-        entries.add(new Entry(2838f, 14));
-        entries.add(new Entry(2939f, 15));
-        entries.add(new Entry(3064f, 16));
-        entries.add(new Entry(3001f, 17));
-//        entries.add(new Entry(0f, 18));
-//        entries.add(new Entry(0f, 19));
-//        entries.add(new Entry(0f, 20));
-//        entries.add(new Entry(0f, 21));
-//        entries.add(new Entry(0f, 22));
-//        entries.add(new Entry(0f, 23));
-//        entries.add(new Entry(0f, 24));
-//        entries.add(new Entry(0f, 25));
-//        entries.add(new Entry(0f, 26));
-//        entries.add(new Entry(0f, 27));
-//        entries.add(new Entry(0f, 28));
-//        entries.add(new Entry(0f, 29));
-//        entries.add(new Entry(0f, 30));
+    private String getStringWeekNumberInMonth(String sCurrentDate){
+        String result = "2017-01-01";
 
-        LineDataSet dataset = new LineDataSet(entries, "# of Calls");
+        try{
+            // 오늘 날짜 구하기
+            // 기준 날짜 구하기
+            SimpleDateFormat CurDateFormat = new SimpleDateFormat("yyyy-MM-dd");
+            SimpleDateFormat EngMonth = new SimpleDateFormat("MMM", new Locale("en","US"));
+            Date date = CurDateFormat.parse(sCurrentDate);
+            Calendar cal = Calendar.getInstance();
+            cal.setTime(date);
 
-        ArrayList<String> labels = new ArrayList<String>();
-        labels.add("1");
-        labels.add("2");
-        labels.add("3");
-        labels.add("4");
-        labels.add("5");
-        labels.add("6");
-        labels.add("7");
-        labels.add("8");
-        labels.add("9");
-        labels.add("10");
-        labels.add("11");
-        labels.add("12");
-        labels.add("13");
-        labels.add("14");
-        labels.add("15");
-        labels.add("16");
-        labels.add("17");
-        labels.add("18");
-        labels.add("19");
-        labels.add("20");
-        labels.add("21");
-        labels.add("22");
-        labels.add("23");
-        labels.add("24");
-        labels.add("25");
-        labels.add("26");
-        labels.add("27");
-        labels.add("28");
-        labels.add("29");
-        labels.add("30");
-        labels.add("31");
+            result = String.valueOf(cal.get(Calendar.WEEK_OF_MONTH));
+            result = cal.get(Calendar.WEEK_OF_MONTH) + " Week of " + EngMonth.format(date);
+            // ex : 2 Week of January
+        }catch (Exception ex){
 
-        LineData data = new LineData(labels, dataset);
-        dataset.setColors(ColorTemplate.COLORFUL_COLORS); //
-        dataset.setDrawCubic(true); //커브
-        dataset.setDrawFilled(true); //선아래로 색상표시
-        dataset.setDrawValues(false); // 값 표시
-        dataset.setDrawCircleHole(false);
-        dataset.setDrawCircles(false);
+        }
 
-        mChartTitle.setText("January");
-        mChartPeriod.setText("01.01 - 01.31");
-        mChartStepMean.setText(Common.get_commaString(dataset.getAverage()));
-
-        mLineChart.setData(data);
-        mLineChart.animateY(2000);
+        return result;
     }
 
+    private String getStringMonth(String sCurrentDate){
+        String result = "2017-01-01";
+
+        try{
+            // 오늘 날짜 구하기
+            // 기준 날짜 구하기
+            SimpleDateFormat CurDateFormat = new SimpleDateFormat("yyyy-MM-dd");
+            SimpleDateFormat EngMonth = new SimpleDateFormat("yyyy MMM", new Locale("en","US"));
+            Date date = CurDateFormat.parse(sCurrentDate);
+            result = EngMonth.format(date);
+            // ex : 2017 January
+        }catch (Exception ex){
+
+        }
+
+        return result;
+    }
+
+    // 기준날짜에 계산하기
+    private String getStringCalWeekDate(String sCurrentDate, boolean bPlus7days){
+        String result = "2017-01-08";
+
+        try{
+            // 기준 날짜 구하기
+            SimpleDateFormat CurDateFormat = new SimpleDateFormat("yyyy-MM-dd");
+            Date date = CurDateFormat.parse(sCurrentDate);
+            Calendar cal = Calendar.getInstance();
+            cal.setTime(date);
+
+            // 기준 날짜에 7일 더하기
+            if(bPlus7days) {
+                cal.add(Calendar.DATE,7);
+            }else{
+                cal.add(Calendar.DATE,-7);
+            }
+
+            // 계산된 날이 현재 날짜보다 이후이면 현재날짜로 반환하기
+            if(cal.getTime().after(new Date(System.currentTimeMillis()))) {
+                result = CurDateFormat.format(new Date(System.currentTimeMillis()));
+            }else{
+                result = CurDateFormat.format(cal.getTime());
+            }
+
+        }catch (Exception ex){
+
+        }
+
+        return result;
+    }
+
+    // 첫번째 일 마지막 일 구하기
+    private String getStringFirstEndMonth(String sCurrentDate){
+        String result = "2017-01-08";
+
+        try{
+            // 기준 날짜 구하기
+            SimpleDateFormat CurDateFormat = new SimpleDateFormat("yyyy-MM-dd");
+            Date date = CurDateFormat.parse(sCurrentDate);
+            Calendar cal = Calendar.getInstance();
+            cal.setTime(date);
+
+
+
+            // 계산된 날이 현재 날짜보다 이후이면 현재날짜로 반환하기
+            if(cal.getTime().after(new Date(System.currentTimeMillis()))) {
+                result = CurDateFormat.format(new Date(System.currentTimeMillis()));
+            }else{
+                result = CurDateFormat.format(cal.getTime());
+            }
+
+        }catch (Exception ex){
+
+        }
+
+        return result;
+    }
 
 }

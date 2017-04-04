@@ -7,6 +7,9 @@ import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
+import com.github.mikephil.charting.data.Entry;
+
+import java.util.ArrayList;
 import java.util.Date;
 
 /**
@@ -30,20 +33,20 @@ public class DbOpenHelper {
         // 최초 DB를 만들때 한번만 호출
         @Override
         public void onCreate(SQLiteDatabase db) {
-            db.execSQL(DataBases.UserTable._CREATE);
-            db.execSQL(DataBases.PointTable._CREATE);
-            db.execSQL(DataBases.HealthTable._CREATE);
-            db.execSQL(DataBases.StoreTable._CREATE);
+//            db.execSQL(DataBases.UserTable._CREATE);
+//            db.execSQL(DataBases.PointTable._CREATE);
+//            db.execSQL(DataBases.HealthTable._CREATE);
+//            db.execSQL(DataBases.StoreTable._CREATE);
         }
 
         // 버전이 업데이트 되었을 경우 DB를 다시 만들어 준다.
         @Override
         public void onUpgrade(SQLiteDatabase db, int i, int i1) {
-            db.execSQL("DROP TABLE IF EXISTS " + DataBases.UserTable._TABLENAME);
-            db.execSQL("DROP TABLE IF EXISTS " + DataBases.PointTable._TABLENAME);
-            db.execSQL("DROP TABLE IF EXISTS " + DataBases.HealthTable._TABLENAME);
-            db.execSQL("DROP TABLE IF EXISTS " + DataBases.StoreTable._TABLENAME);
-            onCreate(db);
+//            db.execSQL("DROP TABLE IF EXISTS " + DataBases.UserTable._TABLENAME);
+//            db.execSQL("DROP TABLE IF EXISTS " + DataBases.PointTable._TABLENAME);
+//            db.execSQL("DROP TABLE IF EXISTS " + DataBases.HealthTable._TABLENAME);
+//            db.execSQL("DROP TABLE IF EXISTS " + DataBases.StoreTable._TABLENAME);
+//            onCreate(db);
         }
     }
 
@@ -55,6 +58,20 @@ public class DbOpenHelper {
         mDBHelper = new DatabaseHelper(mCtx,DATABASE_NAME,null,DATABASE_VERSION);
         mDB = mDBHelper.getWritableDatabase();
         return this;
+    }
+
+    public SQLiteDatabase getWritableDatabase(){
+        if(mDBHelper == null){
+            this.open();
+        }
+        return mDBHelper.getWritableDatabase();
+    }
+
+    public SQLiteDatabase getReadableDatabase(){
+        if(mDBHelper == null){
+            this.open();
+        }
+        return mDBHelper.getReadableDatabase();
     }
 
     public void close(){
@@ -171,17 +188,6 @@ public class DbOpenHelper {
         }
 
         return total_point;
-    }
-
-    // 해당 날짜기준으로 일요일 날짜와 토요일 날짜를 검색
-    // SELECT date(date('2017-02-19', 'weekday 6'),'-6 days'), date('2017-02-19', 'weekday 6');
-
-    public String get_datetime(){
-        String result = "";
-
-        Date date = new Date();
-
-        return result;
     }
 
 
