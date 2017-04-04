@@ -171,24 +171,4 @@ public class DbOpenHelper {
         Cursor c = mDB.rawQuery( "SELECT * FROM " + DataBases.PointTable._TABLENAME + " WHERE SUBSTR(C_DATE,7) = '" + sDate + "'" , null);
         return c;
     }
-
-    // 누적 포인트 검색
-    public int getTotalPointByUserId(int user_id){
-        int total_point = 0;
-        Cursor c;
-        try{
-            c =  mDB.rawQuery( "SELECT * FROM " + DataBases.PointTable._TABLENAME + " WHERE USER_ID = '" + user_id + "' ORDER BY _ID DESC" , null);
-            if(c != null && c.getCount() != 0){
-                c.moveToFirst();
-                total_point = c.getInt(c.getColumnIndex(DataBases.PointTable.T_POINT));
-            }
-            c.close();
-        }catch (Exception ex){
-
-        }
-
-        return total_point;
-    }
-
-
 }

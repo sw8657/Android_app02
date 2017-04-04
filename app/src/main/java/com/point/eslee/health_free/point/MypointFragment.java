@@ -3,6 +3,7 @@ package com.point.eslee.health_free.point;
 import android.database.Cursor;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
@@ -17,6 +18,7 @@ import com.point.eslee.health_free.Common;
 import com.point.eslee.health_free.R;
 import com.point.eslee.health_free.database.DataBases;
 import com.point.eslee.health_free.database.DbOpenHelper;
+import com.point.eslee.health_free.database.MyPointDB;
 import com.point.eslee.health_free.values;
 
 
@@ -39,8 +41,7 @@ public class MypointFragment extends Fragment implements View.OnClickListener {
     private ListView mDetailListView;
 
     private ListViewPointAdapter mAdapter;
-    private DbOpenHelper mDbOpenHelper;
-    private Cursor mCursor;
+    private MyPointDB mMyPointDB;
 
     public MypointFragment() {
         // Required empty public constructor
@@ -65,15 +66,15 @@ public class MypointFragment extends Fragment implements View.OnClickListener {
         }
     }
 
-    private void SetLayOut(){
+    private void SetLayOut(View view) {
         // 레이아웃 초기화
-        mCurrentPointView = (TextView) getView().findViewById(R.id.mypoint_current_point); // 현재 포인트
-        mTotalPointView = (TextView) getActivity().findViewById(R.id.mypoint_total_point); // 누적 포인트
-        mRefreshView = (View) getActivity().findViewById(R.id.mypoint_refresh_point); // 새로고침
-        mSpinner_search_option_year = (Spinner) getActivity().findViewById(R.id.mypoint_search_option_year); // 검색옵션
-        mSpinner_search_option_month = (Spinner) getActivity().findViewById(R.id.mypoint_search_option_month); // 검색옵션
-        mDetailListView = (ListView) getActivity().findViewById(R.id.mypoint_details_listview); // 사용내역
-        mScrollView = (ScrollView) getActivity().findViewById(R.id.mypoint_scroll); // 스크롤뷰
+        mCurrentPointView = (TextView) view.findViewById(R.id.mypoint_current_point); // 현재 포인트
+        mTotalPointView = (TextView) view.findViewById(R.id.mypoint_total_point); // 누적 포인트
+        mRefreshView = (View) view.findViewById(R.id.mypoint_refresh_point); // 새로고침
+        mSpinner_search_option_year = (Spinner) view.findViewById(R.id.mypoint_search_option_year); // 검색옵션
+        mSpinner_search_option_month = (Spinner) view.findViewById(R.id.mypoint_search_option_month); // 검색옵션
+        mDetailListView = (ListView) view.findViewById(R.id.mypoint_details_listview); // 사용내역
+        mScrollView = (ScrollView) view.findViewById(R.id.mypoint_scroll); // 스크롤뷰
 
         // 리스트 뷰 초기화
         mAdapter = new ListViewPointAdapter();
@@ -97,14 +98,14 @@ public class MypointFragment extends Fragment implements View.OnClickListener {
         // Inflate the layout for this fragment
 
         // 레이아웃 초기화
-        SetLayOut();
+        SetLayOut(view);
 
         // DB연결
-        mDbOpenHelper = new DbOpenHelper(getActivity());
-        mDbOpenHelper.open();
+//        mMyPointDB = new MyPointDB(this.getContext());
 
         // 포인트 조회
-        int total_point = mDbOpenHelper.getTotalPointByUserId(values.UserId);
+//        int total_point = mMyPointDB.getTotalPointByUserId(values.UserId);
+        int total_point = 200;
         mCurrentPointView.setText(Common.get_commaString(total_point));
         mTotalPointView.setText(Common.get_commaString(total_point + 2000));
 
@@ -115,7 +116,7 @@ public class MypointFragment extends Fragment implements View.OnClickListener {
                 String year = String.valueOf(mSpinner_search_option_year.getSelectedItem());
                 String month = String.valueOf(adapterView.getItemAtPosition(i));
 //                Toast.makeText(getActivity().getApplicationContext(), value, Toast.LENGTH_SHORT).show();
-                setDetailList(year, month); // 리스트 뷰 표출
+//                setDetailList(year, month); // 리스트 뷰 표출
             }
 
             @Override
@@ -132,7 +133,7 @@ public class MypointFragment extends Fragment implements View.OnClickListener {
             case R.id.mypoint_refresh_point:
                 try {
                     // 포인트 새로고침
-                    int total_point = mDbOpenHelper.getTotalPointByUserId(values.UserId);
+                    int total_point = mMyPointDB.getTotalPointByUserId(values.UserId);
                     int ran_t = (int) (Math.random() * 2000) + total_point;
 
                     mCurrentPointView.setText(Common.get_commaString(total_point));
@@ -151,31 +152,16 @@ public class MypointFragment extends Fragment implements View.OnClickListener {
 
     @Override
     public void onDestroyView() {
-        mDbOpenHelper.close();
         super.onDestroyView();
     }
 
-    private void setDetailList(String year, String month){
-        int id = -1;
-        String sTitle = "";
-        String sUseDate = "";
-        int sPoint = 0;
-        String sUseType = "";
-
+    private void setDetailList(String year, String month) {
         mAdapter.clearItem();
-        mCursor =  null;
-        mCursor = mDbOpenHelper.getPointWhereDate(year,month);
-
-        while (mCursor.moveToNext()){
-            id = mCursor.getInt(mCursor.getColumnIndex(DataBases.PointTable._ID));
-            sUseType = mCursor.getString(mCursor.getColumnIndex(DataBases.PointTable.USE_TYPE));
-            sTitle = mCursor.getString(mCursor.getColumnIndex(DataBases.PointTable.USE_TITLE));
-            sPoint = mCursor.getInt(mCursor.getColumnIndex(DataBases.PointTable.U_POINT));
-            sUseDate = mCursor.getString(mCursor.getColumnIndex(DataBases.PointTable.C_DATE));
-
-            mAdapter.addItem(id,sTitle,sUseDate,sPoint,sUseType);
+        try {
+            mAdapter.addItemList(mMyPointDB.SelectPointWhereDate(year, month));
+        } catch (Exception ex) {
+            Log.e("MyPointError : ",ex.getMessage());
         }
-        mCursor.close();
         mAdapter.notifyDataSetChanged();
     }
 

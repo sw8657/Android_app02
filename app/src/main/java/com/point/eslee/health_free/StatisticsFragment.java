@@ -3,6 +3,7 @@ package com.point.eslee.health_free;
 import android.database.Cursor;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -245,6 +246,13 @@ public class StatisticsFragment extends Fragment {
         String sTitle = "";
         String sSubTitle = "";
         String[] sDates = null;
+        int iDays = 30;
+
+        // X 축 입력
+        iDays = getDaysOfMonth(mDateString);
+        for (int i = 1; i <= iDays; i++) {
+            labels.add(String.valueOf(i));
+        }
 
         // DB 읽기
         // 이번달 몇째주 표출
@@ -256,11 +264,6 @@ public class StatisticsFragment extends Fragment {
         entries = mRecordDB.SelectStatStepMonth(mDateString);
         dataset = new LineDataSet(entries, "# of Calls");
         data = new LineData(labels, dataset);
-
-        // X 축 입력
-        for (int i = 0; i < dataset.getEntryCount(); i++) {
-            labels.add(String.valueOf(i + 1));
-        }
 
         // 차트 옵션
         dataset.setColors(ColorTemplate.COLORFUL_COLORS); //
@@ -325,7 +328,7 @@ public class StatisticsFragment extends Fragment {
             // 오늘 날짜 구하기
             // 기준 날짜 구하기
             SimpleDateFormat CurDateFormat = new SimpleDateFormat("yyyy-MM-dd");
-            SimpleDateFormat EngMonth = new SimpleDateFormat("yyyy MMM", new Locale("en", "US"));
+            SimpleDateFormat EngMonth = new SimpleDateFormat("yyyy MMMM", new Locale("en", "US"));
             Date date = CurDateFormat.parse(sCurrentDate);
             result = EngMonth.format(date);
             // ex : 2017 January
@@ -416,6 +419,24 @@ public class StatisticsFragment extends Fragment {
             result[1] = yyyyMMFormat.format(date) + "-" + cal.getMaximum(Calendar.DAY_OF_MONTH); // 마지막날
         } catch (Exception ex) {
 
+        }
+
+        return result;
+    }
+
+    private int getDaysOfMonth(String sCurrentDate){
+        int result = 30;
+
+        try{
+            // 기준 날짜 구하기
+            SimpleDateFormat CurDateFormat = new SimpleDateFormat("yyyy-MM-dd");
+            Date date = CurDateFormat.parse(sCurrentDate);
+            Calendar cal = Calendar.getInstance();
+            cal.setTime(date);
+
+            result = cal.getMaximum(Calendar.DAY_OF_MONTH);
+        }catch (Exception ex){
+            Log.e("Error : ", ex.getMessage());
         }
 
         return result;

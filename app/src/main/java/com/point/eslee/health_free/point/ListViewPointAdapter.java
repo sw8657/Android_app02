@@ -11,6 +11,7 @@ import android.widget.TextView;
 
 import com.point.eslee.health_free.Common;
 import com.point.eslee.health_free.R;
+import com.point.eslee.health_free.VO.MyPointVO;
 
 import java.util.ArrayList;
 
@@ -20,7 +21,7 @@ import java.util.ArrayList;
 
 public class ListViewPointAdapter extends BaseAdapter {
     // Adapter에 추가된 데이터를 저장하기 위한 ArrayList
-    private ArrayList<ListViewPointItem> listViewItemList = new ArrayList<ListViewPointItem>();
+    private ArrayList<MyPointVO> listViewItemList = new ArrayList<MyPointVO>();
 
     // ListViewAdapter의 생성자
     public ListViewPointAdapter() {
@@ -62,29 +63,29 @@ public class ListViewPointAdapter extends BaseAdapter {
         TextView pointDetailView = (TextView) view.findViewById(R.id.listitem_pointdetail);
 
         // Data Set(listViewItemList)에서 position에 위치한 데이터 참조 획득
-        ListViewPointItem listViewItem = listViewItemList.get(pos);
+        MyPointVO myPointVO = listViewItemList.get(pos);
 
         // 뷰 태그에 아이템 저장
-        view.setTag(listViewItem);
+        view.setTag(myPointVO);
 
         // 아이템 내 각 위젯에 데이터 반영
-        titleView.setText(listViewItem.getTitle());
-        datetimeView.setText(listViewItem.getDateTime());
-        pointView.setText(Common.get_pointString(listViewItem.getPoint()));
-        if (listViewItem.getPoint() < 0) {
+        titleView.setText(myPointVO.getUseTitle());
+        datetimeView.setText(myPointVO.getCreateDate());
+        pointView.setText(Common.get_pointString(myPointVO.getUsePoint()));
+        if (myPointVO.getUsePoint() < 0) {
             pointView.setTextColor(view.getResources().getColor(R.color.colorPoint2));
         } else {
             pointView.setTextColor(view.getResources().getColor(R.color.colorPoint1));
         }
-        pointDetailView.setText(listViewItem.getPointType());
+        pointDetailView.setText(myPointVO.getUseType());
 
-       // setListViewHeight((ListView) view); // 높이 조절
+        // setListViewHeight((ListView) view); // 높이 조절
         return view;
     }
 
     private void setListViewHeight(ListView listView) {
         ListAdapter listAdapter = listView.getAdapter();
-        if(listAdapter == null)return;
+        if (listAdapter == null) return;
 
         int totalHeight = 0;
         for (int i = 0; i < listAdapter.getCount(); i++) {
@@ -100,9 +101,18 @@ public class ListViewPointAdapter extends BaseAdapter {
     }
 
     // 아이템 데이터 추가를 위한 함수. 개발자가 원하는대로 작성 가능.
-    public void addItem(int id, String title, String datetime, int point, String point_detail) {
-        ListViewPointItem item = new ListViewPointItem(id,title,datetime,point,point_detail);
+    public void addItem(int _ID, String useType, String useTitle, int usePoint, String createDate) {
+        MyPointVO item = new MyPointVO(_ID, useType, useTitle, usePoint, createDate);
         listViewItemList.add(item);
+    }
+
+    public void addItemList(ArrayList<MyPointVO> items){
+        listViewItemList.addAll(items);
+    }
+
+    public void replaceItemList(ArrayList<MyPointVO> items){
+        listViewItemList.clear();
+        listViewItemList.addAll(items);
     }
 
     public void clearItem() {
