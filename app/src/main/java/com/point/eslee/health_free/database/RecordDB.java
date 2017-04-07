@@ -7,6 +7,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.util.Log;
 
 import com.github.mikephil.charting.data.Entry;
+import com.point.eslee.health_free.values;
 
 import java.util.ArrayList;
 
@@ -24,36 +25,6 @@ public class RecordDB {
     public RecordDB(Context ctx){
         this.mCtx = ctx;
         mHelper = new DbOpenHelper(ctx);
-    }
-
-    // 오늘날짜 입력시 이번주 (일-토) 통계 조회
-    public ArrayList<Entry> SelectStatStepWeek(String sDate){
-        Cursor c = null;
-        ArrayList<Entry> entries = new ArrayList<>();
-        String sqlString = "";
-        int num = 0;
-        mDB = mHelper.getReadableDatabase();
-        try{
-            sqlString = "SELECT SUM(STEPS) as 'STEPS_SUM'"
-                    + ", date(C_DATE) as 'C_DATE'"
-                    + ", strftime('%w', C_DATE) as 'WEEK'"
-                    + "FROM RECORD "
-                    + "WHERE USER_ID = '1' "
-                    + "AND C_DATE >= date(date('"+ sDate + "', 'localtime', 'weekday 6'),'-6 days') "
-                    + "AND C_DATE <= date('" + sDate + "', 'localtime', 'weekday 6')"
-                    + "GROUP BY date(C_DATE)"
-                    + "ORDER BY strftime('%w', C_DATE);";
-            c = mDB.rawQuery(sqlString,null);
-            while (c.moveToNext()){
-                entries.add(new Entry(c.getFloat(c.getColumnIndex("STEPS_SUM")), num));
-                num++;
-            }
-            c.close();
-        }catch (Exception ex){
-            Log.e("RecordDB Error : ",ex.getMessage());
-        }
-        mHelper.close();
-        return entries;
     }
 
     // 해당 날짜기준으로 일요일 날짜와 토요일 날짜를 검색
@@ -81,8 +52,37 @@ public class RecordDB {
         return sDates;
     }
 
+    // 날짜기준 이번주 (일-토) 통계 조회
+    public ArrayList<Entry> SelectStatStepWeek(String sDate){
+        Cursor c = null;
+        ArrayList<Entry> entries = new ArrayList<>();
+        String sqlString = "";
+        int num = 0;
+        mDB = mHelper.getReadableDatabase();
+        try{
+            sqlString = "SELECT SUM(STEPS) as 'STEPS_SUM'"
+                    + ", date(C_DATE) as 'C_DATE'"
+                    + ", strftime('%w', C_DATE) as 'WEEK'"
+                    + "FROM RECORD "
+                    + "WHERE USER_ID = '" + values.UserId +"' "
+                    + "AND C_DATE >= date(date('"+ sDate + "', 'localtime', 'weekday 6'),'-6 days') "
+                    + "AND C_DATE <= date('" + sDate + "', 'localtime', 'weekday 6')"
+                    + "GROUP BY date(C_DATE)"
+                    + "ORDER BY strftime('%w', C_DATE);";
+            c = mDB.rawQuery(sqlString,null);
+            while (c.moveToNext()){
+                entries.add(new Entry(c.getFloat(c.getColumnIndex("STEPS_SUM")), num));
+                num++;
+            }
+            c.close();
+        }catch (Exception ex){
+            Log.e("RecordDB Error : ",ex.getMessage());
+        }
+        mHelper.close();
+        return entries;
+    }
 
-    // 오늘날짜 입력시 이번달 통계 조회
+    // 날짜기준 이번달 통계 조회
     public ArrayList<Entry> SelectStatStepMonth(String sDate){
         Cursor c = null;
         ArrayList<Entry> entries = new ArrayList<>();
@@ -94,7 +94,7 @@ public class RecordDB {
                     + ", date(C_DATE) as 'C_DATE'"
                     + ", strftime('%d', C_DATE) as 'DAY'"
                     + "FROM RECORD "
-                    + "WHERE USER_ID = '1' "
+                    + "WHERE USER_ID = '" + values.UserId + "' "
                     + "AND C_DATE >= date('" + sDate + "', 'localtime', 'start of month') "
                     + "AND C_DATE <= date('" + sDate + "', 'localtime', 'start of month', '+1 month', '-1 day')"
                     + "GROUP BY date(C_DATE)"

@@ -45,6 +45,8 @@ import android.widget.Toast;
 
 import com.google.android.gms.maps.MapsInitializer;
 import com.google.android.gms.maps.model.LatLng;
+import com.point.eslee.health_free.VO.StoreVO;
+import com.point.eslee.health_free.database.StoreDB;
 import com.point.eslee.health_free.point.MypointFragment;
 import com.point.eslee.health_free.steps.StepBackgroundService;
 
@@ -110,15 +112,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         drawer.setDrawerListener(toggle);
         toggle.syncState();
 
-        // 환경설정 불러오기
-        mPref = PreferenceManager.getDefaultSharedPreferences(this);
-
-        // 로그인정보 확인
-        if (LoginSharedPreference.isLogin(this) == false) {
-            Intent mainIntent = new Intent(MainActivity.this, LoginActivity.class);
-            MainActivity.this.startActivityForResult(mainIntent, 1004);
-        }
-
         try {
             boolean bResult = isCheckDB(this.getApplicationContext()); // DB가 있는지?
             copyDB(this.getApplicationContext()); // 무조건 DB복사
@@ -130,6 +123,18 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         } catch (Exception ex) {
 
         }
+
+        // 환경설정 불러오기
+        mPref = PreferenceManager.getDefaultSharedPreferences(this);
+
+        // 로그인정보 확인
+        if (LoginSharedPreference.isLogin(this) == false) {
+            Intent mainIntent = new Intent(MainActivity.this, LoginActivity.class);
+            MainActivity.this.startActivityForResult(mainIntent, 1004);
+        }
+
+        // 샘플 사용자 ID 사용
+        values.UserId = 1;
 
         SetNavi_info();
 
@@ -161,44 +166,15 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         mLocationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
         mPendingIntentList = new ArrayList();
 
-        register(1001, 37.5571895, 126.923642, 500, "스타벅스 홍대역점", "http://www.istarbucks.co.kr/store/store_map.do?in_biz_cd=9872", -1);
-        register(1002, 37.5568004, 126.9199674, 500, "스타벅스 동교점", "http://www.istarbucks.co.kr/store/store_map.do?in_biz_cd=9837", -1);
-        register(1003, 37.5532579, 126.9248262, 500, "스타벅스 홍대갤러리점", "http://www.istarbucks.co.kr", -1);
-        register(1004, 37.5518991, 126.9232424, 500, "스타벅스 홍대공원점", "http://www.istarbucks.co.kr/store/store_map.do?in_biz_cd=9986", -1);
-        register(1005, 37.558898, 126.9275124, 500, "스타벅스 동교삼거리점", "http://www.istarbucks.co.kr/store/store_map.do?in_biz_cd=9888", -1);
-        register(1006, 37.5529804, 126.9218637, 500, "스타벅스 홍대로데오점", "http://www.istarbucks.co.kr", -1);
-        register(1007, 37.5501915, 126.9232343, 500, "스타벅스 홍대삼거리점", "http://www.istarbucks.co.kr/store/store_map.do?in_biz_cd=9602", -1);
-        register(1008, 37.5513451, 126.9169083, 500, "스타벅스 서교점", "http://www.istarbucks.co.kr/store/store_map.do?in_biz_cd=3056", -1);
-        register(1009, 37.5533397, 126.918578, 500, "스타벅스 서교동사거리점", "http://www.istarbucks.co.kr", -1);
-        register(1010, 37.5523765, 126.9377746, 500, "스타벅스 서강대점", "http://www.istarbucks.co.kr/store/store_map.do?in_biz_cd=9983", -1);
-        register(1011, 37.55649, 126.9371201, 500, "스타벅스 신촌점", "http://www.istarbucks.co.kr", -1);
-        register(1012, 37.5586535, 126.9366775, 500, "스타벅스 연대점", "http://www.istarbucks.co.kr/store/store_map.do?in_biz_cd=9639", -1);
-        register(1013, 37.5587566, 126.9402234, 500, "스타벅스 신촌기차역점", "http://www.istarbucks.co.kr", -1);
-        register(1014, 37.5577519, 126.9381461, 500, "스타벅스 신촌명물거리점", "http://www.istarbucks.co.kr/store/store_map.do?in_biz_cd=9530", -1);
-        register(1015, 37.5561264, 126.9392538, 500, "스타벅스 신촌대로점", "http://www.istarbucks.co.kr", -1);
-        register(1016, 37.5584238, 126.9265576, 500, "카페베네 동교동로터리점", "http://www.caffebene.co.kr", -1);
-        register(1017, 37.5567823, 126.9199795, 500, "카페베네 동교중앙점", "http://www.caffebene.co.kr", -1);
-        register(1018, 37.5546741, 126.9218087, 500, "카페베네 홍대역점", "http://www.caffebene.co.kr", -1);
-        register(1019, 37.5592297, 126.9398063, 500, "카페베네 신촌점", "http://www.caffebene.co.kr", -1);
-        register(1020, 37.557535, 126.9190876, 500, "파리바게트 서교점", "http://www.paris.co.kr", -1);
-        register(1021, 37.5557298, 126.9203644, 500, "파리바게트 홍대점", "http://www.paris.co.kr", -1);
-        register(1022, 37.5516471, 126.9163089, 500, "파리바게트 합정역점", "http://www.paris.co.kr", -1);
-        register(1023, 37.5530505, 126.933188, 500, "파리바게트 마포창천", "http://www.paris.co.kr", -1);
-        register(1024, 37.5585631, 126.9278075, 500, "파리바게트", "http://www.paris.co.kr", -1);
-        register(1025, 37.5554523, 126.9233054, 500, "커피빈 홍대역점", "http://www.coffeebeankorea.com", -1);
-        register(1026, 37.5585482, 126.9367567, 500, "맥도날드 연세대점", "http://www.mcdonalds.co.kr", -1);
-        register(1027, 37.5556182, 126.937167, 500, "맥도날드 신촌점", "http://www.mcdonalds.co.kr", -1);
-        register(1028, 37.5550759, 126.9219723, 500, "맥도날드 홍익대점", "http://www.mcdonalds.co.kr", -1);
-        register(1029, 37.5560626, 126.9097254, 500, "맥도날드 망원점", "http://www.mcdonalds.co.kr", -1);
-        register(1030, 37.5529559, 126.9238713, 500, "롯데리아 홍대점", "http://www.lotteria.com", -1);
-        register(1031, 37.554606, 126.9356838, 500, "롯데리아 신촌로터리점", "http://www.lotteria.com", -1);
-        register(1032, 37.5556735, 126.9235575, 500, "버거킹 홍대역점", "http://www.burgerking.co.kr", -1);
-        register(1033, 37.555599, 126.9372851, 500, "버거킹 신촌점", "http://www.burgerking.co.kr", -1);
-        register(1034, 37.5559796, 126.9351688, 500, "KFC 신촌점", "http://www.kfckorea.com", -1);
-        register(1035, 37.5559796, 126.923115, 500, "KFC 홍대점", "http://www.kfckorea.com", -1);
-        register(1036, 37.5556458, 126.936585, 500, "투썸플레이스 신촌점", "https://www.twosome.co.kr", -1);
-        register(1037, 37.5511761, 126.9392511, 500, "투썸플레이스 서강대점", "https://www.twosome.co.kr", -1);
-        register(1038, 37.558814, 126.9419172, 500, "투썸플레이스 신촌기차역점", "https://www.twosome.co.kr", -1);
+        // 가맹점 위치 서비스 등록
+        // DB조회해서 등록하기
+        ArrayList<StoreVO> storeVOs = null;
+        StoreDB storeDB = new StoreDB(this);
+        storeVOs = storeDB.SelectAllStore();
+        // 가맹점 위치 서비스 등록
+        for (StoreVO store : storeVOs) {
+            register(store.StoreID, store.Y, store.X, 500, store.StoreName, store.URL, -1);
+        }
 
         // 수신자 객체 생성하여 등록
         mIntentReceiver = new CoffeeIntentReceiver(intentKey);

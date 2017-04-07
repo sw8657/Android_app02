@@ -55,13 +55,14 @@ public class DataBases {
                         + " );";
     }
 
-    public static final class HealthTable implements BaseColumns{
+    public static final class RecordTable implements BaseColumns{
         public static final String USER_ID = "USER_ID";
         public static final String STEPS = "STEPS";
         public static final String C_DATE = "C_DATE";
         public static final String CALORIE = "CALORIE";
         public static final String DISTANCE = "DISTANCE";
-        public static final String _TABLENAME = "HEALTH";
+        public static final String T_POINT = "T_POINT";
+        public static final String _TABLENAME = "RECORD";
         public static final String _CREATE =
                 "CREATE TABLE " + _TABLENAME+"("
                         + _ID + " INTEGER PRIMARY KEY AUTOINCREMENT, "
@@ -69,7 +70,8 @@ public class DataBases {
                         + STEPS + " INTEGER , "
                         + C_DATE + " DATETIME DEFAULT (datetime('now','localtime')) , "
                         + CALORIE + " REAL , "
-                        + DISTANCE + " REAL "
+                        + DISTANCE + " REAL, "
+                        + T_POINT + " INTEGER "
                         + " );";
     }
 

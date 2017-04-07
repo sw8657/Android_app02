@@ -165,10 +165,4 @@ public class DbOpenHelper {
         return c;
     }
 
-    // 포인트 날짜 검색
-    public Cursor getPointWhereDate(String Year, String month){
-        String sDate = Year + "-" + month;
-        Cursor c = mDB.rawQuery( "SELECT * FROM " + DataBases.PointTable._TABLENAME + " WHERE SUBSTR(C_DATE,7) = '" + sDate + "'" , null);
-        return c;
-    }
 }

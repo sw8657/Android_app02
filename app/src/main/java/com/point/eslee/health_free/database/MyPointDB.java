@@ -5,7 +5,10 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.util.Log;
+
 import com.point.eslee.health_free.VO.MyPointVO;
+import com.point.eslee.health_free.values;
+
 import java.util.ArrayList;
 
 /**
@@ -19,56 +22,61 @@ public class MyPointDB {
     Context mCtx;
     DbOpenHelper mHelper;
 
-    public MyPointDB(Context ctx){
+    public MyPointDB(Context ctx) {
         this.mCtx = ctx;
         mHelper = new DbOpenHelper(ctx);
     }
 
     // 누적 포인트 검색
-    public int getTotalPointByUserId(int user_id){
+    public int SelectTotalPoint() {
         int total_point = 0;
         Cursor c;
-        try{
+        try {
             mDB = mHelper.getReadableDatabase();
-            c =  mDB.rawQuery( "SELECT * FROM " + DataBases.PointTable._TABLENAME + " WHERE USER_ID = '" + user_id + "' ORDER BY _ID DESC" , null);
-            if(c != null && c.getCount() != 0){
+            c = mDB.rawQuery("SELECT USER_ID, T_POINT FROM " + DataBases.PointTable._TABLENAME + " WHERE USER_ID = '" + values.UserId + "' ORDER BY _ID DESC", null);
+            if (c != null && c.getCount() != 0) {
                 c.moveToFirst();
                 total_point = c.getInt(c.getColumnIndex(DataBases.PointTable.T_POINT));
             }
             c.close();
-        }catch (Exception ex){
-            Log.e("MyPointDB Error : ",ex.getMessage());
+        } catch (Exception ex) {
+            Log.e("MyPointDB Error : ", ex.getMessage());
         }
         mHelper.close();
         return total_point;
     }
 
-    public ArrayList<MyPointVO> SelectPointWhereDate(String Year, String month){
+    // 해당 월의 포인트 내역 조회
+    public ArrayList<MyPointVO> SelectPointWhereDate(String Year, String month) {
         ArrayList<MyPointVO> result = new ArrayList<MyPointVO>();
         MyPointVO myPoint = null;
-        Cursor c;
+        Cursor c = null;
         String sDate;
+        String sqlString = "";
 
-        try{
+        try {
             mDB = mHelper.getReadableDatabase();
             sDate = Year + "-" + month;
-            c = mDB.rawQuery( "SELECT * FROM " + DataBases.PointTable._TABLENAME + " WHERE SUBSTR(C_DATE,7) = '" + sDate + "'" , null);
-            while (c.moveToNext()){
+            sqlString = "SELECT * FROM " + DataBases.PointTable._TABLENAME
+                    + " WHERE USER_ID = '" + values.UserId + "' "
+                    + " AND SUBSTR(C_DATE,0,8) = '" + sDate + "' "
+                    + " ORDER BY C_DATE DESC, _ID DESC";
+            c = mDB.rawQuery(sqlString, null);
+            while (c.moveToNext()) {
                 myPoint = new MyPointVO();
-                myPoint._ID = c.getInt(c.getColumnIndex(DataBases.PointTable._ID));
+                myPoint._ID = c.getInt(c.getColumnIndex(DataBases.PointTable._ID.toUpperCase()));
                 myPoint.UseType = c.getString(c.getColumnIndex(DataBases.PointTable.USE_TYPE));
                 myPoint.UseTitle = c.getString(c.getColumnIndex(DataBases.PointTable.USE_TITLE));
                 myPoint.UsePoint = c.getInt(c.getColumnIndex(DataBases.PointTable.U_POINT));
                 myPoint.CreateDate = c.getString(c.getColumnIndex(DataBases.PointTable.C_DATE));
                 result.add(myPoint);
             }
-
-        }catch (Exception e){
-            Log.e("MyPointDB Error : ",e.getMessage());
+            c.close();
+        } catch (Exception e) {
+            Log.e("MyPointDB Error : ", e.getMessage());
         }
-
-
-        return  result;
+        mHelper.close();
+        return result;
     }
 
 }
