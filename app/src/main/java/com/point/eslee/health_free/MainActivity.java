@@ -25,7 +25,6 @@ import android.support.annotation.RequiresApi;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
@@ -39,7 +38,6 @@ import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.ImageView;
-import android.widget.PopupWindow;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -48,6 +46,7 @@ import com.google.android.gms.maps.model.LatLng;
 import com.point.eslee.health_free.VO.StoreVO;
 import com.point.eslee.health_free.database.StoreDB;
 import com.point.eslee.health_free.point.MypointFragment;
+import com.point.eslee.health_free.rank.RankFragment;
 import com.point.eslee.health_free.steps.StepBackgroundService;
 
 import java.io.BufferedInputStream;
@@ -67,6 +66,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         Home,
         MyPoint,
         Map,
+        Rank,
         Statistics
     }
 
@@ -249,6 +249,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 fragment = new MapFragment();
                 break;
             }
+            case Rank: {
+                fragment = new RankFragment();
+                break;
+            }
             case Statistics: {
                 fragment = new StatisticsFragment();
                 break;
@@ -364,6 +368,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         } else if (id == R.id.nav_map) {
             // 지도
             replaceFragment(Fragments.Map);
+        } else if (id == R.id.nav_rank) {
+            // 랭킹 (이번주 걸음수, 포인트)
+            replaceFragment(Fragments.Rank);
         } else if (id == R.id.nav_stat) {
             // 통계 (오늘 걸음수, 주간, 월간)
             replaceFragment(Fragments.Statistics);

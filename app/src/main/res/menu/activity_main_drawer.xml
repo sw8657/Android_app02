@@ -16,6 +16,10 @@
             android:icon="@drawable/ic_pin_drop_black_24dp"
             android:title="@string/nav_menuname_map" />
         <item
+            android:id="@+id/nav_rank"
+            android:icon="@drawable/ic_rank_trophy"
+            android:title="@string/nav_menuname_rank" />
+        <item
             android:id="@+id/nav_stat"
             android:icon="@drawable/ic_insert_chart_black_24dp"
             android:title="@string/nav_menuname_statistics" />
