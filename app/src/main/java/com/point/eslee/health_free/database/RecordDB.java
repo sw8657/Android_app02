@@ -7,6 +7,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.util.Log;
 
 import com.github.mikephil.charting.data.Entry;
+import com.point.eslee.health_free.VO.RecordVO;
 import com.point.eslee.health_free.values;
 
 import java.util.ArrayList;
@@ -25,6 +26,38 @@ public class RecordDB {
     public RecordDB(Context ctx){
         this.mCtx = ctx;
         mHelper = new DbOpenHelper(ctx);
+    }
+
+    // 최종 기록 조회
+    public RecordVO SelectLastRecord(){
+        RecordVO record = null;
+        Cursor c = null;
+        String sqlString = "";
+        try{
+            mDB = mHelper.getReadableDatabase();
+
+            sqlString = "SELECT * FROM "
+                    + DataBases.RecordTable._TABLENAME
+                    + " WHERE USER_ID = '" + values.UserId + "' ORDER BY _ID DESC "
+                    + " LIMIT 1";
+            c = mDB.rawQuery(sqlString,null);
+            if(c != null && c.getCount() != 0){
+                c.moveToFirst();
+                record = new RecordVO();
+                record._ID = c.getInt(c.getColumnIndex("_ID"));
+                record.Steps = c.getInt(c.getColumnIndex(DataBases.RecordTable.STEPS));
+                record.Distance = c.getDouble(c.getColumnIndex(DataBases.RecordTable.DISTANCE));
+                record.Calorie = c.getDouble(c.getColumnIndex(DataBases.RecordTable.CALORIE));
+                record.TotalPoint = c.getInt(c.getColumnIndex(DataBases.RecordTable.T_POINT));
+                record.CreateDate = c.getString(c.getColumnIndex(DataBases.RecordTable.C_DATE));
+                record.RunningTime = c.getInt(c.getColumnIndex(DataBases.RecordTable.R_TIME));
+            }
+            c.close();
+        }catch (Exception ex){
+            Log.e("RecordDB Error : ",ex.getMessage());
+        }
+        mHelper.close();
+        return record;
     }
 
     // 해당 날짜기준으로 일요일 날짜와 토요일 날짜를 검색

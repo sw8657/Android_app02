@@ -34,6 +34,21 @@ public class Common {
         return result;
     }
 
+    public static String get_commaString(double num){
+        String result = String.valueOf(num);
+
+        try {
+            Long L = Math.round(num);
+            int intValue = L.intValue();
+            DecimalFormat df = new DecimalFormat("#,##0");
+            result = df.format(intValue).toString();
+        } catch (Exception ex) {
+            Log.e("Error : ", ex.getMessage());
+        }
+
+        return result;
+    }
+
     /**
      * 숫자 -> 콤마 문자열 변환
      *
@@ -227,6 +242,85 @@ public class Common {
             result = cal.getMaximum(Calendar.DAY_OF_MONTH);
         }catch (Exception ex){
             Log.e("Error : ", ex.getMessage());
+        }
+
+        return result;
+    }
+
+    // 현재 운동 시간 조회하기
+    public static String getRunningTimeString(){
+        String returnTime = "00:00:00";
+
+        Calendar cal = Calendar.getInstance();
+        //경과시간
+        long runningTime = 0 ;
+        if(values.StartTime != null){
+            runningTime = Calendar.getInstance().getTimeInMillis() - values.StartTime.getTimeInMillis();
+
+            Date formatTime = new Date(runningTime);
+            cal.setTime(formatTime);
+
+            // 시간:분 타입으로 포맷
+            returnTime = cal.get(Calendar.HOUR_OF_DAY) + ":" + cal.get(Calendar.MINUTE) + ":" + cal.get(Calendar.SECOND);
+        }
+
+        return returnTime;
+    }
+
+    // 현재 운동 시간 조회하기
+    public static long getRunningTime(){
+        long runningTime = 0 ;
+        Calendar cal = Calendar.getInstance();
+        //경과시간
+
+        if(values.StartTime != null){
+            runningTime = Calendar.getInstance().getTimeInMillis() - values.StartTime.getTimeInMillis();
+        }
+
+        return runningTime;
+    }
+
+    // 현재 운동 시간 조회하기
+    public static int getRunningTimeSecond(){
+        int result = 0;
+        long runningTime = 0 ;
+        Calendar cal = Calendar.getInstance();
+        //경과시간
+
+        if(values.StartTime != null){
+            runningTime = Calendar.getInstance().getTimeInMillis() - values.StartTime.getTimeInMillis();
+            result = (int)(runningTime) / 1000;
+        }
+
+        return result;
+    }
+
+    public static String convertTimetoString(long time){
+        String result = "00:00:00";
+
+        try{
+            Calendar cal = Calendar.getInstance();
+            Date formatTime = new Date(time);
+            cal.setTime(formatTime);
+
+            // 시간:분 타입으로 포맷
+            result = cal.get(Calendar.HOUR_OF_DAY) + ":" + cal.get(Calendar.MINUTE) + ":" + cal.get(Calendar.SECOND);
+        }catch (Exception ex){
+            Log.e("Common : ", ex.getMessage());
+        }
+
+        return result;
+    }
+
+    public static double getRunningHour(long time){
+        double result = 0;
+
+        try{
+            int time2 = (int)(time) / 1000;
+            result = time2 / 3600;
+
+        }catch (Exception ex){
+            Log.e("Common : ", ex.getMessage());
         }
 
         return result;

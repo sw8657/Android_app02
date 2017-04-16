@@ -33,7 +33,7 @@ public class MyPointDB {
         Cursor c;
         try {
             mDB = mHelper.getReadableDatabase();
-            c = mDB.rawQuery("SELECT USER_ID, T_POINT FROM " + DataBases.PointTable._TABLENAME + " WHERE USER_ID = '" + values.UserId + "' ORDER BY _ID DESC", null);
+            c = mDB.rawQuery("SELECT USER_ID, T_POINT FROM " + DataBases.PointTable._TABLENAME + " WHERE USER_ID = '" + values.UserId + "' ORDER BY _ID DESC LIMIT 1", null);
             if (c != null && c.getCount() != 0) {
                 c.moveToFirst();
                 total_point = c.getInt(c.getColumnIndex(DataBases.PointTable.T_POINT));

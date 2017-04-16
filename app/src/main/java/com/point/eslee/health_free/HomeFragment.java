@@ -2,10 +2,14 @@ package com.point.eslee.health_free;
 
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+
+import com.point.eslee.health_free.VO.RecordVO;
+import com.point.eslee.health_free.database.RecordDB;
 
 import java.util.Timer;
 import java.util.TimerTask;
@@ -21,10 +25,15 @@ public class HomeFragment extends Fragment {
     private String mParam1;
     private String mParam2;
 
-    private TextView mStepView;
-    private TextView mDistanceView;
     private TimerTask mTask;
     private Timer mTimer;
+    private RecordDB mRecordDB;
+
+    private TextView mStepView;
+    private TextView mDistanceView;
+    private TextView mCalorieView;
+    private TextView mTimeView;
+    private TextView mSpeedView;
 
     public HomeFragment() {
         // Required empty public constructor
@@ -49,35 +58,28 @@ public class HomeFragment extends Fragment {
         }
     }
 
+    private void SetLayOut(View view) {
+        mStepView = (TextView) view.findViewById(R.id.home_step_value); // 걸음수 뷰
+        mDistanceView = (TextView) view.findViewById(R.id.home_distance_value); // 거리 뷰
+        mCalorieView = (TextView) view.findViewById(R.id.home_calorie_value); // 칼로리
+        mTimeView = (TextView) view.findViewById(R.id.home_time_value); // 시간
+        mSpeedView = (TextView) view.findViewById(R.id.home_speed_value); // 속도
+
+    }
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_home, container, false);
         getActivity().setTitle("Home");
         // Inflate the layout for this fragment
 
-        mStepView = (TextView) view.findViewById(R.id.home_step_value); // 걸음수 뷰
-        mDistanceView = (TextView) view.findViewById(R.id.home_distance_value); // 거리 뷰
+        // DB 연결
+        mRecordDB = new RecordDB(this.getContext());
 
-        mStepView.setText(Common.get_commaString(values.Step));
-        mDistanceView.setText(String.valueOf(values.Distance_sum));
-
-        // 타이머 가져오기
-        mTask = new TimerTask() {
-            @Override
-            public void run() {
-                getActivity().runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-//                        Toast.makeText(getActivity(), "" + values.Step, Toast.LENGTH_SHORT);
-                        mStepView.setText(Common.get_commaString(values.Step));
-                        mDistanceView.setText(String.valueOf((double)Math.round(values.Distance_sum/100)/10));
-                    }
-                });
-            }
-        };
-
-        mTimer = new Timer();
-        mTimer.scheduleAtFixedRate(mTask, 0, 500);
+        // 레이아웃 초기화
+        SetLayOut(view);
+        SetDataView();
+        SetStepViewTimer();
 
         return view;
     }
@@ -89,4 +91,58 @@ public class HomeFragment extends Fragment {
         }
         super.onDestroyView();
     }
+
+    // 내 기록 데이터 조회하기
+    private void SetDataView() {
+        RecordVO record = null;
+        int num_step = 0;
+        double num_distance = 0;
+        double num_calorie = 0;
+        double num_speed = 0;
+        int num_time = 0;
+        String str_time = "00:00:00";
+
+        try {
+            record = mRecordDB.SelectLastRecord();
+
+            num_step = record.getSteps() + values.Step;
+            num_distance = record.getDistance() + values.Distance_sum;
+            num_calorie = record.getCalorie() + values.Calorie;
+            num_time = record.getRunningTime() + Common.getRunningTimeSecond();
+            str_time = Common.convertTimetoString(num_time * 1000);
+            num_speed = num_distance / (num_time / 3600);
+
+            mStepView.setText(Common.get_commaString(record.getSteps() + values.Step));
+            mDistanceView.setText(String.valueOf(record.getDistance() + values.Distance_sum));
+            mCalorieView.setText(Common.get_commaString(record.getCalorie() + values.Calorie));
+            mTimeView.setText(str_time);
+            mSpeedView.setText(Common.get_commaString(num_speed));
+
+        } catch (Exception ex) {
+            Log.e("HomeFragment : ", ex.getMessage());
+        }
+
+    }
+
+    // 타이머 초기화
+    private void SetStepViewTimer() {
+        // 타이머 가져오기
+        mTask = new TimerTask() {
+            @Override
+            public void run() {
+                getActivity().runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+//                        Toast.makeText(getActivity(), "" + values.Step, Toast.LENGTH_SHORT);
+                        mStepView.setText(Common.get_commaString(values.Step));
+                        mDistanceView.setText(String.valueOf((double) Math.round(values.Distance_sum / 100) / 10));
+                    }
+                });
+            }
+        };
+
+        mTimer = new Timer();
+        mTimer.scheduleAtFixedRate(mTask, 0, 500);
+    }
+
 }

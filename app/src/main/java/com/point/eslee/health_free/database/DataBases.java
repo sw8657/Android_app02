@@ -1,6 +1,9 @@
 package com.point.eslee.health_free.database;
 
+import android.content.Context;
 import android.provider.BaseColumns;
+
+import java.io.File;
 
 /**
  * Created by eslee on 2017-03-01.
@@ -62,6 +65,7 @@ public class DataBases {
         public static final String CALORIE = "CALORIE";
         public static final String DISTANCE = "DISTANCE";
         public static final String T_POINT = "T_POINT";
+        public static final String R_TIME = "R_TIME";
         public static final String _TABLENAME = "RECORD";
         public static final String _CREATE =
                 "CREATE TABLE " + _TABLENAME+"("
@@ -71,7 +75,8 @@ public class DataBases {
                         + C_DATE + " DATETIME DEFAULT (datetime('now','localtime')) , "
                         + CALORIE + " REAL , "
                         + DISTANCE + " REAL, "
-                        + T_POINT + " INTEGER "
+                        + T_POINT + " INTEGER, "
+                        + R_TIME + " INTEGER "
                         + " );";
     }
 
@@ -94,6 +99,7 @@ public class DataBases {
                         + C_DATE + " DATETIME DEFAULT (datetime('now','localtime')) "
                         + " );";
     }
+
 
 
 

@@ -2,13 +2,21 @@ package com.point.eslee.health_free.database;
 
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.res.AssetManager;
 import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.util.Log;
 
 import com.github.mikephil.charting.data.Entry;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Date;
 
@@ -18,7 +26,7 @@ import java.util.Date;
 
 public class DbOpenHelper {
     private static final String DATABASE_NAME = "healthfree.db";
-    private static final int DATABASE_VERSION = 1;
+    private static final int DATABASE_VERSION = 3;
     private static SQLiteDatabase mDB;
     private DatabaseHelper mDBHelper;
     private Context mCtx;
@@ -37,6 +45,7 @@ public class DbOpenHelper {
 //            db.execSQL(DataBases.PointTable._CREATE);
 //            db.execSQL(DataBases.HealthTable._CREATE);
 //            db.execSQL(DataBases.StoreTable._CREATE);
+            copyDB();
         }
 
         // 버전이 업데이트 되었을 경우 DB를 다시 만들어 준다.
@@ -46,7 +55,7 @@ public class DbOpenHelper {
 //            db.execSQL("DROP TABLE IF EXISTS " + DataBases.PointTable._TABLENAME);
 //            db.execSQL("DROP TABLE IF EXISTS " + DataBases.HealthTable._TABLENAME);
 //            db.execSQL("DROP TABLE IF EXISTS " + DataBases.StoreTable._TABLENAME);
-//            onCreate(db);
+            onCreate(db);
         }
     }
 
@@ -76,6 +85,54 @@ public class DbOpenHelper {
 
     public void close(){
         mDB.close();
+    }
+
+    // DB가 있나 체크하기
+    public boolean isCheckDB() {
+        String filePath = "/data/data/" + mCtx.getPackageName() + "/databases/" + DATABASE_NAME;
+        File file = new File(filePath);
+        if (file.exists()) {
+            return true;
+        }
+        return false;
+    }
+
+    // DB를 복사하기 // assets의 /db/xxxx.db 파일을 설치된 프로그램의 내부 DB공간으로 복사하기
+    public void copyDB() {
+        Log.d("MiniApp", "copyDB");
+        AssetManager manager = mCtx.getAssets();
+        String folderPath = "/data/data/" + mCtx.getPackageName() + "/databases";
+        String filePath = "/data/data/" + mCtx.getPackageName() + "/databases/" + DATABASE_NAME;
+        File folder = new File(folderPath);
+        File file = new File(filePath);
+        FileOutputStream fos = null;
+        BufferedOutputStream bos = null;
+        try {
+            InputStream is = manager.open("db/" + DATABASE_NAME);
+            BufferedInputStream bis = new BufferedInputStream(is);
+            if (folder.exists()) {
+            } else {
+                folder.mkdirs();
+            }
+            if (file.exists()) {
+                file.delete();
+                file.createNewFile();
+            }
+            fos = new FileOutputStream(file);
+            bos = new BufferedOutputStream(fos);
+            int read = -1;
+            byte[] buffer = new byte[1024];
+            while ((read = bis.read(buffer, 0, 1024)) != -1) {
+                bos.write(buffer, 0, read);
+            }
+            bos.flush();
+            bos.close();
+            fos.close();
+            bis.close();
+            is.close();
+        } catch (IOException e) {
+            Log.e("ErrorMessage : ", e.getMessage());
+        }
     }
 
     // Insert DB

@@ -112,18 +112,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         drawer.setDrawerListener(toggle);
         toggle.syncState();
 
-        try {
-            boolean bResult = isCheckDB(this.getApplicationContext()); // DB가 있는지?
-            copyDB(this.getApplicationContext()); // 무조건 DB복사
-//            if (!bResult) {
-//                // DB가 없으면 복사
-//                copyDB(this.getApplicationContext());
-//            }
-
-        } catch (Exception ex) {
-
-        }
-
         // 환경설정 불러오기
         mPref = PreferenceManager.getDefaultSharedPreferences(this);
 
@@ -183,55 +171,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         // 기본 플래그 화면 홈으로 설정
         replaceFragment(Fragments.Home);
     }
-
-    // DB가 있나 체크하기
-    public boolean isCheckDB(Context mContext) {
-        String filePath = "/data/data/" + this.getPackageName() + "/databases/" + DATABASE_NAME;
-        File file = new File(filePath);
-        if (file.exists()) {
-            return true;
-        }
-        return false;
-    }
-
-    // DB를 복사하기 // assets의 /db/xxxx.db 파일을 설치된 프로그램의 내부 DB공간으로 복사하기
-    public void copyDB(Context mContext) {
-        Log.d("MiniApp", "copyDB");
-        AssetManager manager = mContext.getAssets();
-        String folderPath = "/data/data/" + this.getPackageName() + "/databases";
-        String filePath = "/data/data/" + this.getPackageName() + "/databases/" + DATABASE_NAME;
-        File folder = new File(folderPath);
-        File file = new File(filePath);
-        FileOutputStream fos = null;
-        BufferedOutputStream bos = null;
-        try {
-            InputStream is = manager.open("db/" + DATABASE_NAME);
-            BufferedInputStream bis = new BufferedInputStream(is);
-            if (folder.exists()) {
-            } else {
-                folder.mkdirs();
-            }
-            if (file.exists()) {
-                file.delete();
-                file.createNewFile();
-            }
-            fos = new FileOutputStream(file);
-            bos = new BufferedOutputStream(fos);
-            int read = -1;
-            byte[] buffer = new byte[1024];
-            while ((read = bis.read(buffer, 0, 1024)) != -1) {
-                bos.write(buffer, 0, read);
-            }
-            bos.flush();
-            bos.close();
-            fos.close();
-            bis.close();
-            is.close();
-        } catch (IOException e) {
-            Log.e("ErrorMessage : ", e.getMessage());
-        }
-    }
-
 
     // 플래그 화면 전환
     public void replaceFragment(Fragments frag) {
