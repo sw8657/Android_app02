@@ -4,6 +4,7 @@ import android.content.Context;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -11,17 +12,12 @@ import android.widget.ListView;
 import android.widget.TextView;
 
 import com.point.eslee.health_free.R;
+import com.point.eslee.health_free.VO.RankVO;
+import com.point.eslee.health_free.database.RankDB;
 
+import org.w3c.dom.Text;
 
-/**
- * A simple {@link Fragment} subclass.
- * Activities that contain this fragment must implement the
- * {@link RankFragment.OnFragmentInteractionListener} interface
- * to handle interaction events.
- * Use the {@link RankFragment#newInstance} factory method to
- * create an instance of this fragment.
- */
-public class RankFragment extends Fragment {
+public class RankFragment extends Fragment implements View.OnClickListener {
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private static final String ARG_PARAM1 = "param1";
@@ -31,11 +27,14 @@ public class RankFragment extends Fragment {
     private String mParam1;
     private String mParam2;
 
-    private OnFragmentInteractionListener mListener;
-
     private TextView mPointTitle;
     private ListView mPointListView;
     private ListViewRankAdapter mPointAdapter;
+    private RankDB mRankDB;
+
+    private TextView mPointMyNum;
+    private TextView mPointMyName;
+    private TextView mPointMyValue;
 
 
     public RankFragment() {
@@ -69,60 +68,88 @@ public class RankFragment extends Fragment {
         }
     }
 
+    private void SetLayOut(View view) {
+        // 레이아웃 초기화
+        mPointTitle = (TextView) view.findViewById(R.id.rank_point_title); // 포인트 제목
+        mPointListView = (ListView) view.findViewById(R.id.rank_point_listview); // 포인트 리스트뷰
+
+        mPointMyNum = (TextView) view.findViewById(R.id.rank_point_mynum); // 내 포인트 순위
+        mPointMyName = (TextView) view.findViewById(R.id.rank_point_myname); // 내 이름
+        mPointMyValue = (TextView) view.findViewById(R.id.rank_point_myvalue); // 내 포인트값
+
+        // 리스트뷰 초기화
+        mPointAdapter = new ListViewRankAdapter();
+        mPointListView.setAdapter(mPointAdapter);
+        mPointListView.setClickable(false);
+    }
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_rank, container, false);
         getActivity().setTitle("Rank");
         // Inflate the layout for this fragment
 
-        mPointTitle = (TextView) view.findViewById(R.id.rank_point_title); // 포인트 제목
-        mPointListView = (ListView) view.findViewById(R.id.rank_point_listview); // 포인트 리스트뷰
+        // 레이아웃 초기화
+        SetLayOut(view);
 
-        mPointAdapter = new ListViewRankAdapter();
-        mPointListView.setAdapter(mPointAdapter);
-        mPointListView.setClickable(false);
+        //DB연결
+        mRankDB = new RankDB(this.getContext());
 
-        // 포인트 새로고침 클릭이벤트
+        // TODO: 서버에서 랭킹 조회하기
+        setRankPoint();
+        setMyRankPoint();
 
         return view;
     }
 
-    // TODO: Rename method, update argument and hook method into UI event
-    public void onButtonPressed(Uri uri) {
-        if (mListener != null) {
-            mListener.onFragmentInteraction(uri);
+    @Override
+    public void onClick(View view) {
+        switch (view.getId()) {
+            case R.id.rank_point_title:
+                try {
+                    // TODO: 포인트 랭킹 새로고침
+                    setRankPoint();
+                    setMyRankPoint();
+                } catch (Exception ex) {
+
+                }
+        }
+    }
+
+    private void setRankPoint() {
+        mPointAdapter.clearItem();
+        try {
+            mPointAdapter.addItemList(mRankDB.SelectRankPoint());
+        } catch (Exception ex) {
+            Log.e("RankFragment : ", ex.getMessage());
+        }
+        mPointAdapter.notifyDataSetChanged();
+    }
+
+    private void setMyRankPoint(){
+        RankVO rank = null;
+        mPointMyNum.setText("0");
+        mPointMyName.setText("nothing user");
+        mPointMyValue.setText("nothing value");
+        try{
+            rank = mRankDB.SelectMyRankPoint();
+            mPointMyNum.setText(String.valueOf(rank.getNum()));
+            mPointMyName.setText(rank.getTitle());
+            mPointMyValue.setText(rank.getValue());
+        }catch (Exception ex){
+            Log.e("RankFragment : ",ex.getMessage());
         }
     }
 
     @Override
-    public void onAttach(Context context) {
-        super.onAttach(context);
-        if (context instanceof OnFragmentInteractionListener) {
-            mListener = (OnFragmentInteractionListener) context;
-        } else {
-            throw new RuntimeException(context.toString()
-                    + " must implement OnFragmentInteractionListener");
-        }
+    public void onResume() {
+        super.onResume();
     }
 
     @Override
-    public void onDetach() {
-        super.onDetach();
-        mListener = null;
+    public void onDestroyView() {
+        super.onDestroyView();
     }
 
-    /**
-     * This interface must be implemented by activities that contain this
-     * fragment to allow an interaction in this fragment to be communicated
-     * to the activity and potentially other fragments contained in that
-     * activity.
-     * <p>
-     * See the Android Training lesson <a href=
-     * "http://developer.android.com/training/basics/fragments/communicating.html"
-     * >Communicating with Other Fragments</a> for more information.
-     */
-    public interface OnFragmentInteractionListener {
-        // TODO: Update argument type and name
-        void onFragmentInteraction(Uri uri);
-    }
+
 }

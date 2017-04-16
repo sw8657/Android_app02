@@ -62,8 +62,7 @@ public class ListViewRankAdapter extends BaseAdapter {
         view.setTag(rankVO);
 
         // 아이템 내 각 위젯에 데이터 반영
-
-        numView.setText(rankVO.getNum());
+        numView.setText(String.valueOf(rankVO.getNum()));
         usernameView.setText(rankVO.getTitle());
         valueView.setText(rankVO.getValue());
 
