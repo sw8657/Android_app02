@@ -65,6 +65,13 @@ public class HomeFragment extends Fragment {
         mTimeView = (TextView) view.findViewById(R.id.home_time_value); // 시간
         mSpeedView = (TextView) view.findViewById(R.id.home_speed_value); // 속도
 
+        mStepView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                SetDataView();
+            }
+        });
+
     }
 
     @Override
@@ -96,10 +103,10 @@ public class HomeFragment extends Fragment {
     private void SetDataView() {
         RecordVO record = null;
         int num_step = 0;
-        double num_distance = 0;
+        double num_distance = 0; // Km
         double num_calorie = 0;
-        double num_speed = 0;
-        int num_time = 0;
+        double num_speed = 0; // Km/h
+        int num_sec = 0; // sec
         String str_time = "00:00:00";
 
         try {
@@ -108,16 +115,15 @@ public class HomeFragment extends Fragment {
             num_step = record.getSteps() + values.Step;
             num_distance = record.getDistance() + values.Distance_sum;
             num_calorie = record.getCalorie() + values.Calorie;
-            num_time = record.getRunningTime() + Common.getRunningTimeSecond();
-            str_time = Common.convertTimetoString(num_time * 1000);
-            num_speed = num_distance / (num_time / 3600);
+            num_sec = record.getRunningTime() + Common.getRunningTimeSecond();
+            str_time = Common.convertSecToTimeString(num_sec);
+            num_speed = (num_distance / (double)num_sec) * 3600;
 
-            mStepView.setText(Common.get_commaString(record.getSteps() + values.Step));
-            mDistanceView.setText(String.valueOf(record.getDistance() + values.Distance_sum));
-            mCalorieView.setText(Common.get_commaString(record.getCalorie() + values.Calorie));
+            mStepView.setText(Common.get_commaString(num_step));
+            mDistanceView.setText(String.valueOf(num_distance));
+            mCalorieView.setText(Common.get_commaString(num_calorie));
             mTimeView.setText(str_time);
             mSpeedView.setText(Common.get_commaString(num_speed));
-
         } catch (Exception ex) {
             Log.e("HomeFragment : ", ex.getMessage());
         }
@@ -133,9 +139,7 @@ public class HomeFragment extends Fragment {
                 getActivity().runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-//                        Toast.makeText(getActivity(), "" + values.Step, Toast.LENGTH_SHORT);
-                        mStepView.setText(Common.get_commaString(values.Step));
-                        mDistanceView.setText(String.valueOf((double) Math.round(values.Distance_sum / 100) / 10));
+                        SetDataView(); // 내 기록 데이터 조회하기
                     }
                 });
             }

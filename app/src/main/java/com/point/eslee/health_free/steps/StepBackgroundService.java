@@ -21,10 +21,14 @@ import android.widget.Toast;
 import com.point.eslee.health_free.MainActivity;
 import com.point.eslee.health_free.values;
 
+import java.util.Timer;
+import java.util.TimerTask;
+
 public class StepBackgroundService extends Service implements SensorEventListener {
 
     NotificationManager Notifi_M;
     StepCheckThread thread;
+    StepDBThread thread_db;
     Notification Notifi;
 
     public static int cnt = values.Step;
@@ -75,6 +79,8 @@ public class StepBackgroundService extends Service implements SensorEventListene
         myServiceHandler handler = new myServiceHandler();
         thread = new StepCheckThread(handler);
         thread.start();
+        thread_db = new StepDBThread(handler);
+        thread_db.start();
 
         return START_STICKY;
     }
@@ -83,6 +89,8 @@ public class StepBackgroundService extends Service implements SensorEventListene
     public void onDestroy() {
         thread.stopForever();
         thread = null;//쓰레기 값을 만들어서 빠르게 회수하라고 null을 넣어줌.
+        thread_db.stopForever();
+        thread_db = null;
 
         if (sensorManager != null)
             sensorManager.unregisterListener(this);
@@ -165,7 +173,48 @@ public class StepBackgroundService extends Service implements SensorEventListene
         }
     }
 
-    ;
+    class StepDBThread extends Thread {
+        Handler handler;
+        boolean isRun = true;
+        private TimerTask mTask;
+        private Timer mTimer;
+        int cntaa = 0;
+
+        public StepDBThread(Handler handler) {
+            this.handler = handler;
+        }
+
+        public void stopForever() {
+            synchronized (this) {
+                this.isRun = false;
+                mTimer = null;
+            }
+        }
+
+        public void run() {
+            //반복적으로 수행할 작업을 한다.
+
+            mTask = new TimerTask() {
+                @Override
+                public void run() {
+                    // DB 입력
+                    mToastCnt.setText("테스트" + cntaa++);
+                    mToastCnt.show();
+                }
+            };
+
+            mTimer = new Timer();
+            mTimer.scheduleAtFixedRate(mTask, 1000, 5000);
+
+            while (isRun) {
+                handler.sendEmptyMessage(0);//쓰레드에 있는 핸들러에게 메세지를 보냄
+                try {
+                    Thread.sleep(10000); //10초씩 쉰다.
+                } catch (Exception e) {
+                }
+            }
+        }
+    }
 
 
 }

@@ -2,17 +2,22 @@ package com.point.eslee.health_free;
 
 import android.util.Log;
 
+import java.sql.Timestamp;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
+import java.util.TimeZone;
 
 /**
  * Created by eslee on 2017-02-05.
  */
 
 public class Common {
+
+    private static final String formatDateTimeZone = "yyyy-MM-dd'T'HH:mm:ss'Z'";
+    private static final String formatTimeZone = "yyyy-MM-dd'T'HH:mm:ss'Z'";
 
     /**
      * 숫자 -> 콤마 문자열 변환
@@ -261,7 +266,7 @@ public class Common {
             cal.setTime(formatTime);
 
             // 시간:분 타입으로 포맷
-            returnTime = cal.get(Calendar.HOUR_OF_DAY) + ":" + cal.get(Calendar.MINUTE) + ":" + cal.get(Calendar.SECOND);
+            returnTime = getStringNum2(cal.get(Calendar.HOUR_OF_DAY)) + ":" + getStringNum2(cal.get(Calendar.MINUTE)) + ":" + getStringNum2(cal.get(Calendar.SECOND));
         }
 
         return returnTime;
@@ -295,16 +300,19 @@ public class Common {
         return result;
     }
 
-    public static String convertTimetoString(long time){
+    // 초 -> 시분초 변환
+    public static String convertSecToTimeString(int sec){
         String result = "00:00:00";
-
+        int hour = 0;
+        int min = 0;
+        int s = 0;
         try{
-            Calendar cal = Calendar.getInstance();
-            Date formatTime = new Date(time);
-            cal.setTime(formatTime);
-
             // 시간:분 타입으로 포맷
-            result = cal.get(Calendar.HOUR_OF_DAY) + ":" + cal.get(Calendar.MINUTE) + ":" + cal.get(Calendar.SECOND);
+            hour = (sec / 3600);
+            min = (sec % 3600 / 60);
+            s = (sec % 3600 % 60);
+            result = getStringNum2(hour) + ":" + getStringNum2(min) + ":" + getStringNum2(s);
+            // result = cal.get(Calendar.HOUR_OF_DAY) + ":" + cal.get(Calendar.MINUTE) + ":" + cal.get(Calendar.SECOND);
         }catch (Exception ex){
             Log.e("Common : ", ex.getMessage());
         }
@@ -324,6 +332,10 @@ public class Common {
         }
 
         return result;
+    }
+
+    public static String getStringNum2(int num){
+        return String.format("%02d", num);
     }
 
 }
