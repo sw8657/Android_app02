@@ -79,8 +79,8 @@ public class StepBackgroundService extends Service implements SensorEventListene
         myServiceHandler handler = new myServiceHandler();
         thread = new StepCheckThread(handler);
         thread.start();
-        thread_db = new StepDBThread(handler);
-        thread_db.start();
+//        thread_db = new StepDBThread(handler);
+//        thread_db.start();
 
         return START_STICKY;
     }

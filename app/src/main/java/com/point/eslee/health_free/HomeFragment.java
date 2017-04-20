@@ -1,7 +1,12 @@
 package com.point.eslee.health_free;
 
+import android.content.Context;
+import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -13,6 +18,7 @@ import com.point.eslee.health_free.database.RecordDB;
 
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.Executor;
 
 
 public class HomeFragment extends Fragment {
@@ -24,6 +30,8 @@ public class HomeFragment extends Fragment {
     // TODO: Rename and change types of parameters
     private String mParam1;
     private String mParam2;
+
+    private DbDoinAsyncTask mDbTask;
 
     private TimerTask mTask;
     private Timer mTimer;
@@ -68,7 +76,8 @@ public class HomeFragment extends Fragment {
         mStepView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                SetDataView();
+                //SetDataView();
+                new DbDoinAsyncTask(getContext()).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
             }
         });
 
@@ -81,12 +90,15 @@ public class HomeFragment extends Fragment {
         // Inflate the layout for this fragment
 
         // DB 연결
-        mRecordDB = new RecordDB(this.getContext());
+        // mRecordDB = new RecordDB(this.getContext());
 
         // 레이아웃 초기화
         SetLayOut(view);
-        SetDataView();
-        SetStepViewTimer();
+//        new DbDoinAsyncTask(this.getContext()).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+//        mDbTask = new DbDoinAsyncTask(this.getContext());
+//        mDbTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+        //SetDataView();
+        // SetStepViewTimer();
 
         return view;
     }
@@ -99,9 +111,10 @@ public class HomeFragment extends Fragment {
         super.onDestroyView();
     }
 
+
+
     // 내 기록 데이터 조회하기
-    private void SetDataView() {
-        RecordVO record = null;
+    private void SetDataView(RecordVO record) {
         int num_step = 0;
         double num_distance = 0; // Km
         double num_calorie = 0;
@@ -110,14 +123,15 @@ public class HomeFragment extends Fragment {
         String str_time = "00:00:00";
 
         try {
-            record = mRecordDB.SelectLastRecord();
+            if (record == null) return;
+            // record = mRecordDB.SelectLastRecord();
 
             num_step = record.getSteps() + values.Step;
             num_distance = record.getDistance() + values.Distance_sum;
             num_calorie = record.getCalorie() + values.Calorie;
             num_sec = record.getRunningTime() + Common.getRunningTimeSecond();
             str_time = Common.convertSecToTimeString(num_sec);
-            num_speed = (num_distance / (double)num_sec) * 3600;
+            num_speed = (num_distance / (double) num_sec) * 3600;
 
             mStepView.setText(Common.get_commaString(num_step));
             mDistanceView.setText(String.valueOf(num_distance));
@@ -127,7 +141,6 @@ public class HomeFragment extends Fragment {
         } catch (Exception ex) {
             Log.e("HomeFragment : ", ex.getMessage());
         }
-
     }
 
     // 타이머 초기화
@@ -139,7 +152,8 @@ public class HomeFragment extends Fragment {
                 getActivity().runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        SetDataView(); // 내 기록 데이터 조회하기
+                        new DbDoinAsyncTask(getContext()).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+                        // SetDataView(); // 내 기록 데이터 조회하기
                     }
                 });
             }
@@ -148,5 +162,41 @@ public class HomeFragment extends Fragment {
         mTimer = new Timer();
         mTimer.scheduleAtFixedRate(mTask, 0, 500);
     }
+
+    public class DbDoinAsyncTask extends AsyncTask<String, Void, RecordVO> {
+        private Context aContext;
+        private RecordDB aRecordDB;
+        public RecordVO result;
+
+        public DbDoinAsyncTask(Context context) {
+            aContext = context;
+        }
+
+        @Override
+        protected void onPreExecute() {
+            aRecordDB = new RecordDB(aContext);
+            super.onPreExecute();
+        }
+
+        @Override
+        protected RecordVO doInBackground(String... params) {
+
+            try {
+                if (aRecordDB == null) aRecordDB = new RecordDB(aContext);
+                result = aRecordDB.SelectLastRecord();
+            } catch (Exception ex) {
+                Log.e("HomeFrag : ", ex.getMessage());
+            }
+
+            return result;
+        }
+
+        @Override
+        protected void onPostExecute(RecordVO recordVO) {
+            SetDataView(recordVO);
+            super.onPostExecute(recordVO);
+        }
+    }
+
 
 }

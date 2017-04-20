@@ -34,8 +34,8 @@ public class DbOpenHelper {
     private class DatabaseHelper extends SQLiteOpenHelper {
 
         //생성자
-        public DatabaseHelper(Context context, String name, SQLiteDatabase.CursorFactory factory, int version){
-            super(context,name,factory,version);
+        public DatabaseHelper(Context context, String name, SQLiteDatabase.CursorFactory factory, int version) {
+            super(context, name, factory, version);
         }
 
         // 최초 DB를 만들때 한번만 호출
@@ -59,31 +59,31 @@ public class DbOpenHelper {
         }
     }
 
-    public DbOpenHelper(Context context){
+    public DbOpenHelper(Context context) {
         this.mCtx = context;
     }
 
     public DbOpenHelper open() throws SQLException {
-        mDBHelper = new DatabaseHelper(mCtx,DATABASE_NAME,null,DATABASE_VERSION);
+        mDBHelper = new DatabaseHelper(mCtx, DATABASE_NAME, null, DATABASE_VERSION);
         mDB = mDBHelper.getWritableDatabase();
         return this;
     }
 
-    public SQLiteDatabase getWritableDatabase(){
-        if(mDBHelper == null){
+    public SQLiteDatabase getWritableDatabase() {
+        if (mDBHelper == null) {
             this.open();
         }
         return mDBHelper.getWritableDatabase();
     }
 
-    public SQLiteDatabase getReadableDatabase(){
-        if(mDBHelper == null){
+    public SQLiteDatabase getReadableDatabase() {
+        if (mDBHelper == null) {
             this.open();
         }
         return mDBHelper.getReadableDatabase();
     }
 
-    public void close(){
+    public void close() {
         mDB.close();
     }
 
@@ -99,7 +99,10 @@ public class DbOpenHelper {
 
     // DB를 복사하기 // assets의 /db/xxxx.db 파일을 설치된 프로그램의 내부 DB공간으로 복사하기
     public void copyDB() {
-        Log.d("MiniApp", "copyDB");
+        Log.d("HealthFree", "copyDB");
+        if(mDB != null){
+            mDB.close();
+        }
         AssetManager manager = mCtx.getAssets();
         String folderPath = "/data/data/" + mCtx.getPackageName() + "/databases";
         String filePath = "/data/data/" + mCtx.getPackageName() + "/databases/" + DATABASE_NAME;
@@ -133,10 +136,15 @@ public class DbOpenHelper {
         } catch (IOException e) {
             Log.e("ErrorMessage : ", e.getMessage());
         }
+
+        // SET NEW DATABASE VERSION
+        SQLiteDatabase db = SQLiteDatabase.openDatabase(filePath, null, SQLiteDatabase.OPEN_READWRITE);
+        db.setVersion(DATABASE_VERSION);
+        db.close();
     }
 
     // Insert DB
-    public long insertUserInfo(String name, String email, String user_type){
+    public long insertUserInfo(String name, String email, String user_type) {
         int userid = 1;
 
         ContentValues values = new ContentValues();
@@ -148,40 +156,40 @@ public class DbOpenHelper {
     }
 
     // Update DB
-    public boolean updateUserInfo(long id , String name, String email){
+    public boolean updateUserInfo(long id, String name, String email) {
         ContentValues values = new ContentValues();
         values.put(DataBases.UserTable.USER_NAME, name);
         values.put(DataBases.UserTable.EMAIL, email);
-        return mDB.update(DataBases.UserTable._TABLENAME, values, "_ID="+id, null) > 0;
+        return mDB.update(DataBases.UserTable._TABLENAME, values, "_ID=" + id, null) > 0;
     }
 
     // Delete ID
-    public boolean deleteUserInfo(long id){
-        return mDB.delete(DataBases.UserTable._TABLENAME, "_ID="+id, null) > 0;
+    public boolean deleteUserInfo(long id) {
+        return mDB.delete(DataBases.UserTable._TABLENAME, "_ID=" + id, null) > 0;
     }
 
     // Select All
-    public Cursor getAllUserInfo(){
+    public Cursor getAllUserInfo() {
         return mDB.query(DataBases.UserTable._TABLENAME, null, null, null, null, null, null);
     }
 
     // ID 컬럼 얻어 오기
-    public Cursor getUserInfo(long id){
+    public Cursor getUserInfo(long id) {
         Cursor c = mDB.query(DataBases.UserTable._TABLENAME, null,
-                "_id="+id, null, null, null, null);
-        if(c != null && c.getCount() != 0)
+                "_id=" + id, null, null, null, null);
+        if (c != null && c.getCount() != 0)
             c.moveToFirst();
         return c;
     }
 
     // 이름 검색 하기 (rawQuery)
-    public Cursor getMatchNameFromUserInfo(String name){
-        Cursor c = mDB.rawQuery( "SELECT * FROM " + DataBases.UserTable._TABLENAME + " WHERE NAME='" + name + "'" , null);
+    public Cursor getMatchNameFromUserInfo(String name) {
+        Cursor c = mDB.rawQuery("SELECT * FROM " + DataBases.UserTable._TABLENAME + " WHERE NAME='" + name + "'", null);
         return c;
     }
 
     // Insert DB
-    public long insertPoint(int user_id, String use_type, String use_title, int use_point, int total_point,  int store_id){
+    public long insertPoint(int user_id, String use_type, String use_title, int use_point, int total_point, int store_id) {
         ContentValues values = new ContentValues();
         values.put(DataBases.PointTable.USER_ID, user_id);
         values.put(DataBases.PointTable.USE_TYPE, use_type);
@@ -193,31 +201,31 @@ public class DbOpenHelper {
     }
 
     // Update DB
-    public boolean updatePoint(long id , String use_type, String use_title, int use_point, int total_point, int store_id){
+    public boolean updatePoint(long id, String use_type, String use_title, int use_point, int total_point, int store_id) {
         ContentValues values = new ContentValues();
         values.put(DataBases.PointTable.USE_TYPE, use_type);
         values.put(DataBases.PointTable.USE_TITLE, use_title);
         values.put(DataBases.PointTable.U_POINT, use_point);
         values.put(DataBases.PointTable.T_POINT, total_point);
         values.put(DataBases.PointTable.STORE_ID, store_id);
-        return mDB.update(DataBases.PointTable._TABLENAME, values, "_ID="+id, null) > 0;
+        return mDB.update(DataBases.PointTable._TABLENAME, values, "_ID=" + id, null) > 0;
     }
 
     // Delete ID
-    public boolean deletePoint(long id){
-        return mDB.delete(DataBases.PointTable._TABLENAME, "_ID="+id, null) > 0;
+    public boolean deletePoint(long id) {
+        return mDB.delete(DataBases.PointTable._TABLENAME, "_ID=" + id, null) > 0;
     }
 
     // Select All
-    public Cursor getAllPoint(){
+    public Cursor getAllPoint() {
         return mDB.query(DataBases.PointTable._TABLENAME, null, null, null, null, null, null);
     }
 
     // ID 컬럼 얻어 오기
-    public Cursor getPoint(long id){
+    public Cursor getPoint(long id) {
         Cursor c = mDB.query(DataBases.PointTable._TABLENAME, null,
-                "_ID="+id, null, null, null, null);
-        if(c != null && c.getCount() != 0)
+                "_ID=" + id, null, null, null, null);
+        if (c != null && c.getCount() != 0)
             c.moveToFirst();
         return c;
     }
