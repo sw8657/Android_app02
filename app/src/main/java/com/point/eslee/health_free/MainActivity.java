@@ -46,6 +46,7 @@ import com.google.android.gms.maps.MapsInitializer;
 import com.google.android.gms.maps.model.LatLng;
 import com.point.eslee.health_free.VO.RecordVO;
 import com.point.eslee.health_free.VO.StoreVO;
+import com.point.eslee.health_free.database.MyPointDB;
 import com.point.eslee.health_free.database.RecordDB;
 import com.point.eslee.health_free.database.StoreDB;
 import com.point.eslee.health_free.point.MypointFragment;
@@ -114,9 +115,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         drawer.setDrawerListener(toggle);
         toggle.syncState();
 
-        // 환경설정 불러오기
-        mPref = PreferenceManager.getDefaultSharedPreferences(this);
-
         // DB연결 확인
         RecordDB recordDB = new RecordDB(this);
         recordDB.SelectLastRecord();
@@ -132,6 +130,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         // 사용자 기록조회 및 만보기 서비스 시작하기
         new UserInfoDoinAsyncTask(this).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
 
+        // 환경설정 불러오기
+        mPref = PreferenceManager.getDefaultSharedPreferences(this);
+
         // 네비 상단부분 사용자 정보 표시
         SetNavi_info();
 
@@ -144,7 +145,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     }
 
     // 만보기 서비스 시작
-    private void StartStepService(){
+    private void StartStepService() {
         // 만보기
         intent = new Intent(MainActivity.this, StepBackgroundService.class);
         receiver = new MyMainLocalRecever();
@@ -223,6 +224,18 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         textViewEmail.setText(mUserEmail);
         TextView textViewName = (TextView) nav_header_view.findViewById(R.id.textViewName);
         textViewName.setText(mPref.getString("example_text", "NothingText"));
+        textViewName.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                UpdateRecord();
+            }
+        });
+        imageViewUser.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                UpdateRecord();
+            }
+        });
     }
 
     @Override
@@ -230,11 +243,36 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         try {
             // 서비스 종료
             unregisterReceiver(receiver);
-            stopService(intent);
+            if(isServiceRunningCheck()){
+                stopService(intent);
+            }
+
+            // TODO: 종료전 데이터 저장
+            UpdateRecord();
+
         } catch (Exception ex) {
 
         }
         super.onDestroy();
+    }
+
+    private void UpdateRecord() {
+        try {
+            MyPointDB pointDB = new MyPointDB(this);
+            int totalPoint = pointDB.SelectTotalPoint();
+
+            RecordVO recordVO = new RecordVO();
+            recordVO.Steps = values.Step;
+            recordVO.Distance = values.Distance_sum;
+            recordVO.Calorie = values.Calorie;
+            recordVO.RunningTime = values.RunningSec;
+            recordVO.TotalPoint = totalPoint;
+            RecordDB recordDB = new RecordDB(this);
+            recordDB.UpdateLastRecord(recordVO);
+            Log.d("UpdateRecord: ", "success");
+        } catch (Exception ex) {
+            Log.e("MainActivity : ", ex.getMessage());
+        }
     }
 
     @Override
@@ -242,6 +280,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         super.onResume();
         //Toast.makeText(this,"onResume",Toast.LENGTH_SHORT).show();
         SetNavi_info();
+        if (mPref != null) {
+            int shake_value = Integer.valueOf(mPref.getString("SHAKE_THRESHOLD", "800"));
+            StepBackgroundService.setShakeThreshold(shake_value);
+        }
     }
 
     @Override
@@ -599,7 +641,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         private RecordDB aRecordDB;
         private RecordVO aRecordVO;
 
-        public UserInfoDoinAsyncTask(Context context){
+        public UserInfoDoinAsyncTask(Context context) {
             aContext = context;
         }
 
@@ -611,17 +653,18 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         @Override
         protected String doInBackground(String... strings) {
-            try{
+            try {
                 if (aRecordDB == null) aRecordDB = new RecordDB(aContext);
                 // 기록 조회
                 aRecordVO = aRecordDB.SelectLastRecord();
                 // 기록 저장
+                Log.i("values update : ", values.Step + " => " + aRecordVO.getSteps());
                 values.Step = aRecordVO.getSteps();
                 values.Distance_sum = aRecordVO.getDistance();
                 values.Calorie = aRecordVO.getCalorie();
                 values.RunningSec = aRecordVO.getRunningTime();
 
-            }catch (Exception ex){
+            } catch (Exception ex) {
                 Log.e("AsyncTask : ", ex.getMessage());
             }
             return null;
@@ -634,12 +677,12 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         }
     }
 
-    public class StoreRegisterAsyncTask extends AsyncTask<String, Void, String>{
+    public class StoreRegisterAsyncTask extends AsyncTask<String, Void, String> {
         private Context aContext;
         ArrayList<StoreVO> storeVOs = null;
         StoreDB storeDB = null;
 
-        public StoreRegisterAsyncTask(Context context){
+        public StoreRegisterAsyncTask(Context context) {
             aContext = context;
         }
 
@@ -665,7 +708,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         @Override
         protected String doInBackground(String... strings) {
-            if(storeDB == null) storeDB = new StoreDB(aContext);
+            if (storeDB == null) storeDB = new StoreDB(aContext);
             storeVOs = storeDB.SelectAllStore();
             // 가맹점 위치 서비스 등록
             for (StoreVO store : storeVOs) {
