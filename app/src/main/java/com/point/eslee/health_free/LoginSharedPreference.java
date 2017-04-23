@@ -9,6 +9,8 @@ import android.content.SharedPreferences;
  */
 
 public class LoginSharedPreference {
+    public static boolean bSuccess = false;
+
     public static void setLogin(Activity ctx, String userName){
         SharedPreferences.Editor editer = ctx.getPreferences(Context.MODE_PRIVATE).edit();
         editer.putString("user_name",userName);
@@ -22,6 +24,6 @@ public class LoginSharedPreference {
     }
 
     public static boolean isLogin(Activity ctx){
-        return ctx.getPreferences(Context.MODE_PRIVATE).getString("user_name","").equals("") == false;
+        return bSuccess;
     }
 }

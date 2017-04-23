@@ -75,6 +75,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     //private boolean misLogin = false;
     public String mUserEmail = "Nothing Email";
+    public String mUserName = "Nothing Name";
 
     Toast mToastWalk;
     Intent intent;
@@ -203,6 +204,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             //Toast.makeText(MainActivity.this,"로그인 성공!!",Toast.LENGTH_SHORT).show();
             // 로그인창에서 넘어온 로그인정보
             mUserEmail = data.getStringExtra("email");
+            mUserName = data.getStringExtra("user_name");
+            boolean bLogin = data.getBooleanExtra("login_result", false);
+            LoginSharedPreference.bSuccess = bLogin;
             LoginSharedPreference.setLogin(this, mUserEmail);
             SetNavi_info();
         }
@@ -243,7 +247,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         try {
             // 서비스 종료
             unregisterReceiver(receiver);
-            if(isServiceRunningCheck()){
+            if (isServiceRunningCheck()) {
                 stopService(intent);
             }
 

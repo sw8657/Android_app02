@@ -3,9 +3,12 @@ package com.point.eslee.health_free;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.annotation.TargetApi;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.support.design.widget.Snackbar;
@@ -32,6 +35,9 @@ import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
+
+import com.point.eslee.health_free.database.ServerAccess;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -325,6 +331,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
 
         private final String mEmail;
         private final String mPassword;
+        private String jsonResult = "";
 
         UserLoginTask(String email, String password) {
             mEmail = email;
@@ -334,9 +341,22 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         @Override
         protected Boolean doInBackground(Void... params) {
             // TODO: attempt authentication against a network service.
+            boolean sResult = false;
 
             try {
                 // Simulate network access.
+                String url  = "http://192.168.1.160:8087/homeMain01.do?user_id="
+                        +mEmail
+                        + "&user_pw="+mPassword;
+
+                // 사용자 인증
+                jsonResult = ServerAccess.getData(url);
+                // 인증성공 여부
+
+                sResult = ServerAccess.getLoginInfo(jsonResult);
+
+                sResult =  ServerAccess.bSuccess;
+
                 Thread.sleep(2000);
             } catch (InterruptedException e) {
                 return false;
@@ -351,7 +371,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
             }
 
             // TODO: register the new account here.
-            return true;
+            return sResult;
         }
 
         @Override
@@ -362,6 +382,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
             if (success) {
                 Intent loginIntent = new Intent();
                 loginIntent.putExtra("email", mEmail);
+                loginIntent.putExtra("user_name", ServerAccess.user_name);
                 loginIntent.putExtra("login_result",true);
 
                 // ID, PW 저장
@@ -384,6 +405,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
             mAuthTask = null;
             showProgress(false);
         }
+
     }
 }
 
