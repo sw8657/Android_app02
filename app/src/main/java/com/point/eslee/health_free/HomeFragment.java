@@ -31,11 +31,8 @@ public class HomeFragment extends Fragment {
     private String mParam1;
     private String mParam2;
 
-    private DbDoinAsyncTask mDbTask;
-
     private TimerTask mTask;
     private Timer mTimer;
-    private RecordDB mRecordDB;
 
     private TextView mStepView;
     private TextView mDistanceView;
@@ -76,11 +73,10 @@ public class HomeFragment extends Fragment {
         mStepView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                //SetDataView();
-                new DbDoinAsyncTask(getContext()).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+                SetDataView();
+                // new DbDoinAsyncTask(getContext()).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
             }
         });
-
     }
 
     @Override
@@ -89,16 +85,10 @@ public class HomeFragment extends Fragment {
         getActivity().setTitle("Home");
         // Inflate the layout for this fragment
 
-        // DB 연결
-        // mRecordDB = new RecordDB(this.getContext());
-
         // 레이아웃 초기화
         SetLayOut(view);
-//        new DbDoinAsyncTask(this.getContext()).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
-//        mDbTask = new DbDoinAsyncTask(this.getContext());
-//        mDbTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
-        //SetDataView();
-        // SetStepViewTimer();
+        // 기록 조회 타이머 가동
+        RunStepViewTimer();
 
         return view;
     }
@@ -111,7 +101,32 @@ public class HomeFragment extends Fragment {
         super.onDestroyView();
     }
 
+    // 내 기록 데이터 조회하기
+    private void SetDataView(){
+        int num_step = 0;
+        double num_distance = 0; // Km
+        double num_calorie = 0;
+        double num_speed = 0; // Km/h
+        int num_sec = 0; // sec
+        String str_time = "00:00:00";
 
+        try {
+            num_step = values.Step;
+            num_distance = values.Distance_sum;
+            num_calorie = values.Calorie;
+            num_sec = values.RunningSec;
+            str_time = Common.convertSecToTimeString(num_sec);
+            num_speed = (num_distance / (double) num_sec) * 3600;
+
+            mStepView.setText(Common.get_commaString(num_step));
+            mDistanceView.setText(String.valueOf(num_distance));
+            mCalorieView.setText(Common.get_commaString(num_calorie));
+            mTimeView.setText(str_time);
+            mSpeedView.setText(Common.get_commaString(num_speed));
+        } catch (Exception ex) {
+            Log.e("HomeFragment : ", ex.getMessage());
+        }
+    }
 
     // 내 기록 데이터 조회하기
     private void SetDataView(RecordVO record) {
@@ -144,7 +159,7 @@ public class HomeFragment extends Fragment {
     }
 
     // 타이머 초기화
-    private void SetStepViewTimer() {
+    private void RunStepViewTimer() {
         // 타이머 가져오기
         mTask = new TimerTask() {
             @Override
@@ -152,8 +167,8 @@ public class HomeFragment extends Fragment {
                 getActivity().runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        new DbDoinAsyncTask(getContext()).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
-                        // SetDataView(); // 내 기록 데이터 조회하기
+                        // new DbDoinAsyncTask(getContext()).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+                        SetDataView(); // 내 기록 데이터 조회하기
                     }
                 });
             }
@@ -163,6 +178,7 @@ public class HomeFragment extends Fragment {
         mTimer.scheduleAtFixedRate(mTask, 0, 500);
     }
 
+    // DB 조회
     public class DbDoinAsyncTask extends AsyncTask<String, Void, RecordVO> {
         private Context aContext;
         private RecordDB aRecordDB;

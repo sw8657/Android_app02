@@ -13,5 +13,6 @@ public class values {
     public static int Step = 0;
     public static double Distance_sum = 0;
     public static double Calorie = 0;
+    public static int RunningSec = 0;
     public static Calendar StartTime = null;
 }

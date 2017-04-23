@@ -18,6 +18,7 @@ import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
@@ -43,7 +44,9 @@ import android.widget.Toast;
 
 import com.google.android.gms.maps.MapsInitializer;
 import com.google.android.gms.maps.model.LatLng;
+import com.point.eslee.health_free.VO.RecordVO;
 import com.point.eslee.health_free.VO.StoreVO;
+import com.point.eslee.health_free.database.RecordDB;
 import com.point.eslee.health_free.database.StoreDB;
 import com.point.eslee.health_free.point.MypointFragment;
 import com.point.eslee.health_free.rank.RankFragment;
@@ -60,7 +63,6 @@ import java.util.ArrayList;
 public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
 
     private SharedPreferences mPref;
-    private final String DATABASE_NAME = "healthfree.db";
 
     public enum Fragments {
         Home,
@@ -115,6 +117,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         // 환경설정 불러오기
         mPref = PreferenceManager.getDefaultSharedPreferences(this);
 
+        // DB연결 확인
+        RecordDB recordDB = new RecordDB(this);
+        recordDB.SelectLastRecord();
+
         // 로그인정보 확인
         if (LoginSharedPreference.isLogin(this) == false) {
             Intent mainIntent = new Intent(MainActivity.this, LoginActivity.class);
@@ -123,9 +129,22 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         // 샘플 사용자 ID 사용
         values.UserId = 1;
+        // 사용자 기록조회 및 만보기 서비스 시작하기
+        new UserInfoDoinAsyncTask(this).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
 
+        // 네비 상단부분 사용자 정보 표시
         SetNavi_info();
 
+        // 지도 서비스 시작
+        // 가맹점 위치 서비스 등록
+        new StoreRegisterAsyncTask(this).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+
+        // 기본 플래그 화면 홈으로 설정
+        replaceFragment(Fragments.Home);
+    }
+
+    // 만보기 서비스 시작
+    private void StartStepService(){
         // 만보기
         intent = new Intent(MainActivity.this, StepBackgroundService.class);
         receiver = new MyMainLocalRecever();
@@ -136,40 +155,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             registerReceiver(receiver, mainFilter);
             startService(intent);
         }
-
-        // 지도
-        // 일부 단말의 문제로 인해 초기화 코드 추가
-        try {
-            MapsInitializer.initialize(this);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        checkDangerousPermissions();
-
-        // 위치 확인하여 위치 표시 시작
-        startLocationService();
-
-        // 위치 관리자 객체 참조
-        mLocationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
-        mPendingIntentList = new ArrayList();
-
-        // 가맹점 위치 서비스 등록
-        // DB조회해서 등록하기
-        ArrayList<StoreVO> storeVOs = null;
-        StoreDB storeDB = new StoreDB(this);
-        storeVOs = storeDB.SelectAllStore();
-        // 가맹점 위치 서비스 등록
-        for (StoreVO store : storeVOs) {
-            register(store.StoreID, store.Y, store.X, 500, store.StoreName, store.URL, -1);
-        }
-
-        // 수신자 객체 생성하여 등록
-        mIntentReceiver = new CoffeeIntentReceiver(intentKey);
-        registerReceiver(mIntentReceiver, mIntentReceiver.getFilter());
-
-        // 기본 플래그 화면 홈으로 설정
-        replaceFragment(Fragments.Home);
     }
 
     // 플래그 화면 전환
@@ -605,6 +590,98 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         public void clearReceivedIntents() {
             mLastReceivedIntent = null;
+        }
+    }
+
+    public class UserInfoDoinAsyncTask extends AsyncTask<String, Void, String> {
+        public String result;
+        private Context aContext;
+        private RecordDB aRecordDB;
+        private RecordVO aRecordVO;
+
+        public UserInfoDoinAsyncTask(Context context){
+            aContext = context;
+        }
+
+        @Override
+        protected void onPreExecute() {
+            aRecordDB = new RecordDB(aContext);
+            super.onPreExecute();
+        }
+
+        @Override
+        protected String doInBackground(String... strings) {
+            try{
+                if (aRecordDB == null) aRecordDB = new RecordDB(aContext);
+                // 기록 조회
+                aRecordVO = aRecordDB.SelectLastRecord();
+                // 기록 저장
+                values.Step = aRecordVO.getSteps();
+                values.Distance_sum = aRecordVO.getDistance();
+                values.Calorie = aRecordVO.getCalorie();
+                values.RunningSec = aRecordVO.getRunningTime();
+
+            }catch (Exception ex){
+                Log.e("AsyncTask : ", ex.getMessage());
+            }
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(String s) {
+            StartStepService();
+            super.onPostExecute(s);
+        }
+    }
+
+    public class StoreRegisterAsyncTask extends AsyncTask<String, Void, String>{
+        private Context aContext;
+        ArrayList<StoreVO> storeVOs = null;
+        StoreDB storeDB = null;
+
+        public StoreRegisterAsyncTask(Context context){
+            aContext = context;
+        }
+
+        @Override
+        protected void onPreExecute() {
+            // 지도
+            // 일부 단말의 문제로 인해 초기화 코드 추가
+            try {
+                MapsInitializer.initialize(aContext);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            checkDangerousPermissions();
+            // 위치 확인하여 위치 표시 시작
+            startLocationService();
+            // 위치 관리자 객체 참조
+            mLocationManager = (LocationManager) aContext.getSystemService(Context.LOCATION_SERVICE);
+            mPendingIntentList = new ArrayList();
+
+            storeDB = new StoreDB(aContext);
+            super.onPreExecute();
+        }
+
+        @Override
+        protected String doInBackground(String... strings) {
+            if(storeDB == null) storeDB = new StoreDB(aContext);
+            storeVOs = storeDB.SelectAllStore();
+            // 가맹점 위치 서비스 등록
+            for (StoreVO store : storeVOs) {
+                register(store.StoreID, store.Y, store.X, 500, store.StoreName, store.URL, -1);
+            }
+
+            // 수신자 객체 생성하여 등록
+            mIntentReceiver = new CoffeeIntentReceiver(intentKey);
+            registerReceiver(mIntentReceiver, mIntentReceiver.getFilter());
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(String s) {
+
+            super.onPostExecute(s);
         }
     }
 

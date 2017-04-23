@@ -26,7 +26,7 @@ import java.util.Date;
 
 public class DbOpenHelper {
     private static final String DATABASE_NAME = "healthfree.db";
-    private static final int DATABASE_VERSION = 3;
+    private static final int DATABASE_VERSION = 4;
     private static SQLiteDatabase mDB;
     private DatabaseHelper mDBHelper;
     private Context mCtx;
