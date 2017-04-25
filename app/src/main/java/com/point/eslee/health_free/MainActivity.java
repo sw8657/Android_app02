@@ -11,7 +11,6 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
-import android.content.res.AssetManager;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
 import android.location.Location;
@@ -53,13 +52,8 @@ import com.point.eslee.health_free.point.MypointFragment;
 import com.point.eslee.health_free.rank.RankFragment;
 import com.point.eslee.health_free.steps.StepBackgroundService;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.concurrent.CountDownLatch;
 
 public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
 
@@ -73,29 +67,47 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         Statistics
     }
 
-    //private boolean misLogin = false;
-    public String mUserEmail = "Nothing Email";
-    public String mUserName = "Nothing Name";
+    public enum START_TYPE {
+        First,
+        Continue
+    }
 
+    public enum LOGIN_TYPE {
+        First,
+        Continue
+    }
+
+    // 실행정보
+    private START_TYPE mStartType = START_TYPE.First;
+    private LOGIN_TYPE mLoginType = LOGIN_TYPE.First;
+
+    // 네비뷰 컨트롤뷰
+    private ImageView mViewUserImage = null;
+    private TextView mViewUserEmail = null;
+    private TextView mViewUserName = null;
+
+    private CountDownLatch mLatch = null;
+
+    // 만보기
     Toast mToastWalk;
-    Intent intent;
-    BroadcastReceiver receiver;
-    String serviceData;
+    Intent m_intent;
+    BroadcastReceiver m_receiver_step;
+    String m_serviceData;
 
     // 지도
     private LocationManager mLocationManager;
-    private CoffeeIntentReceiver mIntentReceiver;
+    private CoffeeIntentReceiver mIntentReceiverMap;
     ArrayList mPendingIntentList;
-    String intentKey = "coffeeProximity";
-
+    String m_mapIntentKey = "coffeeProximity";
     double old_latitude;
     double old_longitude;
-    int i = 0;
-    double Sum = 0;
+    boolean m_animateCamera = true;
+    double m_distance_sum = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -116,47 +128,167 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         drawer.setDrawerListener(toggle);
         toggle.syncState();
 
+        // 네비뷰 레이아웃 로드
+        LoadNaviLayout();
+
         // DB연결 확인
         RecordDB recordDB = new RecordDB(this);
         recordDB.SelectLastRecord();
 
-        // 로그인정보 확인
-        if (LoginSharedPreference.isLogin(this) == false) {
-            Intent mainIntent = new Intent(MainActivity.this, LoginActivity.class);
-            MainActivity.this.startActivityForResult(mainIntent, 1004);
-        }
-
-        // 샘플 사용자 ID 사용
-        values.UserId = 1;
-        // 사용자 기록조회 및 만보기 서비스 시작하기
-        new UserInfoDoinAsyncTask(this).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
-
         // 환경설정 불러오기
         mPref = PreferenceManager.getDefaultSharedPreferences(this);
+        mStartType = mPref.getBoolean("START_FIRST", true) ? START_TYPE.First : START_TYPE.Continue;
+        mLoginType = mPref.getBoolean("LOGIN_FIRST", true) ? LOGIN_TYPE.First : LOGIN_TYPE.Continue;
 
-        // 네비 상단부분 사용자 정보 표시
-        SetNavi_info();
-
-        // 지도 서비스 시작
-        // 가맹점 위치 서비스 등록
-        new StoreRegisterAsyncTask(this).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+        // 로그인정보 확인
+        if (mLoginType.equals(LOGIN_TYPE.First)) {
+            Intent mainIntent = new Intent(MainActivity.this, LoginActivity.class);
+            MainActivity.this.startActivityForResult(mainIntent, 1004);
+            Log.i("Main:", "onCreate, 수동로그인");
+            Log_value();
+        } else {
+            Log.i("Main:", "onCreate, 자동로그인");
+            Log_value();
+            SetStart(mStartType, mLoginType);
+        }
 
         // 기본 플래그 화면 홈으로 설정
         replaceFragment(Fragments.Home);
     }
 
+    private void Log_value() {
+        Log.i("values ==> ", "id:" + values.UserId + ", steps:" + values.Step);
+    }
+
+    // 로그인 결과
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if (requestCode == 1004 && resultCode == RESULT_OK) {
+            mPref = PreferenceManager.getDefaultSharedPreferences(this);
+            // 처음 로그인 된 상태
+            Log.i("Main:", "onActivityResult");
+            Log_value();
+            SetStart(mStartType, LOGIN_TYPE.First);
+        }
+    }
+
+    // 메인 액티비티 초기화 절차
+    private void SetStart(START_TYPE startType, LOGIN_TYPE loginType) {
+        if (startType.equals(START_TYPE.First)) {
+            // 메인을 처음실행하는 거면
+            // 프레프런스에 저장된 아이디를 values에 저장
+            mPref = PreferenceManager.getDefaultSharedPreferences(this);
+            values.UserId = mPref.getInt("user_id", -1);
+            values.UserEmail = mPref.getString("user_email", "Nothing Email");
+            values.UserName = mPref.getString("user_name", "Nothing Name");
+            // 네비에 사용자 정보 표시
+            SetNaviInfo();
+            // 만보기 서비스 시작
+            StartStepService();
+            // 지도 서비스 시작
+            StartStoreService();
+            if (loginType.equals(LOGIN_TYPE.First)) {
+
+            } else {
+
+            }
+        } else {
+            // 메인을 처음실행하는게 아니면
+            // 프레프런스에 저장된 아이디를 values에 저장
+            mPref = PreferenceManager.getDefaultSharedPreferences(this);
+            values.UserId = mPref.getInt("user_id", -1);
+            values.UserEmail = mPref.getString("user_email", "Nothing Email");
+            values.UserName = mPref.getString("user_name", "Nothing Name");
+            // 네비에 사용자 정보 표시
+            SetNaviInfo();
+            if (loginType.equals(LOGIN_TYPE.First)) {
+                // 처음 로그인하는 사용자이면
+                // 만보기 서비스 종료 후 시작
+                StopStepService();
+                StartStepService();
+                // 지도 서비스 시작
+                StartStoreService();
+            } else {
+                // 로그인 한적이 있으면
+                // 지도 서비스 시작
+                StartStoreService();
+            }
+
+            // 프레프런스에 로그인상태 저장
+            mPref.edit().putBoolean("START_FIRST", false).apply();
+            mPref.edit().putBoolean("LOGIN_FIRST", false).apply();
+        }
+
+//        mLatch = new CountDownLatch(1); // 스레드 작동 카운트
+//        // 사용자 기록조회
+//        new UserInfoAsyncTask(this).execute();
+//        // 스레드 종료 기다리기
+//        try {
+//            mLatch.await(10, TimeUnit.SECONDS);
+//        } catch (InterruptedException e) {
+//            e.printStackTrace();
+//        }
+//        Log.i("Main:","SetStart, UserInfoAsyncTask");
+//        Log_value();
+    }
+
     // 만보기 서비스 시작
     private void StartStepService() {
-        // 만보기
-        intent = new Intent(MainActivity.this, StepBackgroundService.class);
-        receiver = new MyMainLocalRecever();
-
         // 서비스 시작
         if (isServiceRunningCheck() == false) {
-            IntentFilter mainFilter = new IntentFilter("com.eslee.test_layout1");
-            registerReceiver(receiver, mainFilter);
-            startService(intent);
+            // 만보기
+            m_intent = new Intent(MainActivity.this, StepBackgroundService.class);
+            m_receiver_step = new MyMainLocalRecever();
+
+            IntentFilter mainFilter = new IntentFilter(values.STEP_SERVICE_NAME);
+            registerReceiver(m_receiver_step, mainFilter);
+            Log.i("Main:", "StartStepService, registerReceiver");
+            Log_value();
+            startService(m_intent);
+            Log.i("Main:", "StartStepService, startService");
+            Log_value();
         }
+    }
+
+    // 만보기 서비스 중지
+    private void StopStepService() {
+        if (isServiceRunningCheck()) {
+            // 만보기
+            if (m_intent != null) {
+                stopService(m_intent);
+            }
+        }
+        m_intent = null;
+    }
+
+    private void StartStoreService() {
+        ArrayList<StoreVO> storeVOs = null;
+        StoreDB storeDB = null;
+        // 이동거리 초기화
+        m_distance_sum = values.Distance_sum;
+        // 지도 일부 단말의 문제로 인해 초기화 코드 추가
+        try {
+            MapsInitializer.initialize(this);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        checkDangerousPermissions();
+        // 위치 확인하여 위치 표시 시작
+        startLocationService();
+        // 위치 관리자 객체 참조
+        mLocationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
+        mPendingIntentList = new ArrayList();
+        // 가맹점 위치 서비스 등록
+        storeDB = new StoreDB(this);
+        storeVOs = storeDB.SelectAllStore();
+        for (StoreVO store : storeVOs) {
+            register(store.StoreID, store.Y, store.X, 500, store.StoreName, store.URL, -1);
+        }
+        // 수신자 객체 생성하여 등록
+        mIntentReceiverMap = new CoffeeIntentReceiver(m_mapIntentKey);
+        registerReceiver(mIntentReceiverMap, mIntentReceiverMap.getFilter());
     }
 
     // 플래그 화면 전환
@@ -196,45 +328,26 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         transaction.commit();
     }
 
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-
-        if (requestCode == 1004 && resultCode == RESULT_OK) {
-            //Toast.makeText(MainActivity.this,"로그인 성공!!",Toast.LENGTH_SHORT).show();
-            // 로그인창에서 넘어온 로그인정보
-            mUserEmail = data.getStringExtra("email");
-            mUserName = data.getStringExtra("user_name");
-            boolean bLogin = data.getBooleanExtra("login_result", false);
-            LoginSharedPreference.bSuccess = bLogin;
-            LoginSharedPreference.setLogin(this, mUserEmail);
-            SetNavi_info();
-        }
-    }
-
-    private void SetNavi_info() {
+    // 네비뷰 레이아웃 로드
+    private void LoadNaviLayout() {
         // 네비뷰 접근
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
         // 네비뷰 > 상단뷰 접근
         View nav_header_view = navigationView.getHeaderView(0);
         // 네비뷰 > 상단뷰 > 사용자정보뷰에 로그인정보 입력
-        ImageView imageViewUser = (ImageView) nav_header_view.findViewById(R.id.imageViewUser);
-        BitmapDrawable pDrawable = (BitmapDrawable) getResources().getDrawable(R.drawable.img_kongyu);
-        RoundedAvatarDrawable pRoundDrawable = new RoundedAvatarDrawable(pDrawable.getBitmap());
-        imageViewUser.setImageDrawable(pRoundDrawable);
+        mViewUserImage = (ImageView) nav_header_view.findViewById(R.id.imageViewUser);
+        mViewUserEmail = (TextView) nav_header_view.findViewById(R.id.textViewEmail);
+        mViewUserName = (TextView) nav_header_view.findViewById(R.id.textViewName);
 
-        TextView textViewEmail = (TextView) nav_header_view.findViewById(R.id.textViewEmail);
-        textViewEmail.setText(mUserEmail);
-        TextView textViewName = (TextView) nav_header_view.findViewById(R.id.textViewName);
-        textViewName.setText(mPref.getString("example_text", "NothingText"));
-        textViewName.setOnClickListener(new View.OnClickListener() {
+        // 뷰 이벤트 등록
+        mViewUserName.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 UpdateRecord();
             }
         });
-        imageViewUser.setOnClickListener(new View.OnClickListener() {
+        mViewUserImage.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 UpdateRecord();
@@ -242,22 +355,31 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         });
     }
 
+    // 네비뷰 사용자정보 데이터 표출
+    private void SetNaviInfo() {
+        // 네비뷰 > 상단뷰 > 사용자정보뷰에 로그인정보 입력
+        BitmapDrawable pDrawable = (BitmapDrawable) getResources().getDrawable(R.drawable.img_kongyu);
+        RoundedAvatarDrawable pRoundDrawable = new RoundedAvatarDrawable(pDrawable.getBitmap());
+        mViewUserImage.setImageDrawable(pRoundDrawable);
+
+        mViewUserEmail.setText(values.UserEmail);
+        mViewUserName.setText(values.UserName);
+    }
+
     @Override
     protected void onDestroy() {
+        super.onDestroy();
+        unregisterReceiver(m_receiver_step);
+        unregister_map();
+
         try {
-            // 서비스 종료
-            unregisterReceiver(receiver);
-            if (isServiceRunningCheck()) {
-                stopService(intent);
-            }
-
-            // TODO: 종료전 데이터 저장
+            // 종료전 데이터 저장
             UpdateRecord();
-
+            Log.i("Main:", "onDestroy, UpdateRecord");
+            Log_value();
         } catch (Exception ex) {
 
         }
-        super.onDestroy();
     }
 
     private void UpdateRecord() {
@@ -282,12 +404,15 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     @Override
     protected void onResume() {
         super.onResume();
-        //Toast.makeText(this,"onResume",Toast.LENGTH_SHORT).show();
-        SetNavi_info();
+        Log.i("Main:", "onResume");
+        Log_value();
+        SetNaviInfo();
         if (mPref != null) {
             int shake_value = Integer.valueOf(mPref.getString("SHAKE_THRESHOLD", "800"));
             StepBackgroundService.setShakeThreshold(shake_value);
         }
+        Log.i("Main:", "onResume, setShakeThreshold");
+        Log_value();
     }
 
     @Override
@@ -359,7 +484,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     public boolean isServiceRunningCheck() {
         ActivityManager manager = (ActivityManager) this.getSystemService(Activity.ACTIVITY_SERVICE);
         for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
-            if ("com.eslee.test_layout1".equals(service.service.getClassName())) {
+            if (values.STEP_SERVICE_NAME.equals(service.service.getClassName())) {
                 return true;
             }
         }
@@ -372,7 +497,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         public void onReceive(Context context, Intent intent) {
             // TODO Auto-generated method stub
 
-            serviceData = intent.getStringExtra("serviceData");
+            m_serviceData = intent.getStringExtra("serviceData");
 
         }
 
@@ -425,7 +550,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     /**
      * 등록한 정보 해제
      */
-    private void unregister() {
+    private void unregister_map() {
         if (mPendingIntentList != null) {
             for (int i = 0; i < mPendingIntentList.size(); i++) {
                 PendingIntent curIntent = (PendingIntent) mPendingIntentList.get(i);
@@ -444,17 +569,17 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             }
         }
 
-        if (mIntentReceiver != null) {
-            unregisterReceiver(mIntentReceiver);
-            mIntentReceiver = null;
+        if (mIntentReceiverMap != null) {
+            unregisterReceiver(mIntentReceiverMap);
+            mIntentReceiverMap = null;
         }
     }
 
     /**
-     * register the proximity intent receiver
+     * register the proximity m_intent m_receiver_step
      */
     private void register(int id, double latitude, double longitude, float radius, String name, String url, long expiration) {
-        Intent proximityIntent = new Intent(intentKey);
+        Intent proximityIntent = new Intent(m_mapIntentKey);
         proximityIntent.putExtra("id", id);
         proximityIntent.putExtra("latitude", latitude);
         proximityIntent.putExtra("longitude", longitude);
@@ -473,7 +598,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             return;
         }
         mLocationManager.addProximityAlert(latitude, longitude, radius, expiration, intent);
-
         mPendingIntentList.add(intent);
     }
 
@@ -530,13 +654,13 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
             // 현재 위치를 이용해 LatLon 객체 생성
             LatLng newPoint = new LatLng(latitude, longitude);
-            if (i == 0) {
+            if (m_animateCamera) {
                 old_latitude = latitude;
                 old_longitude = longitude;
 
                 // MapFragment mapF = (MapFragment) mMapFragment;
                 MapFragment mapF = (MapFragment) getSupportFragmentManager().findFragmentById(R.id.content_fragment_map);
-                mapF.showCurrentLocation(i, old_latitude, old_longitude, latitude, longitude);
+                mapF.showCurrentLocation(m_animateCamera, old_latitude, old_longitude, latitude, longitude);
             }
 
             Location locationS = new Location("point S");
@@ -546,12 +670,12 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             locationE.setLatitude(Double.parseDouble(Double.toString(latitude)));
             locationE.setLongitude(Double.parseDouble(Double.toString(longitude)));
             double distance = locationS.distanceTo(locationE);
-            Sum = Sum + distance; //총 이동거리
-            values.Distance_sum = Sum;
+            m_distance_sum = m_distance_sum + distance; //총 이동거리
+            values.Distance_sum = m_distance_sum;
 
             old_latitude = latitude;
             old_longitude = longitude;
-            i = 1;
+            m_animateCamera = false;
         }
 
         public void onProviderDisabled(String provider) {
@@ -587,7 +711,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
          * 받았을 때 호출되는 메소드
          *
          * @param context
-         * @param intent
+         * @param m_intent
          */
         int j = 0;
 
@@ -603,7 +727,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 double longitude = intent.getDoubleExtra("longitude", 0.0D);
 
                 //Toast.makeText(context, "근접한 마커 : " + name, Toast.LENGTH_LONG).show();
-
 
                 //알림(Notification)을 관리하는 NotificationManager 얻어오기
                 NotificationManager manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
@@ -639,13 +762,13 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         }
     }
 
-    public class UserInfoDoinAsyncTask extends AsyncTask<String, Void, String> {
-        public String result;
+    // 사용자 기록 초기화 스레드
+    public class UserInfoAsyncTask extends AsyncTask<String, Void, String> {
         private Context aContext;
-        private RecordDB aRecordDB;
-        private RecordVO aRecordVO;
+        private RecordDB aRecordDB = null;
+        private RecordVO aRecordVO = null;
 
-        public UserInfoDoinAsyncTask(Context context) {
+        public UserInfoAsyncTask(Context context) {
             aContext = context;
         }
 
@@ -667,20 +790,31 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 values.Distance_sum = aRecordVO.getDistance();
                 values.Calorie = aRecordVO.getCalorie();
                 values.RunningSec = aRecordVO.getRunningTime();
-
             } catch (Exception ex) {
-                Log.e("AsyncTask : ", ex.getMessage());
+                Log.e("LoadUserInfo:", ex.getMessage());
+            } finally {
+                mLatch.countDown();
             }
+
             return null;
         }
 
+    }
+
+    // 만보기 서비스 시작 스레드
+    public class StepAsyncTask extends AsyncTask<String, Void, String> {
         @Override
-        protected void onPostExecute(String s) {
-            StartStepService();
-            super.onPostExecute(s);
+        protected String doInBackground(String... params) {
+            try {
+                StartStepService();
+            } catch (Exception ex) {
+                Log.e("StepAsyncTask : ", ex.getMessage());
+            }
+            return null;
         }
     }
 
+    // 가맹점 지도 서비스 시작 스레드
     public class StoreRegisterAsyncTask extends AsyncTask<String, Void, String> {
         private Context aContext;
         ArrayList<StoreVO> storeVOs = null;
@@ -692,8 +826,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         @Override
         protected void onPreExecute() {
-            // 지도
-            // 일부 단말의 문제로 인해 초기화 코드 추가
+            // 이동거리 초기화
+            m_distance_sum = values.Distance_sum;
+            // 지도 일부 단말의 문제로 인해 초기화 코드 추가
             try {
                 MapsInitializer.initialize(aContext);
             } catch (Exception e) {
@@ -705,7 +840,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             // 위치 관리자 객체 참조
             mLocationManager = (LocationManager) aContext.getSystemService(Context.LOCATION_SERVICE);
             mPendingIntentList = new ArrayList();
-
             storeDB = new StoreDB(aContext);
             super.onPreExecute();
         }
@@ -720,8 +854,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             }
 
             // 수신자 객체 생성하여 등록
-            mIntentReceiver = new CoffeeIntentReceiver(intentKey);
-            registerReceiver(mIntentReceiver, mIntentReceiver.getFilter());
+            mIntentReceiverMap = new CoffeeIntentReceiver(m_mapIntentKey);
+            registerReceiver(mIntentReceiverMap, mIntentReceiverMap.getFilter());
             return null;
         }
 

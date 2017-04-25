@@ -6,13 +6,13 @@ package com.point.eslee.health_free.VO;
 
 public class RecordVO {
 
-    public int _ID;
-    public String CreateDate;
-    public int Steps;
-    public double Distance;
-    public double Calorie;
-    public int TotalPoint;
-    public int RunningTime;
+    public int _ID = -1;
+    public String CreateDate = null;
+    public int Steps = 0;
+    public double Distance = 0;
+    public double Calorie = 0;
+    public int TotalPoint = 0;
+    public int RunningTime = 0;
 
     public RecordVO(int _ID, String createDate, int steps, double distance, double calorie, int totalPoint, int runningTime) {
         this._ID = _ID;

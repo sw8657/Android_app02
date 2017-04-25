@@ -42,9 +42,9 @@ public class RecordDB {
                     + " WHERE USER_ID = '" + values.UserId + "' ORDER BY _ID DESC "
                     + " LIMIT 1";
             c = mDB.rawQuery(sqlString, null);
+            record = new RecordVO();
             if (c != null && c.getCount() != 0) {
                 c.moveToFirst();
-                record = new RecordVO();
                 record._ID = c.getInt(c.getColumnIndex("_ID"));
                 record.Steps = c.getInt(c.getColumnIndex(DataBases.RecordTable.STEPS));
                 record.Distance = c.getDouble(c.getColumnIndex(DataBases.RecordTable.DISTANCE));

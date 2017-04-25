@@ -36,6 +36,7 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
 
 import java.util.ArrayList;
+import java.util.concurrent.BlockingDeque;
 
 
 public class MapFragment extends Fragment {
@@ -347,10 +348,10 @@ public class MapFragment extends Fragment {
      * @param longitude
      */
 
-    public void showCurrentLocation(int i, Double old_latitude, Double old_longitude, Double latitude, Double longitude) {
+    public void showCurrentLocation(boolean bAnimateCamera, Double old_latitude, Double old_longitude, Double latitude, Double longitude) {
         // 현재 위치를 이용해 LatLon 객체 생성
         LatLng newPoint = new LatLng(latitude, longitude);
-        if (i == 0) {
+        if (bAnimateCamera) {
             m_googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(newPoint, 15));
         }
 

@@ -7,9 +7,10 @@ import java.util.Calendar;
  */
 
 public class values {
+    public static final String STEP_SERVICE_NAME = "com.eslee.healthfree.step";
     public static int UserId = -1;
-    public static String Email = "";
-    public static String UserName = "";
+    public static String UserEmail = "Nothing Email";
+    public static String UserName = "Nothing Name";
     public static int Step = 0;
     public static double Distance_sum = 0;
     public static double Calorie = 0;

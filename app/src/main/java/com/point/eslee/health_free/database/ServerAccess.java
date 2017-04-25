@@ -16,10 +16,7 @@ import java.net.URL;
 
 public class ServerAccess {
 
-    public static boolean bSuccess = false;
-    public static String user_id = "";
-    public static String user_name = "";
-
+    // 서버 데이터 받기
     public static String getData(String strUrl) {
         StringBuilder sb = new StringBuilder();
 
@@ -50,30 +47,5 @@ public class ServerAccess {
         }
 
         return sb.toString();
-    }
-
-    public static boolean getLoginInfo(String jsonString){
-        boolean result = false;
-
-        try{
-            // 안드로이드 JSON 파싱 로직
-            JSONObject json = new JSONObject(jsonString);
-            JSONArray jArr = json.getJSONArray("result");
-
-            bSuccess = jArr.getJSONObject(0).getString("successYn").equals("SUCCESS");
-            user_id = jArr.getJSONObject(0).getString("user_id");
-            user_name = jArr.getJSONObject(0).getString("userNm");
-
-            result =true;
-//            for(int i=0;i<jArr.length();i++)
-//            {
-//                JSONObject jObject = jArr.getJSONObject(i);
-//
-//            }
-        }catch (Exception ex){
-
-        }
-
-        return result;
     }
 }

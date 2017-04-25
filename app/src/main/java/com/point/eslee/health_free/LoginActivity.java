@@ -25,6 +25,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.provider.ContactsContract;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -38,6 +39,9 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.point.eslee.health_free.database.ServerAccess;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -106,6 +110,8 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         mProgressView = findViewById(R.id.login_progress);
         mRememberLoginCheck = (CheckBox) findViewById(R.id.remember_login_check);
 
+        // 로그인 인증정보 초기화
+        LoginInfoClear(this);
         mPref = PreferenceManager.getDefaultSharedPreferences(this);
 
         mRememberLoginCheck.setChecked(mPref.getBoolean("saveLoginChecked", false));
@@ -113,7 +119,19 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         // 저장된 ID, PW 가져오기
         if (mRememberLoginCheck.isChecked()) {
             mEmailView.setText(mPref.getString("savedEmailText", ""));
-            mPasswordView.setText(mPref.getString("savedPwText",""));
+            mPasswordView.setText(mPref.getString("savedPwText", ""));
+        }
+    }
+
+    // 로그인 인증정보 초기화
+    public static void LoginInfoClear(Context context) {
+        SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(context);
+        SharedPreferences.Editor editor = pref.edit();
+        try {
+            editor.putBoolean("USER_LOGIN", false); // 로그인상태
+            editor.apply();
+        } catch (Exception ex) {
+            Log.e("LoginClear:", ex.getMessage());
         }
     }
 
@@ -307,7 +325,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         switch (view.getId()) {
             case R.id.remember_login_check:
                 pEdit.putBoolean("saveLoginChecked", mRememberLoginCheck.isChecked());
-                pEdit.commit();
+                pEdit.apply();
                 break;
         }
     }
@@ -323,6 +341,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         int IS_PRIMARY = 1;
     }
 
+
     /**
      * Represents an asynchronous login/registration task used to authenticate
      * the user.
@@ -332,6 +351,8 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         private final String mEmail;
         private final String mPassword;
         private String jsonResult = "";
+        private String mUserName = "";
+        private int mUserId = -1;
 
         UserLoginTask(String email, String password) {
             mEmail = email;
@@ -340,26 +361,25 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
 
         @Override
         protected Boolean doInBackground(Void... params) {
-            // TODO: attempt authentication against a network service.
             boolean sResult = false;
 
             try {
                 // Simulate network access.
-                String url  = "http://192.168.1.160:8087/homeMain01.do?user_id="
-                        +mEmail
-                        + "&user_pw="+mPassword;
+                String url = "http://192.168.1.160:8087/homeMain01.do?" +
+                        "user_id=" + mEmail + "&user_pw=" + mPassword;
 
-                // 사용자 인증
-                jsonResult = ServerAccess.getData(url);
-                // 인증성공 여부
+//                // 사용자 인증 (서버 인증)
+//                jsonResult = ServerAccess.getData(url);
+//                // 인증 및 사용자 정보 읽기
+//                sResult = VailidateLogin(jsonResult);
 
-                sResult = ServerAccess.getLoginInfo(jsonResult);
+                // 디버그 테스트 모드 (샘플 사용자ID 사용)
+                sResult = true;
+                mUserId = 1;
+                mUserName = "HelloAndroid";
 
-                sResult =  ServerAccess.bSuccess;
-
-                Thread.sleep(2000);
-            } catch (InterruptedException e) {
-                return false;
+            } catch (Exception e) {
+                Log.e("LoginTask:", e.getMessage());
             }
 
             for (String credential : DUMMY_CREDENTIALS) {
@@ -374,23 +394,47 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
             return sResult;
         }
 
+        // 인증 확인
+        private boolean VailidateLogin(String jsonString) {
+            boolean result = false;
+            try {
+                // 안드로이드 JSON 파싱 로직
+                JSONObject json = new JSONObject(jsonString);
+                JSONArray jArr = json.getJSONArray("result");
+
+                result = jArr.getJSONObject(0).getString("successYn").equals("SUCCESS");
+                // mEmail = jArr.getJSONObject(0).getString("user_id");
+                mUserName = jArr.getJSONObject(0).getString("userNm");
+            } catch (Exception ex) {
+                Log.e("VailidateLogin:", ex.getMessage());
+            }
+            return result;
+        }
+
         @Override
         protected void onPostExecute(final Boolean success) {
             mAuthTask = null;
             showProgress(false);
 
             if (success) {
-                Intent loginIntent = new Intent();
+                // 메인액티비티에 사용자정보 전달
+                Intent loginIntent = new Intent(getApplicationContext(), MainActivity.class);
                 loginIntent.putExtra("email", mEmail);
-                loginIntent.putExtra("user_name", ServerAccess.user_name);
-                loginIntent.putExtra("login_result",true);
+                loginIntent.putExtra("user_name", mUserName);
+                loginIntent.putExtra("user_id", mUserId);
+
+                // 로그인확인 FLAG 저장
+                mPref.edit().putBoolean("LOGIN_FIRST", true).apply();
+                mPref.edit().putInt("user_id",mUserId).apply();
+                mPref.edit().putString("user_email",mEmail).apply();
+                mPref.edit().putString("user_name",mUserName).apply();
 
                 // ID, PW 저장
                 if (mRememberLoginCheck.isChecked()) {
                     SharedPreferences.Editor pEdit = mPref.edit();
                     pEdit.putString("savedEmailText", mEmail);
                     pEdit.putString("savedPwText", mPassword);
-                    pEdit.commit();
+                    pEdit.apply();
                 }
                 setResult(RESULT_OK, loginIntent);
                 finish();
@@ -405,7 +449,8 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
             mAuthTask = null;
             showProgress(false);
         }
-
     }
+
+
 }
 
