@@ -206,6 +206,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             if (loginType.equals(LOGIN_TYPE.First)) {
                 // 처음 로그인하는 사용자이면
                 // 만보기 서비스 종료 후 시작
+
                 StopStepService();
                 StartStepService();
                 // 지도 서비스 시작
@@ -215,11 +216,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 // 지도 서비스 시작
                 StartStoreService();
             }
-
-            // 프레프런스에 로그인상태 저장
-            mPref.edit().putBoolean("START_FIRST", false).apply();
-            mPref.edit().putBoolean("LOGIN_FIRST", false).apply();
         }
+        // 프레프런스에 로그인상태 저장
+        mPref.edit().putBoolean("START_FIRST", false).apply();
+        mPref.edit().putBoolean("LOGIN_FIRST", false).apply();
 
 //        mLatch = new CountDownLatch(1); // 스레드 작동 카운트
 //        // 사용자 기록조회
@@ -267,7 +267,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         ArrayList<StoreVO> storeVOs = null;
         StoreDB storeDB = null;
         // 이동거리 초기화
-        m_distance_sum = values.Distance_sum;
+        m_distance_sum = values.Distance;
         // 지도 일부 단말의 문제로 인해 초기화 코드 추가
         try {
             MapsInitializer.initialize(this);
@@ -369,7 +369,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        unregisterReceiver(m_receiver_step);
+        if(m_receiver_step != null){
+            unregisterReceiver(m_receiver_step);
+            m_receiver_step = null;
+        }
         unregister_map();
 
         try {
@@ -389,7 +392,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
             RecordVO recordVO = new RecordVO();
             recordVO.Steps = values.Step;
-            recordVO.Distance = values.Distance_sum;
+            recordVO.Distance = values.Distance;
             recordVO.Calorie = values.Calorie;
             recordVO.RunningTime = values.RunningSec;
             recordVO.TotalPoint = totalPoint;
@@ -546,7 +549,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         }
     }
 
-
     /**
      * 등록한 정보 해제
      */
@@ -671,7 +673,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             locationE.setLongitude(Double.parseDouble(Double.toString(longitude)));
             double distance = locationS.distanceTo(locationE);
             m_distance_sum = m_distance_sum + distance; //총 이동거리
-            values.Distance_sum = m_distance_sum;
+            values.Distance = m_distance_sum;
 
             old_latitude = latitude;
             old_longitude = longitude;
@@ -761,109 +763,4 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             mLastReceivedIntent = null;
         }
     }
-
-    // 사용자 기록 초기화 스레드
-    public class UserInfoAsyncTask extends AsyncTask<String, Void, String> {
-        private Context aContext;
-        private RecordDB aRecordDB = null;
-        private RecordVO aRecordVO = null;
-
-        public UserInfoAsyncTask(Context context) {
-            aContext = context;
-        }
-
-        @Override
-        protected void onPreExecute() {
-            aRecordDB = new RecordDB(aContext);
-            super.onPreExecute();
-        }
-
-        @Override
-        protected String doInBackground(String... strings) {
-            try {
-                if (aRecordDB == null) aRecordDB = new RecordDB(aContext);
-                // 기록 조회
-                aRecordVO = aRecordDB.SelectLastRecord();
-                // 기록 저장
-                Log.i("values update : ", values.Step + " => " + aRecordVO.getSteps());
-                values.Step = aRecordVO.getSteps();
-                values.Distance_sum = aRecordVO.getDistance();
-                values.Calorie = aRecordVO.getCalorie();
-                values.RunningSec = aRecordVO.getRunningTime();
-            } catch (Exception ex) {
-                Log.e("LoadUserInfo:", ex.getMessage());
-            } finally {
-                mLatch.countDown();
-            }
-
-            return null;
-        }
-
-    }
-
-    // 만보기 서비스 시작 스레드
-    public class StepAsyncTask extends AsyncTask<String, Void, String> {
-        @Override
-        protected String doInBackground(String... params) {
-            try {
-                StartStepService();
-            } catch (Exception ex) {
-                Log.e("StepAsyncTask : ", ex.getMessage());
-            }
-            return null;
-        }
-    }
-
-    // 가맹점 지도 서비스 시작 스레드
-    public class StoreRegisterAsyncTask extends AsyncTask<String, Void, String> {
-        private Context aContext;
-        ArrayList<StoreVO> storeVOs = null;
-        StoreDB storeDB = null;
-
-        public StoreRegisterAsyncTask(Context context) {
-            aContext = context;
-        }
-
-        @Override
-        protected void onPreExecute() {
-            // 이동거리 초기화
-            m_distance_sum = values.Distance_sum;
-            // 지도 일부 단말의 문제로 인해 초기화 코드 추가
-            try {
-                MapsInitializer.initialize(aContext);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-            checkDangerousPermissions();
-            // 위치 확인하여 위치 표시 시작
-            startLocationService();
-            // 위치 관리자 객체 참조
-            mLocationManager = (LocationManager) aContext.getSystemService(Context.LOCATION_SERVICE);
-            mPendingIntentList = new ArrayList();
-            storeDB = new StoreDB(aContext);
-            super.onPreExecute();
-        }
-
-        @Override
-        protected String doInBackground(String... strings) {
-            if (storeDB == null) storeDB = new StoreDB(aContext);
-            storeVOs = storeDB.SelectAllStore();
-            // 가맹점 위치 서비스 등록
-            for (StoreVO store : storeVOs) {
-                register(store.StoreID, store.Y, store.X, 500, store.StoreName, store.URL, -1);
-            }
-
-            // 수신자 객체 생성하여 등록
-            mIntentReceiverMap = new CoffeeIntentReceiver(m_mapIntentKey);
-            registerReceiver(mIntentReceiverMap, mIntentReceiverMap.getFilter());
-            return null;
-        }
-
-        @Override
-        protected void onPostExecute(String s) {
-
-            super.onPostExecute(s);
-        }
-    }
-
 }

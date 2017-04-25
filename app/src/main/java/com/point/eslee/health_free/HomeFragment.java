@@ -3,10 +3,7 @@ package com.point.eslee.health_free;
 import android.content.Context;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Message;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -18,7 +15,6 @@ import com.point.eslee.health_free.database.RecordDB;
 
 import java.util.Timer;
 import java.util.TimerTask;
-import java.util.concurrent.Executor;
 
 
 public class HomeFragment extends Fragment {
@@ -112,7 +108,7 @@ public class HomeFragment extends Fragment {
 
         try {
             num_step = values.Step;
-            num_distance = values.Distance_sum;
+            num_distance = values.Distance;
             num_calorie = values.Calorie;
             num_sec = values.RunningSec;
             str_time = Common.convertSecToTimeString(num_sec);
@@ -142,7 +138,7 @@ public class HomeFragment extends Fragment {
             // record = mRecordDB.SelectLastRecord();
 
             num_step = record.getSteps() + values.Step;
-            num_distance = record.getDistance() + values.Distance_sum;
+            num_distance = record.getDistance() + values.Distance;
             num_calorie = record.getCalorie() + values.Calorie;
             num_sec = record.getRunningTime() + Common.getRunningTimeSecond();
             str_time = Common.convertSecToTimeString(num_sec);

@@ -147,7 +147,7 @@ public class StepBackgroundService extends Service implements SensorEventListene
             // 기록 저장
             Log.i("values update : ", values.Step + " => " + aRecordVO.getSteps());
             values.Step = aRecordVO.getSteps();
-            values.Distance_sum = aRecordVO.getDistance();
+            values.Distance = aRecordVO.getDistance();
             values.Calorie = aRecordVO.getCalorie();
             values.RunningSec = aRecordVO.getRunningTime();
         }catch (Exception ex){
@@ -161,7 +161,7 @@ public class StepBackgroundService extends Service implements SensorEventListene
             int totalPoint = pointDB.SelectTotalPoint();
             RecordVO recordVO = new RecordVO();
             recordVO.Steps = values.Step;
-            recordVO.Distance = values.Distance_sum;
+            recordVO.Distance = values.Distance;
             recordVO.Calorie = values.Calorie;
             recordVO.RunningTime = values.RunningSec;
             recordVO.TotalPoint = totalPoint;
