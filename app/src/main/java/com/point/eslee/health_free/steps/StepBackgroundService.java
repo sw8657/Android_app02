@@ -37,6 +37,7 @@ public class StepBackgroundService extends Service implements SensorEventListene
     StepDBThread thread_db;
     Notification Notifi;
     private SharedPreferences mPref;
+    Timer m_calsensorTimer;
 
     public Toast mToastCnt;
     private long lastTime;
@@ -88,6 +89,16 @@ public class StepBackgroundService extends Service implements SensorEventListene
 
         sensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
         accelerormeterSensor = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+
+        // 운동정보 계산기록
+        m_calsensorTimer = new Timer();
+        m_calsensorTimer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                // TODO : 운동량 계산
+
+            }
+        },1000, 1000); // 1초마다 실행
     }
 
     // 백그라운드에서 실행되는 동작들이 들어가는 곳입니다.

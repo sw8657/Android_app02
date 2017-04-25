@@ -102,7 +102,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     double old_latitude;
     double old_longitude;
     boolean m_animateCamera = true;
-    double m_distance_sum = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -266,8 +265,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private void StartStoreService() {
         ArrayList<StoreVO> storeVOs = null;
         StoreDB storeDB = null;
-        // 이동거리 초기화
-        m_distance_sum = values.Distance;
         // 지도 일부 단말의 문제로 인해 초기화 코드 추가
         try {
             MapsInitializer.initialize(this);
@@ -672,8 +669,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             locationE.setLatitude(Double.parseDouble(Double.toString(latitude)));
             locationE.setLongitude(Double.parseDouble(Double.toString(longitude)));
             double distance = locationS.distanceTo(locationE);
-            m_distance_sum = m_distance_sum + distance; //총 이동거리
-            values.Distance = m_distance_sum;
+            values.Distance = values.Distance + distance; //총 이동거리
+            Log.i("Main", "onLocationChanged, distance: " + values.Distance);
 
             old_latitude = latitude;
             old_longitude = longitude;
