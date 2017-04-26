@@ -492,15 +492,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     }
 
     class MyMainLocalRecever extends BroadcastReceiver {
-
         @Override
         public void onReceive(Context context, Intent intent) {
-            // TODO Auto-generated method stub
-
             m_serviceData = intent.getStringExtra("serviceData");
-
         }
-
     }
 
 

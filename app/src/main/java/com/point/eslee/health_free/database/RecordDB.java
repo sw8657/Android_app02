@@ -48,7 +48,7 @@ public class RecordDB {
                 record._ID = c.getInt(c.getColumnIndex("_ID"));
                 record.Steps = c.getInt(c.getColumnIndex(DataBases.RecordTable.STEPS));
                 record.Distance = c.getDouble(c.getColumnIndex(DataBases.RecordTable.DISTANCE));
-                record.Calorie = c.getDouble(c.getColumnIndex(DataBases.RecordTable.CALORIE));
+                record.Calorie = c.getInt(c.getColumnIndex(DataBases.RecordTable.CALORIE));
                 record.TotalPoint = c.getInt(c.getColumnIndex(DataBases.RecordTable.T_POINT));
                 record.CreateDate = c.getString(c.getColumnIndex(DataBases.RecordTable.C_DATE));
                 record.RunningTime = c.getInt(c.getColumnIndex(DataBases.RecordTable.R_TIME));

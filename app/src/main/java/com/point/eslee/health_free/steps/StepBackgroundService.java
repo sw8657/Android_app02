@@ -21,12 +21,14 @@ import android.util.Log;
 import android.view.Gravity;
 import android.widget.Toast;
 
+import com.point.eslee.health_free.Common;
 import com.point.eslee.health_free.MainActivity;
 import com.point.eslee.health_free.VO.RecordVO;
 import com.point.eslee.health_free.database.MyPointDB;
 import com.point.eslee.health_free.database.RecordDB;
 import com.point.eslee.health_free.values;
 
+import java.util.Calendar;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -37,8 +39,14 @@ public class StepBackgroundService extends Service implements SensorEventListene
     StepDBThread thread_db;
     Notification Notifi;
     private SharedPreferences mPref;
-    Timer m_calsensorTimer;
 
+    // 운동시간 체크
+    Timer m_runningTimer;
+    private int m_runstep = 0;
+    private Calendar m_runStartTime = null;
+    private boolean m_isRunning = false;
+
+    // 스타트 체크
     public Toast mToastCnt;
     private long lastTime;
     private float speed;
@@ -55,11 +63,11 @@ public class StepBackgroundService extends Service implements SensorEventListene
     private SensorManager sensorManager;
     private Sensor accelerormeterSensor;
 
-    public static void setShakeThreshold(int value){
+    public static void setShakeThreshold(int value) {
         SHAKE_THRESHOLD = value;
     }
 
-    public static int getShakeThreshold(){
+    public static int getShakeThreshold() {
         return SHAKE_THRESHOLD;
     }
 
@@ -90,15 +98,35 @@ public class StepBackgroundService extends Service implements SensorEventListene
         sensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
         accelerormeterSensor = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
 
-        // 운동정보 계산기록
-        m_calsensorTimer = new Timer();
-        m_calsensorTimer.schedule(new TimerTask() {
+        // 운동 시간 체크 타이머
+        m_runningTimer = new Timer();
+        m_runningTimer.schedule(new TimerTask() {
             @Override
             public void run() {
-                // TODO : 운동량 계산
-
+                Log.i("runTimer S", "Running:" + m_isRunning + ", runstep:" + m_runstep + ", second:" + values.RunningSec + ", calorie:" + values.Calorie);
+                // 10초동안 걸음수가 10을 넘었으면 운동시작
+                if (m_runstep > 10) {
+                    if (!m_isRunning) {
+                        // 운동중이 아니면
+                        m_runStartTime = Calendar.getInstance(); // 운동시작시간 기록
+                    }
+                    m_isRunning = true;
+                } else {
+                    // 운동종료
+                    int iRunningSec = Common.getRunningTimeSecond(m_runStartTime); // 운동시간계산
+                    int iCalorie = Common.convertSecToCalorie(iRunningSec); // 칼로리계산
+                    // 운동시간 기록
+                    values.RunningSec += iRunningSec;
+                    values.Calorie += iCalorie;
+                    // 운동체크 FLAG 초기화
+                    m_runStartTime = null;
+                    m_isRunning = false;
+                }
+                // 10초마다 걸음수체크 초기화
+                m_runstep = 0;
+                Log.i("runTimer E", "Running:" + m_isRunning + ", runstep:" + m_runstep + ", second:" + values.RunningSec + ", calorie:" + values.Calorie);
             }
-        },1000, 1000); // 1초마다 실행
+        }, 0, 10000); // 10초마다 실행
     }
 
     // 백그라운드에서 실행되는 동작들이 들어가는 곳입니다.
@@ -123,9 +151,9 @@ public class StepBackgroundService extends Service implements SensorEventListene
     @Override
     public void onTaskRemoved(Intent rootIntent) {
         super.onTaskRemoved(rootIntent);
-        Log.i("StepService","onTaskRemoved, rootintent:" + rootIntent.toString());
+        Log.i("StepService", "onTaskRemoved, rootintent:" + rootIntent.toString());
         // 프레프런스에 앱실행상태 저장
-        if(mPref == null) mPref = PreferenceManager.getDefaultSharedPreferences(this);
+        if (mPref == null) mPref = PreferenceManager.getDefaultSharedPreferences(this);
         mPref.edit().putBoolean("START_FIRST", true).apply();
 
         UpdateRecord();
@@ -134,24 +162,26 @@ public class StepBackgroundService extends Service implements SensorEventListene
 
     //서비스가 종료될 때 할 작업
     public void onDestroy() {
-        if(thread != null && (thread.isRun || thread.isAlive())){
+        if (thread != null && (thread.isRun || thread.isAlive())) {
             thread.stopForever();
             thread = null;//쓰레기 값을 만들어서 빠르게 회수하라고 null을 넣어줌.
         }
-        if(thread_db != null && (thread_db.isRun || thread_db.isAlive())){
+        if (thread_db != null && (thread_db.isRun || thread_db.isAlive())) {
             thread_db.stopForever();
             thread_db = null;
         }
+        m_runningTimer = null;
+
         Log.i("StepService", "onDestroy ==> steps:" + values.Step);
         if (sensorManager != null)
             sensorManager.unregisterListener(this);
         UpdateRecord();
     }
 
-    private void LoadRecord(){
+    private void LoadRecord() {
         RecordDB aRecordDB = null;
         RecordVO aRecordVO = null;
-        try{
+        try {
             aRecordDB = new RecordDB(this);
             // 기록 조회
             aRecordVO = aRecordDB.SelectLastRecord();
@@ -161,7 +191,7 @@ public class StepBackgroundService extends Service implements SensorEventListene
             values.Distance = aRecordVO.getDistance();
             values.Calorie = aRecordVO.getCalorie();
             values.RunningSec = aRecordVO.getRunningTime();
-        }catch (Exception ex){
+        } catch (Exception ex) {
             Log.e("LoadRecord:", ex.getMessage());
         }
     }
@@ -198,7 +228,8 @@ public class StepBackgroundService extends Service implements SensorEventListene
                 speed = Math.abs(x + y + z - lastX - lastY - lastZ) / gabOfTime * 10000;
 
                 if (speed > SHAKE_THRESHOLD) {
-                    values.Step = values.Step + 1;
+                    values.Step += 1; // 걸음수
+                    m_runstep++; // 운동하는지 확인하는 걸음수
                     Log.i("StepService", "onSensorChanged ==> steps:" + values.Step);
                     // MainActivity에 값 전달
                     Intent myFilteredResponse = new Intent(values.STEP_SERVICE_NAME);

@@ -10,11 +10,11 @@ public class RecordVO {
     public String CreateDate = null;
     public int Steps = 0;
     public double Distance = 0;
-    public double Calorie = 0;
+    public int Calorie = 0;
     public int TotalPoint = 0;
     public int RunningTime = 0;
 
-    public RecordVO(int _ID, String createDate, int steps, double distance, double calorie, int totalPoint, int runningTime) {
+    public RecordVO(int _ID, String createDate, int steps, double distance, int calorie, int totalPoint, int runningTime) {
         this._ID = _ID;
         CreateDate = createDate;
         Steps = steps;
@@ -60,11 +60,11 @@ public class RecordVO {
         Distance = distance;
     }
 
-    public double getCalorie() {
+    public int getCalorie() {
         return Calorie;
     }
 
-    public void setCalorie(double calorie) {
+    public void setCalorie(int calorie) {
         Calorie = calorie;
     }
 

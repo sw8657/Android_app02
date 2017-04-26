@@ -70,7 +70,6 @@ public class HomeFragment extends Fragment {
             @Override
             public void onClick(View v) {
                 SetDataView();
-                // new DbDoinAsyncTask(getContext()).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
             }
         });
     }
@@ -101,7 +100,7 @@ public class HomeFragment extends Fragment {
     private void SetDataView(){
         int num_step = 0;
         double num_distance = 0; // Km
-        double num_calorie = 0;
+        int num_calorie = 0;
         double num_speed = 0; // Km/h
         int num_sec = 0; // sec
         String str_time = "00:00:00";
@@ -124,36 +123,6 @@ public class HomeFragment extends Fragment {
         }
     }
 
-    // 내 기록 데이터 조회하기
-    private void SetDataView(RecordVO record) {
-        int num_step = 0;
-        double num_distance = 0; // Km
-        double num_calorie = 0;
-        double num_speed = 0; // Km/h
-        int num_sec = 0; // sec
-        String str_time = "00:00:00";
-
-        try {
-            if (record == null) return;
-            // record = mRecordDB.SelectLastRecord();
-
-            num_step = record.getSteps() + values.Step;
-            num_distance = record.getDistance() + values.Distance;
-            num_calorie = record.getCalorie() + values.Calorie;
-            num_sec = record.getRunningTime() + Common.getRunningTimeSecond();
-            str_time = Common.convertSecToTimeString(num_sec);
-            num_speed = (num_distance / (double) num_sec) * 3600;
-
-            mStepView.setText(Common.get_commaString(num_step));
-            mDistanceView.setText(String.valueOf(num_distance));
-            mCalorieView.setText(Common.get_commaString(num_calorie));
-            mTimeView.setText(str_time);
-            mSpeedView.setText(Common.get_commaString(num_speed));
-        } catch (Exception ex) {
-            Log.e("HomeFragment : ", ex.getMessage());
-        }
-    }
-
     // 타이머 초기화
     private void RunStepViewTimer() {
         // 타이머 가져오기
@@ -163,7 +132,6 @@ public class HomeFragment extends Fragment {
                 getActivity().runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        // new DbDoinAsyncTask(getContext()).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
                         SetDataView(); // 내 기록 데이터 조회하기
                     }
                 });
@@ -173,42 +141,4 @@ public class HomeFragment extends Fragment {
         mTimer = new Timer();
         mTimer.scheduleAtFixedRate(mTask, 0, 500);
     }
-
-    // DB 조회
-    public class DbDoinAsyncTask extends AsyncTask<String, Void, RecordVO> {
-        private Context aContext;
-        private RecordDB aRecordDB;
-        public RecordVO result;
-
-        public DbDoinAsyncTask(Context context) {
-            aContext = context;
-        }
-
-        @Override
-        protected void onPreExecute() {
-            aRecordDB = new RecordDB(aContext);
-            super.onPreExecute();
-        }
-
-        @Override
-        protected RecordVO doInBackground(String... params) {
-
-            try {
-                if (aRecordDB == null) aRecordDB = new RecordDB(aContext);
-                result = aRecordDB.SelectLastRecord();
-            } catch (Exception ex) {
-                Log.e("HomeFrag : ", ex.getMessage());
-            }
-
-            return result;
-        }
-
-        @Override
-        protected void onPostExecute(RecordVO recordVO) {
-            SetDataView(recordVO);
-            super.onPostExecute(recordVO);
-        }
-    }
-
-
 }

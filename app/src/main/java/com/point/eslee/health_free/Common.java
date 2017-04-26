@@ -253,14 +253,14 @@ public class Common {
     }
 
     // 현재 운동 시간 조회하기
-    public static String getRunningTimeString(){
+    public static String getRunningTimeString(Calendar startTime){
         String returnTime = "00:00:00";
 
         Calendar cal = Calendar.getInstance();
         //경과시간
         long runningTime = 0 ;
-        if(values.StartTime != null){
-            runningTime = Calendar.getInstance().getTimeInMillis() - values.StartTime.getTimeInMillis();
+        if(startTime != null){
+            runningTime = Calendar.getInstance().getTimeInMillis() - startTime.getTimeInMillis();
 
             Date formatTime = new Date(runningTime);
             cal.setTime(formatTime);
@@ -273,27 +273,27 @@ public class Common {
     }
 
     // 현재 운동 시간 조회하기
-    public static long getRunningTime(){
+    public static long getRunningTime(Calendar startTime){
         long runningTime = 0 ;
         Calendar cal = Calendar.getInstance();
         //경과시간
 
-        if(values.StartTime != null){
-            runningTime = Calendar.getInstance().getTimeInMillis() - values.StartTime.getTimeInMillis();
+        if(startTime != null){
+            runningTime = Calendar.getInstance().getTimeInMillis() - startTime.getTimeInMillis();
         }
 
         return runningTime;
     }
 
     // 현재 운동 시간 조회하기
-    public static int getRunningTimeSecond(){
+    public static int getRunningTimeSecond(Calendar startTime){
         int result = 0;
         long runningTime = 0 ;
         Calendar cal = Calendar.getInstance();
         //경과시간
 
-        if(values.StartTime != null){
-            runningTime = Calendar.getInstance().getTimeInMillis() - values.StartTime.getTimeInMillis();
+        if(startTime != null){
+            runningTime = Calendar.getInstance().getTimeInMillis() - startTime.getTimeInMillis();
             result = (int)(runningTime) / 1000;
         }
 
@@ -336,6 +336,19 @@ public class Common {
 
     public static String getStringNum2(int num){
         return String.format("%02d", num);
+    }
+
+    // 시간으로 칼로리 계산
+    public static int convertSecToCalorie(int sec){
+        int iCalorie = 0;
+        try{
+            // 칼로리 계산 걷기(3km/h) 몸무게60kg 기준 1시간 운동시 150칼로리 소모
+            // 칼로리 = (150 * 초)/3600 반올림
+            iCalorie = Math.round((sec * 150) / 3600);
+        }catch (Exception ex){
+            Log.e("Common", ex.getMessage());
+        }
+        return iCalorie;
     }
 
 }
