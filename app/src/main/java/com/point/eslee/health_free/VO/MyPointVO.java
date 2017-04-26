@@ -11,6 +11,7 @@ public class MyPointVO {
     public String UseTitle;
     public int UsePoint;
     public String CreateDate;
+    public int StoreID;
 
     public MyPointVO(int _ID, String useType, String useTitle, int usePoint, String createDate) {
         this._ID = _ID;
@@ -22,6 +23,14 @@ public class MyPointVO {
 
     public MyPointVO() {
 
+    }
+
+    public int getStoreID() {
+        return StoreID;
+    }
+
+    public void setStoreID(int storeID) {
+        StoreID = storeID;
     }
 
     public int get_ID() {

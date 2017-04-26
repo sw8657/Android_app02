@@ -168,7 +168,7 @@ public class RecordDB {
         } catch (Exception ex) {
             Log.e("RecordDB Error : ", ex.getMessage());
         }
-
+        mHelper.close();
         return result;
     }
 

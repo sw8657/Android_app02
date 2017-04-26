@@ -79,4 +79,27 @@ public class MyPointDB {
         return result;
     }
 
+    // 포인트 적립
+    public void InsertPoint(MyPointVO pointVO) {
+        String sqlString = "";
+        try {
+            mDB = mHelper.getWritableDatabase();
+            sqlString = "INSERT INTO " + DataBases.PointTable._TABLENAME
+                    + " (USER_ID, USE_TYPE, USE_TITLE, U_POINT, T_POINT, STORE_ID) "
+                    + " VALUES ("
+                    + values.UserId + ", "
+                    + " '" + pointVO.getUseType() + "', "
+                    + " '" + pointVO.getUseTitle() + "', "
+                    + pointVO.getUsePoint() + ", "
+                    + "(SELECT " + pointVO.getUsePoint() + " + T_POINT FROM USE_POINT WHERE USER_ID = '" + values.UserId + "' ORDER BY _ID DESC LIMIT 1), "
+                    + pointVO.getStoreID()
+                    + ");";
+            mDB.execSQL(sqlString);
+            Log.d("InsertPoint:",sqlString);
+        } catch (Exception e) {
+            Log.e("MyPointDB Error : ", e.getMessage());
+        }
+        mHelper.close();
+    }
+
 }

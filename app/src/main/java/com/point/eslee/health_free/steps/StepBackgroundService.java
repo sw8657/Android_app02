@@ -13,6 +13,7 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Handler;
 import android.os.IBinder;
@@ -23,12 +24,17 @@ import android.widget.Toast;
 
 import com.point.eslee.health_free.Common;
 import com.point.eslee.health_free.MainActivity;
+import com.point.eslee.health_free.VO.MyPointVO;
 import com.point.eslee.health_free.VO.RecordVO;
 import com.point.eslee.health_free.database.MyPointDB;
 import com.point.eslee.health_free.database.RecordDB;
 import com.point.eslee.health_free.values;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
+import java.util.Dictionary;
+import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -40,8 +46,12 @@ public class StepBackgroundService extends Service implements SensorEventListene
     Notification Notifi;
     private SharedPreferences mPref;
 
+    // 포인트 적립
+    ArrayList<Integer> step_points = new ArrayList<>(Arrays.asList(50, 100, 200, 500, 1000, 1500, 2000, 3000, 5000));
+
     // 운동시간 체크
     Timer m_runningTimer;
+    Timer m_runningTimer2;
     private int m_runstep = 0;
     private Calendar m_runStartTime = null;
     private boolean m_isRunning = false;
@@ -104,8 +114,8 @@ public class StepBackgroundService extends Service implements SensorEventListene
             @Override
             public void run() {
                 Log.i("runTimer S", "Running:" + m_isRunning + ", runstep:" + m_runstep + ", second:" + values.RunningSec + ", calorie:" + values.Calorie);
-                // 10초동안 걸음수가 10을 넘었으면 운동시작
-                if (m_runstep > 10) {
+                // 5초동안 걸음수가 5을 넘었으면 운동시작
+                if (m_runstep > 5) {
                     if (!m_isRunning) {
                         // 운동중이 아니면
                         m_runStartTime = Calendar.getInstance(); // 운동시작시간 기록
@@ -126,7 +136,7 @@ public class StepBackgroundService extends Service implements SensorEventListene
                 m_runstep = 0;
                 Log.i("runTimer E", "Running:" + m_isRunning + ", runstep:" + m_runstep + ", second:" + values.RunningSec + ", calorie:" + values.Calorie);
             }
-        }, 0, 10000); // 10초마다 실행
+        }, 0, 5000); // 5초마다 실행
     }
 
     // 백그라운드에서 실행되는 동작들이 들어가는 곳입니다.
@@ -236,6 +246,14 @@ public class StepBackgroundService extends Service implements SensorEventListene
                     String msg = values.Step + "";
                     myFilteredResponse.putExtra("serviceData", msg);
                     sendBroadcast(myFilteredResponse);
+
+                    // 포인트 적립
+
+                    if(step_points.contains(values.Step)){
+                        int steps = values.Step;
+                        int point = steps / 10;
+                        new InsertPointUpTask().execute("Save Walking", steps + " steps",point);
+                    }
                 }
 
                 lastX = sensorEvent.values[DATA_X];
@@ -291,12 +309,32 @@ public class StepBackgroundService extends Service implements SensorEventListene
         }
     }
 
+    public class InsertPointUpTask extends AsyncTask<Object,Void,String>{
+
+        @Override
+        protected String doInBackground(Object... params) {
+            try{
+                MyPointVO pointVO = new MyPointVO();
+                pointVO.UseType = (String) params[0];
+                pointVO.UseTitle = (String) params[1];
+                pointVO.UsePoint = (Integer) params[2];
+                MyPointDB pointDB = new MyPointDB(getApplicationContext());
+                pointDB.InsertPoint(pointVO);
+            }catch (Exception ex){
+                Log.e("STEP_SERVICE", ex.getMessage());
+            }
+
+            return null;
+        }
+    }
+
     class StepDBThread extends Thread {
         Handler handler;
         boolean isRun = true;
         private TimerTask mTask;
         private Timer mTimer;
         int cntaa = 0;
+
 
         public StepDBThread(Handler handler) {
             this.handler = handler;
@@ -315,8 +353,10 @@ public class StepBackgroundService extends Service implements SensorEventListene
             mTask = new TimerTask() {
                 @Override
                 public void run() {
+
+
                     // DB 입력
-                    mToastCnt.setText("테스트" + cntaa++);
+                    mToastCnt.setText("50포인트 획득" + cntaa++);
                     mToastCnt.show();
                 }
             };
