@@ -84,4 +84,34 @@ public class StoreDB {
         return result;
     }
 
+    // 가맹점 ID로 조회
+    public StoreVO SelectStoreById(int store_id) {
+        StoreVO store = null;
+        Cursor c;
+        String sqlString = "";
+
+        try {
+            mDB = mHelper.getReadableDatabase();
+            sqlString = "SELECT * FROM " + DataBases.StoreTable._TABLENAME
+                    + " WHERE STORE_ID = " + store_id;
+            c = mDB.rawQuery(sqlString, null);
+            if(c != null && c.getCount() != 0){
+                c.moveToFirst();
+                store = new StoreVO();
+                store._ID = c.getInt(c.getColumnIndex("_ID"));
+                store.StoreID = c.getInt(c.getColumnIndex(DataBases.StoreTable.STORE_ID));
+                store.StoreName = c.getString(c.getColumnIndex(DataBases.StoreTable.STORE_NAME));
+                store.URL = c.getString(c.getColumnIndex(DataBases.StoreTable.URL));
+                store.X = c.getDouble(c.getColumnIndex(DataBases.StoreTable.X));
+                store.Y = c.getDouble(c.getColumnIndex(DataBases.StoreTable.Y));
+                store.CreateDate = c.getString(c.getColumnIndex(DataBases.StoreTable.C_DATE));
+            }
+            c.close();
+        } catch (Exception e) {
+            Log.e("StoreDB : ", e.getMessage());
+        }
+        mHelper.close();
+        return store;
+    }
+
 }

@@ -63,7 +63,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
      * TODO: remove after connecting to a real authentication system.
      */
     private static final String[] DUMMY_CREDENTIALS = new String[]{
-            "foo@example.com:hello", "bar@example.com:world"
+            "admin@test.com:a1234:1", "foo@test.com:hello:2", "bar@test.com:world:3"
     };
     /**
      * Keep track of the login task to ensure we can cancel it if requested.
@@ -386,6 +386,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
                 String[] pieces = credential.split(":");
                 if (pieces[0].equals(mEmail)) {
                     // Account exists, return true if the password matches.
+                    mUserId = Integer.valueOf(pieces[2]);
                     return pieces[1].equals(mPassword);
                 }
             }

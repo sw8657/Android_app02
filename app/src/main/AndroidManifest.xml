@@ -61,6 +61,7 @@
             android:theme="@style/AppTheme.NoActionBar">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
@@ -75,14 +76,17 @@
         <service
             android:name=".steps.StepBackgroundService"
             android:enabled="true"
-            android:stopWithTask="false"
-            android:exported="true" />
+            android:exported="true"
+            android:stopWithTask="false" />
 
         <activity
             android:name=".BarcodeActivity"
-            android:theme="@android:style/Theme.Dialog">
+            android:theme="@android:style/Theme.Dialog"></activity>
 
-        </activity>
+        <service
+            android:name=".steps.ResetRecordService"
+            android:enabled="true"
+            android:exported="true"></service>
     </application>
 
 </manifest>

@@ -110,4 +110,5 @@
     <string name="nav_menuname_rank">Ranking</string>
     <string name="nav_menuname_statistics">Statistics</string>
     <string name="nav_menuname_settings">Settings</string>
+    <string name="nav_menuname_logout">Log out</string>
 </resources>

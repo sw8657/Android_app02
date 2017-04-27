@@ -1,7 +1,7 @@
 package com.point.eslee.health_free.steps;
 
-
 import android.annotation.TargetApi;
+import android.app.AlarmManager;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
@@ -33,8 +33,6 @@ import com.point.eslee.health_free.values;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
-import java.util.Dictionary;
-import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -47,11 +45,11 @@ public class StepBackgroundService extends Service implements SensorEventListene
     private SharedPreferences mPref;
 
     // 포인트 적립
-    ArrayList<Integer> step_points = new ArrayList<>(Arrays.asList(50, 100, 200, 500, 1000, 1500, 2000, 3000, 5000));
+    ArrayList<Integer> STEP_POINTs = new ArrayList<>(Arrays.asList(50, 100, 200, 500, 1000, 1500, 2000, 3000, 5000));
 
     // 운동시간 체크
     Timer m_runningTimer;
-    Timer m_runningTimer2;
+    Timer m_datecheckTimer;
     private int m_runstep = 0;
     private Calendar m_runStartTime = null;
     private boolean m_isRunning = false;
@@ -147,6 +145,14 @@ public class StepBackgroundService extends Service implements SensorEventListene
         if (accelerormeterSensor != null)
             sensorManager.registerListener(this, accelerormeterSensor, SensorManager.SENSOR_DELAY_GAME);
 
+        // 로그인하면 저장된 기록 복구
+        boolean isLoadRecord = intent.getBooleanExtra("load_record",false);
+        if(isLoadRecord){
+            LoadRecord();
+        }
+
+        //  기록 초기화 알람 등록
+        registerResetRecordAlarm(getApplicationContext());
 //        if(thread == null || (thread.isRun == false)){
 //            myServiceHandler handler = new myServiceHandler();
 //            thread = new StepCheckThread(handler);
@@ -193,14 +199,23 @@ public class StepBackgroundService extends Service implements SensorEventListene
         RecordVO aRecordVO = null;
         try {
             aRecordDB = new RecordDB(this);
-            // 기록 조회
-            aRecordVO = aRecordDB.SelectLastRecord();
-            // 기록 저장
-            Log.i("values update : ", values.Step + " => " + aRecordVO.getSteps());
-            values.Step = aRecordVO.getSteps();
-            values.Distance = aRecordVO.getDistance();
-            values.Calorie = aRecordVO.getCalorie();
-            values.RunningSec = aRecordVO.getRunningTime();
+            // 오늘일자 마지막 기록조회
+            aRecordVO = aRecordDB.SelectTodayRecord();
+            if (aRecordVO != null) {
+                // 기록 복구
+                Log.i("values update : ", values.Step + " => " + aRecordVO.getSteps());
+                values.Step = aRecordVO.getSteps();
+                values.Distance = aRecordVO.getDistance();
+                values.Calorie = aRecordVO.getCalorie();
+                values.RunningSec = aRecordVO.getRunningTime();
+            } else {
+                // 기록 초기화
+                Log.i("values clear : ", values.Step + " => 0");
+                values.Step = 0;
+                values.Distance = 0;
+                values.Calorie = 0;
+                values.RunningSec = 0;
+            }
         } catch (Exception ex) {
             Log.e("LoadRecord:", ex.getMessage());
         }
@@ -222,6 +237,23 @@ public class StepBackgroundService extends Service implements SensorEventListene
         } catch (Exception ex) {
             Log.e("MainActivity : ", ex.getMessage());
         }
+    }
+
+    public void registerResetRecordAlarm(Context context) {
+        AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
+
+        // 돌아오는 자정
+        Calendar cal = Calendar.getInstance();
+        cal.add(Calendar.DATE, 1);
+        cal.set(Calendar.HOUR, 0);
+        cal.set(Calendar.MINUTE, 0);
+        cal.set(Calendar.SECOND, 0);
+
+        Intent intent = new Intent(context, ResetRecordService.class);
+        PendingIntent sender = PendingIntent.getService(context, 2400, intent, 0);
+        // 트리거 시간 : 돌아오는 자정
+        // 반복 주기 : 하루
+        alarmManager.setRepeating(AlarmManager.RTC_WAKEUP, cal.getTimeInMillis(), AlarmManager.INTERVAL_DAY, sender);
     }
 
     @Override
@@ -247,12 +279,11 @@ public class StepBackgroundService extends Service implements SensorEventListene
                     myFilteredResponse.putExtra("serviceData", msg);
                     sendBroadcast(myFilteredResponse);
 
-                    // 포인트 적립
-
-                    if(step_points.contains(values.Step)){
+                    // 포인트 적립 - 걸음수 달성마다 포인트
+                    if (STEP_POINTs.contains(values.Step)) {
                         int steps = values.Step;
-                        int point = steps / 10;
-                        new InsertPointUpTask().execute("Save Walking", steps + " steps",point);
+                        int point = steps / 10; // 10% 포인트 적립
+                        new InsertPointUpTask().execute("Save Walking", steps + " steps", point);
                     }
                 }
 
@@ -309,21 +340,21 @@ public class StepBackgroundService extends Service implements SensorEventListene
         }
     }
 
-    public class InsertPointUpTask extends AsyncTask<Object,Void,String>{
+    // 걸은만큼 포인트 적립
+    public class InsertPointUpTask extends AsyncTask<Object, Void, String> {
 
         @Override
         protected String doInBackground(Object... params) {
-            try{
+            try {
                 MyPointVO pointVO = new MyPointVO();
-                pointVO.UseType = (String) params[0];
-                pointVO.UseTitle = (String) params[1];
-                pointVO.UsePoint = (Integer) params[2];
+                pointVO.UseType = (String) params[0]; // Save Walking
+                pointVO.UseTitle = (String) params[1]; // 1000 steps
+                pointVO.UsePoint = (Integer) params[2]; // point
                 MyPointDB pointDB = new MyPointDB(getApplicationContext());
                 pointDB.InsertPoint(pointVO);
-            }catch (Exception ex){
+            } catch (Exception ex) {
                 Log.e("STEP_SERVICE", ex.getMessage());
             }
-
             return null;
         }
     }

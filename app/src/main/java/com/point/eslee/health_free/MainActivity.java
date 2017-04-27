@@ -41,6 +41,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.gms.common.server.converter.StringToIntConverter;
 import com.google.android.gms.maps.MapsInitializer;
 import com.google.android.gms.maps.model.LatLng;
 import com.point.eslee.health_free.VO.RecordVO;
@@ -53,6 +54,7 @@ import com.point.eslee.health_free.rank.RankFragment;
 import com.point.eslee.health_free.steps.StepBackgroundService;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.concurrent.CountDownLatch;
 
 public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
@@ -185,7 +187,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             // 네비에 사용자 정보 표시
             SetNaviInfo();
             // 만보기 서비스 시작
-            StartStepService();
+            StartStepService(true);
             // 지도 서비스 시작
             StartStoreService();
             if (loginType.equals(LOGIN_TYPE.First)) {
@@ -205,13 +207,14 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             if (loginType.equals(LOGIN_TYPE.First)) {
                 // 처음 로그인하는 사용자이면
                 // 만보기 서비스 종료 후 시작
-
                 StopStepService();
-                StartStepService();
+                StartStepService(true);
                 // 지도 서비스 시작
                 StartStoreService();
             } else {
                 // 로그인 한적이 있으면
+                // 만보기 서비스 시작안했으면 시작
+                StartStepService(false);
                 // 지도 서비스 시작
                 StartStoreService();
             }
@@ -234,12 +237,15 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     }
 
     // 만보기 서비스 시작
-    private void StartStepService() {
+    private void StartStepService(boolean isLoadRecord) {
         // 서비스 시작
         if (isServiceRunningCheck() == false) {
             // 만보기
             m_intent = new Intent(MainActivity.this, StepBackgroundService.class);
             m_receiver_step = new MyMainLocalRecever();
+
+            // 로그인하는 경우
+            m_intent.putExtra("load_record", isLoadRecord);
 
             IntentFilter mainFilter = new IntentFilter(values.STEP_SERVICE_NAME);
             registerReceiver(m_receiver_step, mainFilter);
@@ -366,7 +372,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        if(m_receiver_step != null){
+        if (m_receiver_step != null) {
             unregisterReceiver(m_receiver_step);
             m_receiver_step = null;
         }
@@ -474,11 +480,38 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             Intent mainIntent = new Intent(MainActivity.this, SettingsActivity.class);
             mainIntent.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
             MainActivity.this.startActivity(mainIntent);
+        } else if (id == R.id.nav_logout) {
+            // 로그아웃
+            LogOutPreExcute();
+            Intent mainIntent = new Intent(MainActivity.this, LoginActivity.class);
+            MainActivity.this.startActivityForResult(mainIntent, 1004);
+            Log.i("Main", "로그아웃");
+            Log_value();
         }
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
         return true;
+    }
+
+    private void LogOutPreExcute() {
+        // 지도서비스 중지
+        unregister_map();
+        // 걸음수체크 서비스 중지
+        StopStepService();
+        // 사용자 정보 저장
+        UpdateRecord();
+        // values 초기화 (ID, EMAIL 다 초기화)
+        values.Step = 0;
+        values.Distance = 0;
+        values.RunningSec = 0;
+        values.Calorie = 0;
+        values.UserId = -1;
+        values.UserEmail = "Nothing Email";
+        values.UserName = "Nothing Name";
+        // 리레퍼런스 LOGIN_TYPE false로 변경
+        if (mPref == null) mPref = PreferenceManager.getDefaultSharedPreferences(this);
+        mPref.edit().putBoolean("LOGIN_FIRST", true).apply();
     }
 
     public boolean isServiceRunningCheck() {
@@ -755,4 +788,5 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             mLastReceivedIntent = null;
         }
     }
+
 }

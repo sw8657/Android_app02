@@ -7,6 +7,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.util.Log;
 
 import com.github.mikephil.charting.data.Entry;
+import com.point.eslee.health_free.Common;
 import com.point.eslee.health_free.VO.RecordVO;
 import com.point.eslee.health_free.values;
 
@@ -61,6 +62,39 @@ public class RecordDB {
         return record;
     }
 
+    public RecordVO SelectTodayRecord() {
+        RecordVO record = null;
+        Cursor c = null;
+        String sqlString = "";
+        try {
+            mDB = mHelper.getReadableDatabase();
+
+            sqlString = "SELECT * FROM "
+                    + DataBases.RecordTable._TABLENAME
+                    + " WHERE USER_ID = '" + values.UserId + "' AND " +
+                    " C_DATE = '" + Common.getStringCurrentDate() + "' " +
+                    " ORDER BY _ID DESC "
+                    + " LIMIT 1";
+            c = mDB.rawQuery(sqlString, null);
+            record = new RecordVO();
+            if (c != null && c.getCount() != 0) {
+                c.moveToFirst();
+                record._ID = c.getInt(c.getColumnIndex("_ID"));
+                record.Steps = c.getInt(c.getColumnIndex(DataBases.RecordTable.STEPS));
+                record.Distance = c.getDouble(c.getColumnIndex(DataBases.RecordTable.DISTANCE));
+                record.Calorie = c.getInt(c.getColumnIndex(DataBases.RecordTable.CALORIE));
+                record.TotalPoint = c.getInt(c.getColumnIndex(DataBases.RecordTable.T_POINT));
+                record.CreateDate = c.getString(c.getColumnIndex(DataBases.RecordTable.C_DATE));
+                record.RunningTime = c.getInt(c.getColumnIndex(DataBases.RecordTable.R_TIME));
+            }
+            c.close();
+        } catch (Exception ex) {
+            Log.e("RecordDB Error : ", ex.getMessage());
+        }
+        mHelper.close();
+        return record;
+    }
+
     // 해당 날짜기준으로 일요일 날짜와 토요일 날짜를 검색
     // SELECT date(date('2017-02-19', 'weekday 6'),'-6 days'), date('2017-02-19', 'weekday 6');
     public String[] SelectFirstAndEndDate(String sDate) {
@@ -72,6 +106,7 @@ public class RecordDB {
 
             sqlString = "SELECT date(date('" + sDate + "', 'localtime', 'weekday 6'),'-6 days') as 'DAY1'"
                     + ", date('" + sDate + "', 'localtime', 'weekday 6') as 'DAY7';";
+            Log.i("RecordDB", sqlString);
             c = mDB.rawQuery(sqlString, null);
             if (c != null && c.getCount() != 0) {
                 c.moveToFirst();
@@ -103,11 +138,12 @@ public class RecordDB {
                     + "AND C_DATE <= date('" + sDate + "', 'localtime', 'weekday 6')"
                     + "GROUP BY date(C_DATE)"
                     + "ORDER BY strftime('%w', C_DATE);";
+            Log.i("RecordDB", sqlString);
             c = mDB.rawQuery(sqlString, null);
-            while (c.moveToNext()) {
-                entries.add(new Entry(c.getFloat(c.getColumnIndex("STEPS_SUM")), num));
-                num++;
+            while (c.moveToNext()){
+                entries.add(new Entry(c.getInt(c.getColumnIndex("STEPS_SUM")), c.getInt(c.getColumnIndex("WEEK"))));
             }
+
             c.close();
         } catch (Exception ex) {
             Log.e("RecordDB Error : ", ex.getMessage());
@@ -121,7 +157,7 @@ public class RecordDB {
         Cursor c = null;
         ArrayList<Entry> entries = new ArrayList<>();
         String sqlString = "";
-        int num = 0;
+        int days = 30;
         mDB = mHelper.getReadableDatabase();
         try {
             sqlString = "SELECT SUM(STEPS) as 'STEPS_SUM'"
@@ -133,10 +169,10 @@ public class RecordDB {
                     + "AND C_DATE <= date('" + sDate + "', 'localtime', 'start of month', '+1 month', '-1 day')"
                     + "GROUP BY date(C_DATE)"
                     + "ORDER BY strftime('%d', C_DATE);";
+            Log.i("RecordDB", sqlString);
             c = mDB.rawQuery(sqlString, null);
-            while (c.moveToNext()) {
-                entries.add(new Entry(c.getFloat(c.getColumnIndex("STEPS_SUM")), num));
-                num++;
+            while (c.moveToNext()){
+                entries.add(new Entry(c.getInt(c.getColumnIndex("STEPS_SUM")), c.getInt(c.getColumnIndex("DAY"))));
             }
             c.close();
         } catch (Exception ex) {

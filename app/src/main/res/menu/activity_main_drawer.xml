@@ -28,6 +28,12 @@
             android:visible="true"
             android:icon="@drawable/ic_menu_manage"
             android:title="@string/nav_menuname_settings" />
+        <item
+            android:id="@+id/nav_logout"
+            android:visible="true"
+            android:icon="@drawable/ic_exit_to_app_black_24dp"
+            android:title="@string/nav_menuname_logout" />
+
     </group>
 <!--
     <item android:title="Communicate">
