@@ -267,7 +267,7 @@ public class StatisticsFragment extends Fragment {
 
         // 차트 옵션
         dataset.setColors(ColorTemplate.COLORFUL_COLORS); //
-        dataset.setDrawCubic(true); //커브
+        dataset.setDrawCubic(false); //커브
         dataset.setDrawFilled(true); //선아래로 색상표시
         dataset.setDrawValues(false); // 값 표시
         dataset.setDrawCircleHole(false);

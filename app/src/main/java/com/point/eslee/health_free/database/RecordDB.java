@@ -4,6 +4,7 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.support.v7.util.SortedList;
 import android.util.Log;
 
 import com.github.mikephil.charting.data.Entry;
@@ -12,6 +13,11 @@ import com.point.eslee.health_free.VO.RecordVO;
 import com.point.eslee.health_free.values;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Dictionary;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
 /**
@@ -126,7 +132,7 @@ public class RecordDB {
         Cursor c = null;
         ArrayList<Entry> entries = new ArrayList<>();
         String sqlString = "";
-        int num = 0;
+        int num = 0, idx = 0, value = 0;
         mDB = mHelper.getReadableDatabase();
         try {
             sqlString = "SELECT SUM(STEPS) as 'STEPS_SUM'"
@@ -141,8 +147,28 @@ public class RecordDB {
             Log.i("RecordDB", sqlString);
             c = mDB.rawQuery(sqlString, null);
             while (c.moveToNext()){
-                entries.add(new Entry(c.getInt(c.getColumnIndex("STEPS_SUM")), c.getInt(c.getColumnIndex("WEEK"))));
+                num = c.getInt(c.getColumnIndex("WEEK"));
+                value = c.getInt(c.getColumnIndex("STEPS_SUM"));
+                entries.add(new Entry(value, num));
             }
+//            while (c.moveToNext()) {
+//                num = c.getInt(c.getColumnIndex("WEEK"));
+//                value = c.getInt(c.getColumnIndex("STEPS_SUM"));
+//                if (idx < num) {
+//                    // 이전 데이터가 있으면 빈데이터 입력
+//                    for (int i = idx; i < num; i++) {
+//                        entries.add(new Entry(0, i)); // 0 1 2
+//                    }
+//                    idx = num;
+//                }
+//                // 조회된 데이터 입력
+//                entries.add(new Entry(value, num));
+//                idx++;
+//            }
+//            // 남은 요일이 있으면 빈데이터 입력
+//            for (int i = idx; i < 7; i++) {
+//                entries.add(new Entry(0, i)); // 5 6
+//            }
 
             c.close();
         } catch (Exception ex) {
@@ -158,6 +184,7 @@ public class RecordDB {
         ArrayList<Entry> entries = new ArrayList<>();
         String sqlString = "";
         int days = 30;
+        int num = 0, idx = 0, value = 0;
         mDB = mHelper.getReadableDatabase();
         try {
             sqlString = "SELECT SUM(STEPS) as 'STEPS_SUM'"
@@ -172,8 +199,32 @@ public class RecordDB {
             Log.i("RecordDB", sqlString);
             c = mDB.rawQuery(sqlString, null);
             while (c.moveToNext()){
-                entries.add(new Entry(c.getInt(c.getColumnIndex("STEPS_SUM")), c.getInt(c.getColumnIndex("DAY"))));
+                String strday = c.getString(c.getColumnIndex("DAY"));
+                num = Integer.valueOf(strday) - 1;
+                value = c.getInt(c.getColumnIndex("STEPS_SUM"));
+                Log.i("RecordDB","day:" + strday + ", num:" + num + ", value:" + value);
+                entries.add(new Entry(value, num));
             }
+//            while (c.moveToNext()) {
+//                num = c.getInt(c.getColumnIndex("DAY")) - 1;
+//                value = c.getInt(c.getColumnIndex("STEPS_SUM"));
+//                if (idx < num) {
+//                    // 이전 데이터가 있으면 빈데이터 입력
+//                    for (int i = idx; i < num; i++) {
+//                        entries.add(new Entry(0, i)); // 0 1 2
+//                    }
+//                    idx = num;
+//                }
+//                // 조회된 데이터 입력
+//                entries.add(new Entry(value, num));
+//                idx++;
+//            }
+//            days = Common.getDaysOfMonth(sDate);
+//            // 남은 요일이 있으면 빈데이터 입력
+//            for (int i = idx; i < days; i++) {
+//                entries.add(new Entry(0, i)); // 5 6
+//            }
+
             c.close();
         } catch (Exception ex) {
             Log.e("RecordDB Error : ", ex.getMessage());
@@ -200,7 +251,7 @@ public class RecordDB {
                     recordVO.RunningTime +
                     ");";
             mDB.execSQL(sqlString);
-            Log.d("RecordDB:",sqlString);
+            Log.d("RecordDB:", sqlString);
         } catch (Exception ex) {
             Log.e("RecordDB Error : ", ex.getMessage());
         }
