@@ -21,4 +21,11 @@
         <item>12</item>
     </string-array>
 
+    <string-array name="statistics_menu">
+        <item>Step</item>
+        <item>Point</item>
+        <item>Calorie</item>
+        <item>Distance</item>
+    </string-array>
+
 </resources>

@@ -16,9 +16,14 @@
         android:layout_height="36dp"
         android:background="@color/colorGraySecondaryOpacity50">
         <Spinner
+            android:id="@+id/chart_menu"
             android:layout_width="100dp"
-            android:layout_height="wrap_content">
-
+            android:layout_height="wrap_content"
+            android:textAlignment="center"
+            android:layout_alignParentLeft="true"
+            android:layout_centerVertical="true"
+            android:gravity="center"
+            android:entries="@array/statistics_menu">
         </Spinner>
         <TextView
             android:id="@+id/chart_weekly_textview"
@@ -115,7 +120,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginRight="10dp"
                         android:textColor="@color/colorDarkGray"
-                        android:text="Average steps"/>
+                        android:text="Average"/>
                     <TextView
                         android:id="@+id/chart_step_mean"
                         android:layout_width="wrap_content"

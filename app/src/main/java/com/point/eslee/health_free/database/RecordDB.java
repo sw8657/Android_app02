@@ -233,6 +233,270 @@ public class RecordDB {
         return entries;
     }
 
+    // 날짜기준 이번주 (일-토) 통계 조회 - 포인트
+    public ArrayList<Entry> SelectStatPointWeek(String sDate) {
+        Cursor c = null;
+        ArrayList<Entry> entries = new ArrayList<>();
+        String sqlString = "";
+        int num = 0, idx = 0, value = 0;
+        mDB = mHelper.getReadableDatabase();
+        try {
+            sqlString = "SELECT SUM(T_POINT) as 'POINT_SUM'"
+                    + ", date(C_DATE) as 'C_DATE'"
+                    + ", strftime('%w', C_DATE) as 'WEEK'"
+                    + "FROM RECORD "
+                    + "WHERE USER_ID = '" + values.UserId + "' "
+                    + "AND C_DATE >= date(date('" + sDate + "', 'localtime', 'weekday 6'),'-6 days') "
+                    + "AND C_DATE <= date('" + sDate + "', 'localtime', 'weekday 6')"
+                    + "GROUP BY date(C_DATE)"
+                    + "ORDER BY strftime('%w', C_DATE);";
+            Log.i("RecordDB", sqlString);
+            c = mDB.rawQuery(sqlString, null);
+            while (c.moveToNext()){
+                num = c.getInt(c.getColumnIndex("WEEK"));
+                value = c.getInt(c.getColumnIndex("POINT_SUM"));
+                entries.add(new Entry(value, num));
+            }
+            c.close();
+        } catch (Exception ex) {
+            Log.e("RecordDB Error : ", ex.getMessage());
+        }
+        mHelper.close();
+        return entries;
+    }
+
+    // 날짜기준 이번달 통계 조회 - 포인트
+    public ArrayList<Entry> SelectStatPointMonth(String sDate) {
+        Cursor c = null;
+        ArrayList<Entry> entries = new ArrayList<>();
+        String sqlString = "";
+        int days = 30;
+        int num = 0, idx = 0, value = 0;
+        mDB = mHelper.getReadableDatabase();
+        try {
+            sqlString = "SELECT SUM(T_POINT) as 'POINT_SUM'"
+                    + ", date(C_DATE) as 'C_DATE'"
+                    + ", strftime('%d', C_DATE) as 'DAY'"
+                    + "FROM RECORD "
+                    + "WHERE USER_ID = '" + values.UserId + "' "
+                    + "AND C_DATE >= date('" + sDate + "', 'localtime', 'start of month') "
+                    + "AND C_DATE <= date('" + sDate + "', 'localtime', 'start of month', '+1 month', '-1 day')"
+                    + "GROUP BY date(C_DATE)"
+                    + "ORDER BY strftime('%d', C_DATE);";
+            Log.i("RecordDB", sqlString);
+            c = mDB.rawQuery(sqlString, null);
+            while (c.moveToNext()){
+                String strday = c.getString(c.getColumnIndex("DAY"));
+                num = Integer.valueOf(strday) - 1;
+                value = c.getInt(c.getColumnIndex("POINT_SUM"));
+                entries.add(new Entry(value, num));
+            }
+            c.close();
+        } catch (Exception ex) {
+            Log.e("RecordDB Error : ", ex.getMessage());
+        }
+        mHelper.close();
+        return entries;
+    }
+
+    // 날짜기준 이번주 (일-토) 통계 조회 - 칼로리
+    public ArrayList<Entry> SelectStatCalorieWeek(String sDate) {
+        Cursor c = null;
+        ArrayList<Entry> entries = new ArrayList<>();
+        String sqlString = "";
+        int num = 0, idx = 0, value = 0;
+        mDB = mHelper.getReadableDatabase();
+        try {
+            sqlString = "SELECT SUM(CALORIE) as 'CALORIE_SUM'"
+                    + ", date(C_DATE) as 'C_DATE'"
+                    + ", strftime('%w', C_DATE) as 'WEEK'"
+                    + "FROM RECORD "
+                    + "WHERE USER_ID = '" + values.UserId + "' "
+                    + "AND C_DATE >= date(date('" + sDate + "', 'localtime', 'weekday 6'),'-6 days') "
+                    + "AND C_DATE <= date('" + sDate + "', 'localtime', 'weekday 6')"
+                    + "GROUP BY date(C_DATE)"
+                    + "ORDER BY strftime('%w', C_DATE);";
+            Log.i("RecordDB", sqlString);
+            c = mDB.rawQuery(sqlString, null);
+            while (c.moveToNext()){
+                num = c.getInt(c.getColumnIndex("WEEK"));
+                value = c.getInt(c.getColumnIndex("CALORIE_SUM"));
+                entries.add(new Entry(value, num));
+            }
+            c.close();
+        } catch (Exception ex) {
+            Log.e("RecordDB Error : ", ex.getMessage());
+        }
+        mHelper.close();
+        return entries;
+    }
+
+    // 날짜기준 이번달 통계 조회 - 칼로리
+    public ArrayList<Entry> SelectStatCalorieMonth(String sDate) {
+        Cursor c = null;
+        ArrayList<Entry> entries = new ArrayList<>();
+        String sqlString = "";
+        int days = 30;
+        int num = 0, idx = 0, value = 0;
+        mDB = mHelper.getReadableDatabase();
+        try {
+            sqlString = "SELECT SUM(CALORIE) as 'CALORIE_SUM'"
+                    + ", date(C_DATE) as 'C_DATE'"
+                    + ", strftime('%d', C_DATE) as 'DAY'"
+                    + "FROM RECORD "
+                    + "WHERE USER_ID = '" + values.UserId + "' "
+                    + "AND C_DATE >= date('" + sDate + "', 'localtime', 'start of month') "
+                    + "AND C_DATE <= date('" + sDate + "', 'localtime', 'start of month', '+1 month', '-1 day')"
+                    + "GROUP BY date(C_DATE)"
+                    + "ORDER BY strftime('%d', C_DATE);";
+            Log.i("RecordDB", sqlString);
+            c = mDB.rawQuery(sqlString, null);
+            while (c.moveToNext()){
+                String strday = c.getString(c.getColumnIndex("DAY"));
+                num = Integer.valueOf(strday) - 1;
+                value = c.getInt(c.getColumnIndex("CALORIE_SUM"));
+                entries.add(new Entry(value, num));
+            }
+            c.close();
+        } catch (Exception ex) {
+            Log.e("RecordDB Error : ", ex.getMessage());
+        }
+        mHelper.close();
+        return entries;
+    }
+
+    // 날짜기준 이번주 (일-토) 통계 조회 - 이동거리
+    public ArrayList<Entry> SelectStatDistanceWeek(String sDate) {
+        Cursor c = null;
+        ArrayList<Entry> entries = new ArrayList<>();
+        String sqlString = "";
+        int num = 0, idx = 0, value = 0;
+        mDB = mHelper.getReadableDatabase();
+        try {
+            sqlString = "SELECT SUM(DISTANCE) as 'DISTANCE_SUM'"
+                    + ", date(C_DATE) as 'C_DATE'"
+                    + ", strftime('%w', C_DATE) as 'WEEK'"
+                    + "FROM RECORD "
+                    + "WHERE USER_ID = '" + values.UserId + "' "
+                    + "AND C_DATE >= date(date('" + sDate + "', 'localtime', 'weekday 6'),'-6 days') "
+                    + "AND C_DATE <= date('" + sDate + "', 'localtime', 'weekday 6')"
+                    + "GROUP BY date(C_DATE)"
+                    + "ORDER BY strftime('%w', C_DATE);";
+            Log.i("RecordDB", sqlString);
+            c = mDB.rawQuery(sqlString, null);
+            while (c.moveToNext()){
+                num = c.getInt(c.getColumnIndex("WEEK"));
+                value = c.getInt(c.getColumnIndex("DISTANCE_SUM"));
+                entries.add(new Entry(value, num));
+            }
+            c.close();
+        } catch (Exception ex) {
+            Log.e("RecordDB Error : ", ex.getMessage());
+        }
+        mHelper.close();
+        return entries;
+    }
+
+    // 날짜기준 이번달 통계 조회 - 이동거리
+    public ArrayList<Entry> SelectStatDistanceMonth(String sDate) {
+        Cursor c = null;
+        ArrayList<Entry> entries = new ArrayList<>();
+        String sqlString = "";
+        int days = 30;
+        int num = 0, idx = 0, value = 0;
+        mDB = mHelper.getReadableDatabase();
+        try {
+            sqlString = "SELECT SUM(DISTANCE) as 'DISTANCE_SUM'"
+                    + ", date(C_DATE) as 'C_DATE'"
+                    + ", strftime('%d', C_DATE) as 'DAY'"
+                    + "FROM RECORD "
+                    + "WHERE USER_ID = '" + values.UserId + "' "
+                    + "AND C_DATE >= date('" + sDate + "', 'localtime', 'start of month') "
+                    + "AND C_DATE <= date('" + sDate + "', 'localtime', 'start of month', '+1 month', '-1 day')"
+                    + "GROUP BY date(C_DATE)"
+                    + "ORDER BY strftime('%d', C_DATE);";
+            Log.i("RecordDB", sqlString);
+            c = mDB.rawQuery(sqlString, null);
+            while (c.moveToNext()){
+                String strday = c.getString(c.getColumnIndex("DAY"));
+                num = Integer.valueOf(strday) - 1;
+                value = c.getInt(c.getColumnIndex("DISTANCE_SUM"));
+                entries.add(new Entry(value, num));
+            }
+            c.close();
+        } catch (Exception ex) {
+            Log.e("RecordDB Error : ", ex.getMessage());
+        }
+        mHelper.close();
+        return entries;
+    }
+
+    // 날짜기준 이번주 (일-토) 통계 조회 - 이동시간
+    public ArrayList<Entry> SelectStatTimeWeek(String sDate) {
+        Cursor c = null;
+        ArrayList<Entry> entries = new ArrayList<>();
+        String sqlString = "";
+        int num = 0, idx = 0, value = 0;
+        mDB = mHelper.getReadableDatabase();
+        try {
+            sqlString = "SELECT SUM(R_TIME) as 'R_TIME_SUM'"
+                    + ", date(C_DATE) as 'C_DATE'"
+                    + ", strftime('%w', C_DATE) as 'WEEK'"
+                    + "FROM RECORD "
+                    + "WHERE USER_ID = '" + values.UserId + "' "
+                    + "AND C_DATE >= date(date('" + sDate + "', 'localtime', 'weekday 6'),'-6 days') "
+                    + "AND C_DATE <= date('" + sDate + "', 'localtime', 'weekday 6')"
+                    + "GROUP BY date(C_DATE)"
+                    + "ORDER BY strftime('%w', C_DATE);";
+            Log.i("RecordDB", sqlString);
+            c = mDB.rawQuery(sqlString, null);
+            while (c.moveToNext()){
+                num = c.getInt(c.getColumnIndex("WEEK"));
+                value = c.getInt(c.getColumnIndex("R_TIME_SUM"));
+                entries.add(new Entry(value, num));
+            }
+            c.close();
+        } catch (Exception ex) {
+            Log.e("RecordDB Error : ", ex.getMessage());
+        }
+        mHelper.close();
+        return entries;
+    }
+
+    // 날짜기준 이번달 통계 조회 - 이동시간
+    public ArrayList<Entry> SelectStatTimeMonth(String sDate) {
+        Cursor c = null;
+        ArrayList<Entry> entries = new ArrayList<>();
+        String sqlString = "";
+        int days = 30;
+        int num = 0, idx = 0, value = 0;
+        mDB = mHelper.getReadableDatabase();
+        try {
+            sqlString = "SELECT SUM(R_TIME) as 'R_TIME_SUM'"
+                    + ", date(C_DATE) as 'C_DATE'"
+                    + ", strftime('%d', C_DATE) as 'DAY'"
+                    + "FROM RECORD "
+                    + "WHERE USER_ID = '" + values.UserId + "' "
+                    + "AND C_DATE >= date('" + sDate + "', 'localtime', 'start of month') "
+                    + "AND C_DATE <= date('" + sDate + "', 'localtime', 'start of month', '+1 month', '-1 day')"
+                    + "GROUP BY date(C_DATE)"
+                    + "ORDER BY strftime('%d', C_DATE);";
+            Log.i("RecordDB", sqlString);
+            c = mDB.rawQuery(sqlString, null);
+            while (c.moveToNext()){
+                String strday = c.getString(c.getColumnIndex("DAY"));
+                num = Integer.valueOf(strday) - 1;
+                value = c.getInt(c.getColumnIndex("R_TIME_SUM"));
+                entries.add(new Entry(value, num));
+            }
+            c.close();
+        } catch (Exception ex) {
+            Log.e("RecordDB Error : ", ex.getMessage());
+        }
+        mHelper.close();
+        return entries;
+    }
+
     public boolean UpdateLastRecord(RecordVO recordVO) {
         boolean result = false;
         Cursor c = null;

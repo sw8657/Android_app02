@@ -37,7 +37,7 @@ public class BarcodeActivity extends Activity {
 
     public void onClickBarCode(View view) {
         // 포인트 사용 스레드 실행
-        new UsePointTask().execute("Use", -200, 11);
+        new UsePointTask().execute("Use", -200, 11); // 사용, 사용포인트, 사용처ID
     }
 
     public class UsePointTask extends AsyncTask<Object, Void, String> {

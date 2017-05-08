@@ -46,10 +46,11 @@
             android:name="com.google.android.geo.API_KEY"
             android:value="@string/google_maps_key" />
 
-        <!-- GMS 라이브러리 버전 설정 -->
+        <!-- GMS 라이브러리 버전 설정
         <meta-data
             android:name="com.google.android.gms.version"
             android:value="@integer/google_play_services_version" />
+            -->
 
         <activity
             android:name=".LoginActivity"
@@ -81,12 +82,19 @@
 
         <activity
             android:name=".BarcodeActivity"
-            android:theme="@android:style/Theme.Dialog"></activity>
+            android:theme="@android:style/Theme.Dialog" />
 
         <service
             android:name=".steps.ResetRecordService"
             android:enabled="true"
-            android:exported="true"></service>
+            android:exported="true" />
+
+        <activity android:name=".SignActivity"
+            android:label="@string/title_activity_signup">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".LoginActivity" />
+        </activity>
     </application>
 
 </manifest>

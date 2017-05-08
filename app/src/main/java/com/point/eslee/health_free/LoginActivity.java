@@ -106,6 +106,15 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
             }
         });
 
+        Button mSignUpButton = (Button) findViewById(R.id.email_sign_in_button);
+        mSignUpButton.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(LoginActivity.this,SignActivity.class);
+                LoginActivity.this.startActivity(intent);
+            }
+        });
+
         mLoginFormView = findViewById(R.id.login_form);
         mProgressView = findViewById(R.id.login_progress);
         mRememberLoginCheck = (CheckBox) findViewById(R.id.remember_login_check);

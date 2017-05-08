@@ -41,6 +41,11 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.GlideBuilder;
+import com.bumptech.glide.load.Transformation;
+import com.bumptech.glide.load.resource.bitmap.CenterCrop;
+import com.bumptech.glide.load.resource.bitmap.FitCenter;
 import com.google.android.gms.common.server.converter.StringToIntConverter;
 import com.google.android.gms.maps.MapsInitializer;
 import com.google.android.gms.maps.model.LatLng;
@@ -56,6 +61,8 @@ import com.point.eslee.health_free.steps.StepBackgroundService;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.concurrent.CountDownLatch;
+
+import jp.wasabeef.glide.transformations.CropCircleTransformation;
 
 public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
 
@@ -344,26 +351,40 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         mViewUserName = (TextView) nav_header_view.findViewById(R.id.textViewName);
 
         // 뷰 이벤트 등록
-        mViewUserName.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                UpdateRecord();
-            }
-        });
         mViewUserImage.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                UpdateRecord();
+
             }
         });
+//        mViewUserName.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                UpdateRecord();
+//            }
+//        });
+//        mViewUserImage.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                UpdateRecord();
+//            }
+//        });
+
+
     }
 
     // 네비뷰 사용자정보 데이터 표출
     private void SetNaviInfo() {
         // 네비뷰 > 상단뷰 > 사용자정보뷰에 로그인정보 입력
-        BitmapDrawable pDrawable = (BitmapDrawable) getResources().getDrawable(R.drawable.img_kongyu);
-        RoundedAvatarDrawable pRoundDrawable = new RoundedAvatarDrawable(pDrawable.getBitmap());
-        mViewUserImage.setImageDrawable(pRoundDrawable);
+//        BitmapDrawable pDrawable = (BitmapDrawable) getResources().getDrawable(R.drawable.img_kongyu);
+//        RoundedAvatarDrawable pRoundDrawable = new RoundedAvatarDrawable(pDrawable.getBitmap());
+//        Glide.with(this).load(R.drawable.img_kongyu).into(mViewUserImage);
+        Glide.with(this).load(R.drawable.img_kongyu)
+                .bitmapTransform(new CropCircleTransformation(this))
+                .placeholder(R.drawable.blank_profile)
+                .error(R.drawable.blank_profile)
+                .into(mViewUserImage);
+//        mViewUserImage.setImageDrawable(pRoundDrawable);
 
         mViewUserEmail.setText(values.UserEmail);
         mViewUserName.setText(values.UserName);
@@ -638,8 +659,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         // 리스너 객체 생성
         GPSListener gpsListener = new GPSListener();
-        long minTime = 10000;
-        float minDistance = 100;
+        long minTime = 10000; // 통지사이의 최소 시간간격 (miliSecond) 1000ms = 1s
+        float minDistance = 1; // 통지사이의 최소 변경거리 (m)
 
         try {
             // GPS 기반 위치 요청
@@ -649,14 +670,15 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                     minDistance,
                     gpsListener);
 
-            // 네트워크 기반 위치 요청
-/*            manager.requestLocationUpdates(
+/*            // 네트워크 기반 위치 요청
+            manager.requestLocationUpdates(
                     LocationManager.NETWORK_PROVIDER,
                     minTime,
                     minDistance,
                     gpsListener);*/
         } catch (SecurityException ex) {
             ex.printStackTrace();
+            Log.e("LocationService",ex.getMessage());
         }
 
         //Toast.makeText(getActivity().getApplicationContext(), "위치 확인 시작함. 로그를 확인하세요.", Toast.LENGTH_SHORT).show();
@@ -670,11 +692,15 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
          * 위치 정보가 확인되었을 때 호출되는 메소드
          */
         public void onLocationChanged(Location location) {
-            Double latitude = location.getLatitude();
-            Double longitude = location.getLongitude();
+            Double latitude = location.getLatitude();   // 위도
+            Double longitude = location.getLongitude(); // 경도
+            float accuracy = location.getAccuracy();    // 정확도
+            String provider = location.getProvider();   // 위치제공자 Gps, Network
 
-            String msg = "Latitude : " + latitude + "\nLongitude:" + longitude;
-            Log.i("GPSLocationService", msg);
+            String msg = "Provider : " + provider + "\nLatitude : " + latitude + "\nLongitude : " + longitude + "\nAccuracy : " + accuracy;
+            Log.d("GPSLocationService", msg);
+            mToastWalk.setText(msg);
+            mToastWalk.show();
 
             // 현재 위치의 지도를 보여주기 위해 정의한 메소드 호출
 //            showCurrentLocation(latitude, longitude);
@@ -706,12 +732,18 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         }
 
         public void onProviderDisabled(String provider) {
+            // Disabled 시
+            Log.d("Location","onProviderDisabled, provider:" + provider);
         }
 
         public void onProviderEnabled(String provider) {
+            // Enabled 시
+            Log.d("Location","onProviderEnabled, provider:" + provider);
         }
 
         public void onStatusChanged(String provider, int status, Bundle extras) {
+            // 변경시
+            Log.d("Location","onStatusChanged, provider:" + provider + ", status:" + status + ", Bundle:" + extras);
         }
 
     }

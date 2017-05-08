@@ -7,9 +7,11 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -48,6 +50,7 @@ public class StatisticsFragment extends Fragment {
     private TextView mChartTitle;
     private TextView mChartPeriod;
     private TextView mChartStepMean;
+    private Spinner mSpinner_chartmenu;
 
     TextView mViewWeekly;
     TextView mViewMonthly;
@@ -83,6 +86,7 @@ public class StatisticsFragment extends Fragment {
         getActivity().setTitle("Statistics");
         // Inflate the layout for this fragment
 
+        mSpinner_chartmenu = (Spinner) view.findViewById(R.id.chart_menu);
         mViewWeekly = (TextView) view.findViewById(R.id.chart_weekly_textview);
         mViewMonthly = (TextView) view.findViewById(R.id.chart_monthly_textview);
         mViewWeekly.setTag(0);
@@ -165,6 +169,24 @@ public class StatisticsFragment extends Fragment {
             }
         });
 
+        // 통계 종목 선택 - 걸음수, 포인트, 칼로리, 걸음거리
+        mSpinner_chartmenu.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                if(mDateString == "") mDateString = Common.getStringCurrentDate();
+                if(mViewMonthly.getTag().equals(1)){
+                    ViewData_TodayMonth();
+                }else {
+                    ViewData_TodayWeek();
+                }
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+
+            }
+        });
+
         // 차트 디자인 옵션
         mLineChart.getLegend().setEnabled(false); // 범례
         mLineChart.setDescription(""); // 설명
@@ -218,7 +240,7 @@ public class StatisticsFragment extends Fragment {
         sDates = mRecordDB.SelectFirstAndEndDate(mDateString);
         sSubTitle = sDates[0] + " - " + sDates[1];
         // 오늘날짜 입력시 이번주 (일-토) 통계 표출
-        entries = mRecordDB.SelectStatStepWeek(mDateString);
+        entries = SelectStatWeek();
         dataset = new LineDataSet(entries, "# of Calls");
         data = new LineData(labels, dataset);
 
@@ -236,6 +258,8 @@ public class StatisticsFragment extends Fragment {
 
         mLineChart.setData(data);
         mLineChart.animateY(2000);
+        mLineChart.setVisibleXRangeMaximum(7);
+        mLineChart.moveViewToX(0);
     }
 
     private void ViewData_TodayMonth() {
@@ -261,16 +285,17 @@ public class StatisticsFragment extends Fragment {
         sDates = Common.getStringFirstEndMonth(mDateString);
         sSubTitle = sDates[0] + " - " + sDates[1];
         // 오늘날짜 기준 이번달 통계 표출
-        entries = mRecordDB.SelectStatStepMonth(mDateString);
+        entries = SelectStatMonth();
         dataset = new LineDataSet(entries, "# of Calls");
         data = new LineData(labels, dataset);
 
         // 차트 옵션
         dataset.setColors(ColorTemplate.COLORFUL_COLORS); //
-        dataset.setDrawCubic(false); //커브
+        dataset.setDrawHighlightIndicators(true);
+        dataset.setDrawCubic(true); //커브
         dataset.setDrawFilled(true); //선아래로 색상표시
         dataset.setDrawValues(false); // 값 표시
-        dataset.setDrawCircleHole(false);
+        dataset.setDrawCircleHole(true);
         dataset.setDrawCircles(false);
 
         // 값 표출
@@ -280,6 +305,68 @@ public class StatisticsFragment extends Fragment {
 
         mLineChart.setData(data);
         mLineChart.animateY(2000);
+        mLineChart.setVisibleXRangeMaximum(15);
+        mLineChart.moveViewToX(7);
+    }
+
+    private ArrayList<Entry> SelectStatWeek(){
+        ArrayList<Entry> entries = null;
+
+        try{
+            String sMenu = String.valueOf(mSpinner_chartmenu.getSelectedItem());
+            switch (sMenu){
+                case "Step":{
+                    entries = mRecordDB.SelectStatStepWeek(mDateString);
+                    break;
+                }
+                case "Point":{
+                    entries = mRecordDB.SelectStatPointWeek(mDateString);
+                    break;
+                }
+                case "Calorie":{
+                    entries = mRecordDB.SelectStatCalorieWeek(mDateString);
+                    break;
+                }
+                case "Distance":{
+                    entries = mRecordDB.SelectStatDistanceWeek(mDateString);
+                    break;
+                }
+            }
+        }catch (Exception ex){
+            Log.e("StatFragment",ex.getMessage());
+        }
+
+        return entries;
+    }
+
+    private ArrayList<Entry> SelectStatMonth(){
+        ArrayList<Entry> entries = null;
+
+        try{
+            String sMenu = String.valueOf(mSpinner_chartmenu.getSelectedItem());
+            switch (sMenu){
+                case "Step":{
+                    entries = mRecordDB.SelectStatStepMonth(mDateString);
+                    break;
+                }
+                case "Point":{
+                    entries = mRecordDB.SelectStatPointMonth(mDateString);
+                    break;
+                }
+                case "Calorie":{
+                    entries = mRecordDB.SelectStatCalorieMonth(mDateString);
+                    break;
+                }
+                case "Distance":{
+                    entries = mRecordDB.SelectStatDistanceMonth(mDateString);
+                    break;
+                }
+            }
+        }catch (Exception ex){
+            Log.e("StatFragment",ex.getMessage());
+        }
+
+        return entries;
     }
 
 }
