@@ -374,18 +374,19 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
 
             try {
                 // Simulate network access.
-                String url = "http://192.168.1.160:8087/homeMain01.do?" +
+                String url = "http://dream.miraens.com:58080/homeMain01.do?" +
+//                String url = "http://192.168.1.160:8087/homeMain01.do?" +
                         "user_id=" + mEmail + "&user_pw=" + mPassword;
 
-//                // 사용자 인증 (서버 인증)
-//                jsonResult = ServerAccess.getData(url);
-//                // 인증 및 사용자 정보 읽기
-//                sResult = VailidateLogin(jsonResult);
+                // 사용자 인증 (서버 인증)
+                jsonResult = ServerAccess.getData(url);
+                // 인증 및 사용자 정보 읽기
+                sResult = VailidateLogin(jsonResult);
 
-                // 디버그 테스트 모드 (샘플 사용자ID 사용)
-                sResult = true;
-                mUserId = 1;
-                mUserName = "HelloAndroid";
+//                // 디버그 테스트 모드 (샘플 사용자ID 사용)
+//                sResult = true;
+//                mUserId = 1;
+//                mUserName = "HelloAndroid";
 
             } catch (Exception e) {
                 Log.e("LoginTask:", e.getMessage());
@@ -413,8 +414,8 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
                 JSONArray jArr = json.getJSONArray("result");
 
                 result = jArr.getJSONObject(0).getString("successYn").equals("SUCCESS");
-                // mEmail = jArr.getJSONObject(0).getString("user_id");
-                mUserName = jArr.getJSONObject(0).getString("userNm");
+                // mEmail = jArr.getJSONObject(1).getString("user_id");
+                mUserName = jArr.getJSONObject(2).getString("userNm");
             } catch (Exception ex) {
                 Log.e("VailidateLogin:", ex.getMessage());
             }

@@ -21,6 +21,6 @@ public class SignActivity extends AppCompatActivity {
         WebSettings webSettings = webView.getSettings();
         webSettings.setJavaScriptEnabled(true);
 
-        webView.loadUrl("http://www.google.com");
+        webView.loadUrl("http://dream.miraens.com:58080/egovSampleList.do");
     }
 }

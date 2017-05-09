@@ -1,5 +1,8 @@
 package com.point.eslee.health_free;
 
+import android.*;
+import android.Manifest;
+import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.ActivityManager;
 import android.app.Notification;
@@ -65,6 +68,23 @@ import java.util.concurrent.CountDownLatch;
 import jp.wasabeef.glide.transformations.CropCircleTransformation;
 
 public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
+    private static final String[] INITIAL_PERMS = {
+            android.Manifest.permission.ACCESS_FINE_LOCATION,
+            android.Manifest.permission.READ_CONTACTS
+    };
+    private static final String[] CAMERA_PERMS = {
+            android.Manifest.permission.CAMERA
+    };
+    private static final String[] CONTACTS_PERMS = {
+            android.Manifest.permission.READ_CONTACTS
+    };
+    private static final String[] LOCATION_PERMS = {
+            android.Manifest.permission.ACCESS_FINE_LOCATION
+    };
+    private static final int INITIAL_REQUEST = 1337;
+    private static final int CAMERA_REQUEST = INITIAL_REQUEST + 1;
+    private static final int CONTACTS_REQUEST = INITIAL_REQUEST + 2;
+    private static final int LOCATION_REQUEST = INITIAL_REQUEST + 3;
 
     private SharedPreferences mPref;
 
@@ -136,12 +156,18 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         drawer.setDrawerListener(toggle);
         toggle.syncState();
 
+        mToastWalk = Toast.makeText(getApplicationContext(), "", Toast.LENGTH_SHORT);
+
         // 네비뷰 레이아웃 로드
         LoadNaviLayout();
 
-        // DB연결 확인
-        RecordDB recordDB = new RecordDB(this);
-        recordDB.SelectLastRecord();
+        try {
+            // DB연결 확인
+            RecordDB recordDB = new RecordDB(this);
+            recordDB.SelectLastRecord();
+        } catch (Exception ex) {
+            Log.e("DB test", ex.getMessage());
+        }
 
         // 환경설정 불러오기
         mPref = PreferenceManager.getDefaultSharedPreferences(this);
@@ -275,6 +301,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         m_intent = null;
     }
 
+    @TargetApi(Build.VERSION_CODES.M)
     private void StartStoreService() {
         ArrayList<StoreVO> storeVOs = null;
         StoreDB storeDB = null;
@@ -285,6 +312,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             e.printStackTrace();
         }
         checkDangerousPermissions();
+        if (!canAccessLocation() || !canAccessContacts()) {
+            requestPermissions(INITIAL_PERMS, INITIAL_REQUEST);
+        }
         // 위치 확인하여 위치 표시 시작
         startLocationService();
         // 위치 관리자 객체 참조
@@ -582,6 +612,23 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         }
     }
 
+    private boolean canAccessLocation() {
+        return (hasPermission(android.Manifest.permission.ACCESS_FINE_LOCATION));
+    }
+
+    private boolean canAccessCamera() {
+        return (hasPermission(android.Manifest.permission.CAMERA));
+    }
+
+    private boolean canAccessContacts() {
+        return (hasPermission(Manifest.permission.READ_CONTACTS));
+    }
+
+    @TargetApi(Build.VERSION_CODES.M)
+    private boolean hasPermission(String perm) {
+        return (PackageManager.PERMISSION_GRANTED == checkSelfPermission(perm));
+    }
+
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
         if (requestCode == 1) {
@@ -677,8 +724,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                     minDistance,
                     gpsListener);*/
         } catch (SecurityException ex) {
+            Log.e("LocationService", ex.getMessage());
             ex.printStackTrace();
-            Log.e("LocationService",ex.getMessage());
         }
 
         //Toast.makeText(getActivity().getApplicationContext(), "위치 확인 시작함. 로그를 확인하세요.", Toast.LENGTH_SHORT).show();
@@ -699,8 +746,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
             String msg = "Provider : " + provider + "\nLatitude : " + latitude + "\nLongitude : " + longitude + "\nAccuracy : " + accuracy;
             Log.d("GPSLocationService", msg);
-            mToastWalk.setText(msg);
-            mToastWalk.show();
+//            mToastWalk.setText(msg);
+//            mToastWalk.show();
 
             // 현재 위치의 지도를 보여주기 위해 정의한 메소드 호출
 //            showCurrentLocation(latitude, longitude);
@@ -713,7 +760,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
                 // MapFragment mapF = (MapFragment) mMapFragment;
                 MapFragment mapF = (MapFragment) getSupportFragmentManager().findFragmentById(R.id.content_fragment_map);
-                mapF.showCurrentLocation(m_animateCamera, old_latitude, old_longitude, latitude, longitude);
+                if (mapF != null)
+                    mapF.showCurrentLocation(m_animateCamera, old_latitude, old_longitude, latitude, longitude);
             }
 
             Location locationS = new Location("point S");
@@ -722,9 +770,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             locationS.setLongitude(Double.parseDouble(Double.toString(old_longitude)));
             locationE.setLatitude(Double.parseDouble(Double.toString(latitude)));
             locationE.setLongitude(Double.parseDouble(Double.toString(longitude)));
-            double distance = locationS.distanceTo(locationE);
+            double distance1 = locationS.distanceTo(locationE) / 1000.0; // m -> km
+            double distance = Math.round(distance1 * 10.0) / 10.0; // 소수점 1자리 표시
             values.Distance = values.Distance + distance; //총 이동거리
-            Log.i("Main", "onLocationChanged, distance: " + values.Distance);
+            values.Distance = Math.round(values.Distance * 10.0) / 10.0; // 소수점 1자리 표시
+            Log.d("Main", "onLocationChanged, distance: "  + distance + ", total distance: "+ values.Distance);
 
             old_latitude = latitude;
             old_longitude = longitude;
@@ -733,17 +783,17 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         public void onProviderDisabled(String provider) {
             // Disabled 시
-            Log.d("Location","onProviderDisabled, provider:" + provider);
+            Log.d("Location", "onProviderDisabled, provider:" + provider);
         }
 
         public void onProviderEnabled(String provider) {
             // Enabled 시
-            Log.d("Location","onProviderEnabled, provider:" + provider);
+            Log.d("Location", "onProviderEnabled, provider:" + provider);
         }
 
         public void onStatusChanged(String provider, int status, Bundle extras) {
             // 변경시
-            Log.d("Location","onStatusChanged, provider:" + provider + ", status:" + status + ", Bundle:" + extras);
+            Log.d("Location", "onStatusChanged, provider:" + provider + ", status:" + status + ", Bundle:" + extras);
         }
 
     }
