@@ -397,6 +397,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
                 if (pieces[0].equals(mEmail)) {
                     // Account exists, return true if the password matches.
                     mUserId = Integer.valueOf(pieces[2]);
+                    mUserName = pieces[0].split("@")[0];
                     return pieces[1].equals(mPassword);
                 }
             }
@@ -414,8 +415,12 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
                 JSONArray jArr = json.getJSONArray("result");
 
                 result = jArr.getJSONObject(0).getString("successYn").equals("SUCCESS");
-                // mEmail = jArr.getJSONObject(1).getString("user_id");
                 mUserName = jArr.getJSONObject(2).getString("userNm");
+                try{
+                    mUserId = Integer.valueOf(jArr.getJSONObject(3).getString("user_id"));
+                }catch (Exception ex){
+
+                }
             } catch (Exception ex) {
                 Log.e("VailidateLogin:", ex.getMessage());
             }

@@ -1,6 +1,8 @@
 package com.point.eslee.health_free.point;
 
+import android.icu.util.Calendar;
 import android.os.Bundle;
+import android.provider.Settings;
 import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -72,6 +74,18 @@ public class MypointFragment extends Fragment implements View.OnClickListener {
         mSpinner_search_option_month = (Spinner) view.findViewById(R.id.mypoint_search_option_month); // 검색옵션
         mDetailListView = (ListView) view.findViewById(R.id.mypoint_details_listview); // 사용내역
         mScrollView = (ScrollView) view.findViewById(R.id.mypoint_scroll); // 스크롤뷰
+
+        // 이번달 선택하기
+        String strYear = Common.getStringCurrentDate().split("-")[0];
+        String strMonth = Common.getStringCurrentDate().split("-")[1];
+        Integer iMonth = java.util.Calendar.getInstance().get(java.util.Calendar.MONTH);
+
+        if(strYear.equals("2017")){
+            mSpinner_search_option_year.setSelection(0);
+        }else {
+            mSpinner_search_option_year.setSelection(1);
+        }
+        mSpinner_search_option_month.setSelection(iMonth);
 
         // 리스트 뷰 초기화
         mAdapter = new ListViewPointAdapter();

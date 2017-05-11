@@ -312,8 +312,12 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             e.printStackTrace();
         }
         checkDangerousPermissions();
-        if (!canAccessLocation() || !canAccessContacts()) {
-            requestPermissions(INITIAL_PERMS, INITIAL_REQUEST);
+        if(Build.VERSION.SDK_INT < Build.VERSION_CODES.M){
+
+        }else {
+            if (!canAccessLocation() || !canAccessContacts()) {
+                requestPermissions(INITIAL_PERMS, INITIAL_REQUEST);
+            }
         }
         // 위치 확인하여 위치 표시 시작
         startLocationService();
