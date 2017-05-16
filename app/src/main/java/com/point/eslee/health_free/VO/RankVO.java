@@ -7,12 +7,14 @@ package com.point.eslee.health_free.VO;
 public class RankVO {
     public int _ID;
     public int Num;
+    public String imgUrl;
     public String Title;
     public String Value;
 
-    public RankVO(int _ID, int num, String title, String value) {
+    public RankVO(int _ID, int num, String imgurl, String title, String value) {
         this._ID = _ID;
         Num = num;
+        imgUrl = imgurl;
         Title = title;
         Value = value;
     }
@@ -48,4 +50,13 @@ public class RankVO {
     public void setTitle(String title) {
         Title = title;
     }
+
+    public String getImgUrl() {
+        return imgUrl;
+    }
+
+    public void setImgUrl(String imgUrl) {
+        this.imgUrl = imgUrl;
+    }
 }
+

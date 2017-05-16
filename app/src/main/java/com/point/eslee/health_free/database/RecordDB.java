@@ -174,7 +174,7 @@ public class RecordDB {
         } catch (Exception ex) {
             Log.e("RecordDB Error : ", ex.getMessage());
         }
-        mHelper.close();
+        if (mHelper != null) mHelper.close();
         return entries;
     }
 
@@ -229,7 +229,7 @@ public class RecordDB {
         } catch (Exception ex) {
             Log.e("RecordDB Error : ", ex.getMessage());
         }
-        mHelper.close();
+        if (mHelper != null) mHelper.close();
         return entries;
     }
 
@@ -261,7 +261,7 @@ public class RecordDB {
         } catch (Exception ex) {
             Log.e("RecordDB Error : ", ex.getMessage());
         }
-        mHelper.close();
+        if (mHelper != null) mHelper.close();
         return entries;
     }
 
@@ -295,7 +295,7 @@ public class RecordDB {
         } catch (Exception ex) {
             Log.e("RecordDB Error : ", ex.getMessage());
         }
-        mHelper.close();
+        if (mHelper != null) mHelper.close();
         return entries;
     }
 
@@ -327,7 +327,7 @@ public class RecordDB {
         } catch (Exception ex) {
             Log.e("RecordDB Error : ", ex.getMessage());
         }
-        mHelper.close();
+        if (mHelper != null) mHelper.close();
         return entries;
     }
 
@@ -361,7 +361,7 @@ public class RecordDB {
         } catch (Exception ex) {
             Log.e("RecordDB Error : ", ex.getMessage());
         }
-        mHelper.close();
+        if (mHelper != null) mHelper.close();
         return entries;
     }
 
@@ -393,7 +393,7 @@ public class RecordDB {
         } catch (Exception ex) {
             Log.e("RecordDB Error : ", ex.getMessage());
         }
-        mHelper.close();
+        if (mHelper != null) mHelper.close();
         return entries;
     }
 
@@ -427,7 +427,7 @@ public class RecordDB {
         } catch (Exception ex) {
             Log.e("RecordDB Error : ", ex.getMessage());
         }
-        mHelper.close();
+        if (mHelper != null) mHelper.close();
         return entries;
     }
 
@@ -459,7 +459,7 @@ public class RecordDB {
         } catch (Exception ex) {
             Log.e("RecordDB Error : ", ex.getMessage());
         }
-        mHelper.close();
+        if (mHelper != null) mHelper.close();
         return entries;
     }
 
@@ -493,7 +493,7 @@ public class RecordDB {
         } catch (Exception ex) {
             Log.e("RecordDB Error : ", ex.getMessage());
         }
-        mHelper.close();
+        if (mHelper != null) mHelper.close();
         return entries;
     }
 
@@ -519,7 +519,7 @@ public class RecordDB {
         } catch (Exception ex) {
             Log.e("RecordDB Error : ", ex.getMessage());
         }
-        mHelper.close();
+        if (mHelper != null) mHelper.close();
         return result;
     }
 

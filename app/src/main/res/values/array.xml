@@ -27,4 +27,11 @@
         <item>Distance</item>
     </string-array>
 
+    <string-array name="rank_menu">
+        <item>Step</item>
+        <item>Point</item>
+        <item>Distance</item>
+        <item>Calorie</item>
+    </string-array>
+
 </resources>

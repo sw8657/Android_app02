@@ -4,16 +4,19 @@ import android.icu.util.Calendar;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.support.v4.app.Fragment;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.ScrollView;
 import android.widget.Spinner;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.point.eslee.health_free.Common;
 import com.point.eslee.health_free.R;
@@ -38,6 +41,7 @@ public class MypointFragment extends Fragment implements View.OnClickListener {
     private View mRefreshView;
     private ScrollView mScrollView;
     private ListView mDetailListView;
+    private SwipeRefreshLayout mSwipeRefresh;
 
     private ListViewPointAdapter mAdapter;
     private MyPointDB mMyPointDB;
@@ -74,6 +78,7 @@ public class MypointFragment extends Fragment implements View.OnClickListener {
         mSpinner_search_option_month = (Spinner) view.findViewById(R.id.mypoint_search_option_month); // 검색옵션
         mDetailListView = (ListView) view.findViewById(R.id.mypoint_details_listview); // 사용내역
         mScrollView = (ScrollView) view.findViewById(R.id.mypoint_scroll); // 스크롤뷰
+        mSwipeRefresh = (SwipeRefreshLayout) view.findViewById(R.id.mypoint_swipe_refresh); // 당겨서 새로고침
 
         // 이번달 선택하기
         String strYear = Common.getStringCurrentDate().split("-")[0];
@@ -111,13 +116,9 @@ public class MypointFragment extends Fragment implements View.OnClickListener {
         // 레이아웃 초기화
         SetLayOut(view);
 
-        // DB연결
-        mMyPointDB = new MyPointDB(this.getContext());
-
         // 포인트 조회
-        int total_point = mMyPointDB.SelectTotalPoint();
+        int total_point = new MyPointDB(getContext()).SelectTotalPoint();
         mCurrentPointView.setText(Common.get_commaString(total_point));
-        //mTotalPointView.setText(Common.get_commaString(total_point + 2000));
 
         // 검색 옵션 선택 (월)
         mSpinner_search_option_month.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
@@ -134,6 +135,36 @@ public class MypointFragment extends Fragment implements View.OnClickListener {
             }
         });
 
+        mDetailListView.setOnScrollListener(new AbsListView.OnScrollListener() {
+            @Override
+            public void onScrollStateChanged(AbsListView view, int scrollState) {
+
+            }
+
+            @Override
+            public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
+                int topRowVerticalPosition = (mDetailListView == null || mDetailListView.getChildCount() == 0) ? 0 : mDetailListView.getChildAt(0).getTop();
+                mSwipeRefresh.setEnabled(topRowVerticalPosition >= 0);
+            }
+        });
+
+        mSwipeRefresh.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                // 리스트뷰 새로고침
+                int total_point = new MyPointDB(getContext()).SelectTotalPoint();
+                mCurrentPointView.setText(Common.get_commaString(total_point));
+
+                String year = String.valueOf(mSpinner_search_option_year.getSelectedItem());
+                String month = String.valueOf(mSpinner_search_option_month.getSelectedItem());
+                setDetailList(year, month); // 리스트 뷰 표출
+
+                // 새로고침 완료
+                mSwipeRefresh.setRefreshing(false);
+                Toast.makeText(getContext(),"Refresh",Toast.LENGTH_SHORT).show();
+            }
+        });
+
         return view;
     }
 
@@ -143,7 +174,7 @@ public class MypointFragment extends Fragment implements View.OnClickListener {
             case R.id.mypoint_refresh_point:
                 try {
                     // 포인트 새로고침
-                    int total_point = mMyPointDB.SelectTotalPoint();
+                    int total_point = new MyPointDB(getContext()).SelectTotalPoint();
                     mCurrentPointView.setText(Common.get_commaString(total_point));
                     //mTotalPointView.setText(Common.get_commaString(ran_t));
                 } catch (Exception ex) {
@@ -165,7 +196,7 @@ public class MypointFragment extends Fragment implements View.OnClickListener {
     private void setDetailList(String year, String month) {
         mAdapter.clearItem();
         try {
-            mAdapter.addItemList(mMyPointDB.SelectPointWhereDate(year, month));
+            mAdapter.addItemList(new MyPointDB(getContext()).SelectPointWhereDate(year, month));
         } catch (Exception ex) {
             Log.e("MyPointError : ", ex.getMessage());
         }

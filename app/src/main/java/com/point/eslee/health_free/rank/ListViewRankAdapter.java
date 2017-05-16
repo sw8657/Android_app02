@@ -5,14 +5,18 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
+import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.bumptech.glide.Glide;
 import com.point.eslee.health_free.R;
 import com.point.eslee.health_free.VO.RankVO;
 
 import org.w3c.dom.Text;
 
 import java.util.ArrayList;
+
+import jp.wasabeef.glide.transformations.CropCircleTransformation;
 
 /**
  * Created by Administrator on 2017-04-14.
@@ -53,6 +57,7 @@ public class ListViewRankAdapter extends BaseAdapter {
         }
 
         TextView numView = (TextView) view.findViewById(R.id.rankitem_num);
+        ImageView imgView = (ImageView) view.findViewById(R.id.rankitem_img);
         TextView usernameView = (TextView) view.findViewById(R.id.rankitem_username);
         TextView valueView = (TextView) view.findViewById(R.id.rankitem_value);
 
@@ -65,12 +70,17 @@ public class ListViewRankAdapter extends BaseAdapter {
         numView.setText(String.valueOf(rankVO.getNum()));
         usernameView.setText(rankVO.getTitle());
         valueView.setText(rankVO.getValue());
-
+        Glide.with(view.getContext()).load(rankVO.getImgUrl())
+                .bitmapTransform(new CropCircleTransformation(view.getContext()))
+                .placeholder(R.drawable.blank_profile)
+                .error(R.drawable.blank_profile)
+                .into(imgView);
+        
         return view;
     }
 
-    public void addItem(int _ID, int num, String Title, String Value){
-        RankVO item = new RankVO(_ID,num,Title,Value);
+    public void addItem(int _ID, int num, String imgUrl, String Title, String Value){
+        RankVO item = new RankVO(_ID,num,imgUrl,Title,Value);
         listViewItemList.add(item);
     }
 

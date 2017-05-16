@@ -7,12 +7,7 @@
     tools:context="com.point.eslee.health_free.point.MypointFragment">
 
     <!-- TODO: Update blank fragment layout -->
-    <ScrollView
-        android:id="@+id/mypoint_scroll"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:scrollbars="vertical"
-        android:fillViewport="true">
+
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -151,36 +146,48 @@
 
 
             </LinearLayout>
-            <ListView
-                android:id="@+id/mypoint_details_listview"
+            <android.support.v4.widget.SwipeRefreshLayout
+                android:id="@+id/mypoint_swipe_refresh"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:choiceMode="none"
-                android:clickable="false"
-                android:focusable="false"
-                android:focusableInTouchMode="false"
-                android:longClickable="false">
-            </ListView>
-            <!--<ProgressBar-->
-            <!--android:id="@+id/myinfo_details_progressbar"-->
-            <!--android:layout_width="wrap_content"-->
-            <!--android:layout_height="wrap_content"-->
-            <!--android:layout_gravity="center"/>-->
-            <LinearLayout
-                android:id="@+id/android:empty"
-                android:layout_width="match_parent"
-                android:layout_height="100dp"
-                android:background="@color/colorGraySecondaryOpacity50">
-                <TextView
+                android:layout_height="match_parent">
+                <ScrollView
+                    android:id="@+id/mypoint_scroll"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:text="No Search results are currently selected."
-                    android:gravity="center"/>
-            </LinearLayout>
+                    android:scrollbars="vertical"
+                    android:fillViewport="true">
+                <ListView
+                    android:id="@+id/mypoint_details_listview"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:choiceMode="none"
+                    android:clickable="false"
+                    android:focusable="false"
+                    android:focusableInTouchMode="false"
+                    android:longClickable="false">
+                </ListView>
+                <!--<ProgressBar-->
+                <!--android:id="@+id/myinfo_details_progressbar"-->
+                <!--android:layout_width="wrap_content"-->
+                <!--android:layout_height="wrap_content"-->
+                <!--android:layout_gravity="center"/>-->
+                </ScrollView>
+                <LinearLayout
+                    android:id="@android:id/empty"
+                    android:layout_width="match_parent"
+                    android:layout_height="100dp"
+                    android:background="@color/colorGraySecondaryOpacity50">
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:text="No Search results are currently selected."
+                        android:gravity="center"/>
+                </LinearLayout>
+
+            </android.support.v4.widget.SwipeRefreshLayout>
 
         </LinearLayout>
 
-    </ScrollView>
 
 
 </FrameLayout>

@@ -11,6 +11,7 @@ public class values {
     public static int UserId = -1;
     public static String UserEmail = "Nothing Email";
     public static String UserName = "Nothing Name";
+    public static String UserImageUrl = "image";
     public static int Step = 0;
     public static double Distance = 0;
     public static int Calorie = 0;

@@ -42,7 +42,7 @@ public class MyPointDB {
         } catch (Exception ex) {
             Log.e("MyPointDB Error : ", ex.getMessage());
         }
-        mHelper.close();
+        if (mHelper != null) mHelper.close();
         return total_point;
     }
 
@@ -75,7 +75,7 @@ public class MyPointDB {
         } catch (Exception e) {
             Log.e("MyPointDB Error : ", e.getMessage());
         }
-        mHelper.close();
+        if (mHelper != null) mHelper.close();
         return result;
     }
 
@@ -95,11 +95,11 @@ public class MyPointDB {
                     + pointVO.getStoreID()
                     + ");";
             mDB.execSQL(sqlString);
-            Log.d("InsertPoint:",sqlString);
+            Log.d("InsertPoint:", sqlString);
         } catch (Exception e) {
             Log.e("MyPointDB Error : ", e.getMessage());
         }
-        mHelper.close();
+        if (mHelper != null) mHelper.close();
     }
 
 }

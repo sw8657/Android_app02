@@ -50,7 +50,7 @@ public class StoreDB {
         } catch (Exception e) {
             Log.e("StoreDB : ", e.getMessage());
         }
-        mHelper.close();
+        if (mHelper != null) mHelper.close();
         return result;
     }
 
@@ -80,7 +80,7 @@ public class StoreDB {
         } catch (Exception e) {
             Log.e("StoreDB : ", e.getMessage());
         }
-        mHelper.close();
+        if (mHelper != null) mHelper.close();
         return result;
     }
 
@@ -110,7 +110,7 @@ public class StoreDB {
         } catch (Exception e) {
             Log.e("StoreDB : ", e.getMessage());
         }
-        mHelper.close();
+        if (mHelper != null) mHelper.close();
         return store;
     }
 

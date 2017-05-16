@@ -52,6 +52,8 @@ import com.bumptech.glide.load.resource.bitmap.FitCenter;
 import com.google.android.gms.common.server.converter.StringToIntConverter;
 import com.google.android.gms.maps.MapsInitializer;
 import com.google.android.gms.maps.model.LatLng;
+import com.gun0912.tedpermission.PermissionListener;
+import com.gun0912.tedpermission.TedPermission;
 import com.point.eslee.health_free.VO.RecordVO;
 import com.point.eslee.health_free.VO.StoreVO;
 import com.point.eslee.health_free.database.MyPointDB;
@@ -85,6 +87,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private static final int CAMERA_REQUEST = INITIAL_REQUEST + 1;
     private static final int CONTACTS_REQUEST = INITIAL_REQUEST + 2;
     private static final int LOCATION_REQUEST = INITIAL_REQUEST + 3;
+
+    private final long FINISH_INTERVAL_TIME = 2000;
+    private long backPressedTime = 0;
 
     private SharedPreferences mPref;
 
@@ -301,6 +306,19 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         m_intent = null;
     }
 
+    // 지도 서비스 권한 체크
+    PermissionListener permissionListener = new PermissionListener() {
+        @Override
+        public void onPermissionGranted() {
+            Toast.makeText(MainActivity.this, "Permission Granted", Toast.LENGTH_SHORT).show();
+        }
+
+        @Override
+        public void onPermissionDenied(ArrayList<String> deniedPermissions) {
+            Toast.makeText(MainActivity.this, "Permission Denied\n" + deniedPermissions.toString(), Toast.LENGTH_SHORT).show();
+        }
+    };
+
     @TargetApi(Build.VERSION_CODES.M)
     private void StartStoreService() {
         ArrayList<StoreVO> storeVOs = null;
@@ -311,14 +329,23 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         } catch (Exception e) {
             e.printStackTrace();
         }
-        checkDangerousPermissions();
-        if(Build.VERSION.SDK_INT < Build.VERSION_CODES.M){
 
-        }else {
-            if (!canAccessLocation() || !canAccessContacts()) {
-                requestPermissions(INITIAL_PERMS, INITIAL_REQUEST);
-            }
-        }
+        // 지도 서비스 권한 체크
+        new TedPermission(this)
+                .setPermissionListener(permissionListener)
+                .setDeniedMessage("If you reject permission, you can not use this service\n\nPlease turn on permissions at [Setting] > [Permission]")
+                .setPermissions(Manifest.permission.READ_CONTACTS, Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION)
+                .check();
+//
+//        checkDangerousPermissions();
+//        if(Build.VERSION.SDK_INT < Build.VERSION_CODES.M){
+//
+//        }else {
+//            if (!canAccessLocation() || !canAccessContacts()) {
+//                requestPermissions(INITIAL_PERMS, INITIAL_REQUEST);
+//            }
+//        }
+
         // 위치 확인하여 위치 표시 시작
         startLocationService();
         // 위치 관리자 객체 참조
@@ -365,11 +392,15 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             }
         }
 
-        FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-//        transaction.add(R.id.content_fragment_main, fragment);
-        transaction.replace(R.id.content_fragment_main, fragment);
-        transaction.addToBackStack(null);
-        transaction.commit();
+        getSupportFragmentManager().beginTransaction()
+                .replace(R.id.content_fragment_main, fragment)
+                .commit();
+
+//        FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+////        transaction.add(R.id.content_fragment_main, fragment);
+//        transaction.replace(R.id.content_fragment_main, fragment);
+////        transaction.addToBackStack(frag.name());
+//        transaction.commit();
     }
 
     // 네비뷰 레이아웃 로드
@@ -406,6 +437,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
 
     }
+
 
     // 네비뷰 사용자정보 데이터 표출
     private void SetNaviInfo() {
@@ -482,7 +514,15 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         if (drawer.isDrawerOpen(GravityCompat.START)) {
             drawer.closeDrawer(GravityCompat.START);
         } else {
-            super.onBackPressed();
+            long tempTime = System.currentTimeMillis();
+            long intervalTime = tempTime - backPressedTime;
+
+            if(0 <= intervalTime && FINISH_INTERVAL_TIME >= intervalTime){
+                super.onBackPressed();
+            }else {
+                backPressedTime = tempTime;
+                Toast.makeText(getApplicationContext(),"Please click BACK again to exit", Toast.LENGTH_SHORT).show();
+            }
         }
     }
 
@@ -585,7 +625,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             m_serviceData = intent.getStringExtra("serviceData");
         }
     }
-
 
     private void checkDangerousPermissions() {
         String[] permissions = {

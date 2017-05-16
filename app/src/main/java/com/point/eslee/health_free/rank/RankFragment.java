@@ -4,20 +4,35 @@ import android.content.Context;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AbsListView;
+import android.widget.AdapterView;
+import android.widget.ImageView;
 import android.widget.ListView;
+import android.widget.ScrollView;
+import android.widget.Spinner;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.disklrucache.DiskLruCache;
 import com.point.eslee.health_free.R;
 import com.point.eslee.health_free.VO.RankVO;
 import com.point.eslee.health_free.database.RankDB;
+import com.point.eslee.health_free.values;
 
 import org.w3c.dom.Text;
 
-public class RankFragment extends Fragment implements View.OnClickListener {
+import java.util.ArrayList;
+
+import jp.wasabeef.glide.transformations.CropCircleTransformation;
+
+public class RankFragment extends Fragment {
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private static final String ARG_PARAM1 = "param1";
@@ -27,15 +42,16 @@ public class RankFragment extends Fragment implements View.OnClickListener {
     private String mParam1;
     private String mParam2;
 
-    private TextView mPointTitle;
-    private ListView mPointListView;
-    private ListViewRankAdapter mPointAdapter;
-    private RankDB mRankDB;
+    private ListView mListView;
+    private ListViewRankAdapter mAdapter;
 
-    private TextView mPointMyNum;
-    private TextView mPointMyName;
-    private TextView mPointMyValue;
-
+    private TextView mMyNum;
+    private TextView mMyName;
+    private ImageView mMyImg;
+    private TextView mMyValue;
+    private Spinner mMenuSpinner;
+    private SwipeRefreshLayout mSwipeRefresh;
+    private ScrollView mScrollView;
 
     public RankFragment() {
         // Required empty public constructor
@@ -70,17 +86,67 @@ public class RankFragment extends Fragment implements View.OnClickListener {
 
     private void SetLayOut(View view) {
         // 레이아웃 초기화
-        mPointTitle = (TextView) view.findViewById(R.id.rank_point_title); // 포인트 제목
-        mPointListView = (ListView) view.findViewById(R.id.rank_point_listview); // 포인트 리스트뷰
+        mMenuSpinner = (Spinner) view.findViewById(R.id.rank_search_menu); // 메뉴 선택
+        mListView = (ListView) view.findViewById(R.id.rank_listview); // 포인트 리스트뷰
+        mSwipeRefresh = (SwipeRefreshLayout) view.findViewById(R.id.rank_swipe_listview); // 당겨서 새로고침
+        mScrollView = (ScrollView) view.findViewById(R.id.rank_scroll); // 스크롤뷰
 
-        mPointMyNum = (TextView) view.findViewById(R.id.rank_point_mynum); // 내 포인트 순위
-        mPointMyName = (TextView) view.findViewById(R.id.rank_point_myname); // 내 이름
-        mPointMyValue = (TextView) view.findViewById(R.id.rank_point_myvalue); // 내 포인트값
+        mMyNum = (TextView) view.findViewById(R.id.rank_my_num); // 내 포인트 순위
+        mMyImg = (ImageView) view.findViewById(R.id.rank_my_img); // 프로필이미지
+        mMyName = (TextView) view.findViewById(R.id.rank_my_name); // 내 이름
+        mMyValue = (TextView) view.findViewById(R.id.rank_myvalue); // 내 포인트값
 
         // 리스트뷰 초기화
-        mPointAdapter = new ListViewRankAdapter();
-        mPointListView.setAdapter(mPointAdapter);
-        mPointListView.setClickable(false);
+        mAdapter = new ListViewRankAdapter();
+        mListView.setAdapter(mAdapter);
+        mListView.setClickable(false);
+
+        mMenuSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                // TODO: 서버에서 랭킹 조회하기
+                setRank();
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+
+            }
+        });
+
+        mListView.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                mScrollView.requestDisallowInterceptTouchEvent(true);
+                return false;
+            }
+        });
+
+        mListView.setOnScrollListener(new AbsListView.OnScrollListener() {
+            @Override
+            public void onScrollStateChanged(AbsListView view, int scrollState) {
+
+            }
+
+            @Override
+            public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
+                int topRowVerticalPosition = (mListView == null || mListView.getChildCount() == 0) ? 0 : mListView.getChildAt(0).getTop();
+                mSwipeRefresh.setEnabled(topRowVerticalPosition >= 0);
+            }
+        });
+
+        mSwipeRefresh.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                // 새로고침
+                setRank();
+
+                // 새로고침 완료
+                mSwipeRefresh.setRefreshing(false);
+                Toast.makeText(getContext(),"Refresh",Toast.LENGTH_SHORT).show();
+            }
+        });
+
     }
 
     @Override
@@ -92,53 +158,38 @@ public class RankFragment extends Fragment implements View.OnClickListener {
         // 레이아웃 초기화
         SetLayOut(view);
 
-        //DB연결
-        mRankDB = new RankDB(this.getContext());
-
-        // TODO: 서버에서 랭킹 조회하기
-        setRankPoint();
-        setMyRankPoint();
 
         return view;
     }
 
-    @Override
-    public void onClick(View view) {
-        switch (view.getId()) {
-            case R.id.rank_point_title:
-                try {
-                    // TODO: 포인트 랭킹 새로고침
-                    setRankPoint();
-                    setMyRankPoint();
-                } catch (Exception ex) {
+    private void setRank() {
+        mAdapter.clearItem();
+        RankVO myRank = null;
+        ArrayList<RankVO> rankVOs = null;
 
-                }
-        }
-    }
-
-    private void setRankPoint() {
-        mPointAdapter.clearItem();
         try {
-            mPointAdapter.addItemList(mRankDB.SelectRankPoint());
-        } catch (Exception ex) {
-            Log.e("RankFragment : ", ex.getMessage());
-        }
-        mPointAdapter.notifyDataSetChanged();
-    }
+            String sMenu = String.valueOf(mMenuSpinner.getSelectedItem());
+            myRank = new RankDB(this.getContext()).SelectMyRank(sMenu);
+            rankVOs = new RankDB(this.getContext()).SelectRank(sMenu);
 
-    private void setMyRankPoint(){
-        RankVO rank = null;
-        mPointMyNum.setText("0");
-        mPointMyName.setText("nothing user");
-        mPointMyValue.setText("nothing value");
-        try{
-            rank = mRankDB.SelectMyRankPoint();
-            mPointMyNum.setText(String.valueOf(rank.getNum()));
-            mPointMyName.setText(rank.getTitle());
-            mPointMyValue.setText(rank.getValue());
-        }catch (Exception ex){
-            Log.e("RankFragment : ",ex.getMessage());
+            // 내 순위 입력
+            mMyNum.setText(String.valueOf(myRank.getNum()));
+            Glide.with(this).load(myRank.getImgUrl())
+                    .bitmapTransform(new CropCircleTransformation(getContext()))
+                    .placeholder(R.drawable.blank_profile)
+                    .error(R.drawable.blank_profile)
+                    .into(mMyImg);
+
+            mMyName.setText(myRank.getTitle());
+            mMyValue.setText(myRank.getValue());
+            // 친구 순위 입력
+            mAdapter.addItemList(rankVOs);
+
+        } catch (Exception ex) {
+            Log.e("setRank", ex.getMessage());
         }
+
+        mAdapter.notifyDataSetChanged();
     }
 
     @Override
