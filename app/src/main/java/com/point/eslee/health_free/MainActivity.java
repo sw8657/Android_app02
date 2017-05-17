@@ -5,6 +5,7 @@ import android.Manifest;
 import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.ActivityManager;
+import android.app.AlertDialog;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
@@ -26,6 +27,7 @@ import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.HardwarePropertiesManager;
 import android.preference.PreferenceManager;
 import android.provider.MediaStore;
 import android.provider.Settings;
@@ -35,7 +37,7 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.content.ContextCompat;
-import android.support.v7.app.AlertDialog;
+import android.support.v4.content.FileProvider;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
@@ -73,6 +75,7 @@ import com.point.eslee.health_free.steps.StepBackgroundService;
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.concurrent.CountDownLatch;
@@ -224,8 +227,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         if (resultCode != RESULT_OK) return;
 
-        switch (requestCode){
-            case 1004:{
+        switch (requestCode) {
+            case 1004: {
                 mPref = PreferenceManager.getDefaultSharedPreferences(this);
                 // 처음 로그인 된 상태
                 Log.i("Main:", "onActivityResult");
@@ -233,80 +236,88 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 SetStart(mStartType, LOGIN_TYPE.First);
                 break;
             }
-            case PICK_FROM_ALBUM:{
+            case PICK_FROM_ALBUM: {
                 // 이후의 처리가 카메라와 같으므로 일단 break 없이 진행
                 mImageCaptureUri = data.getData();
-                Log.d("ImageCatureUri",mImageCaptureUri.getPath().toString());
+                Log.d("ImageCatureUri", mImageCaptureUri.getPath().toString());
             }
-            case PICK_FROM_CAMERA:{
+            case PICK_FROM_CAMERA: {
                 // 이미지를 가져온 이후 리사이즈할 이미지 크기를 결정
                 // 이후에 이미지 크롭어플리케이션을 호출
                 Intent intent = new Intent("com.android.camera.action.CROP");
-                intent.setDataAndType(mImageCaptureUri,"image/*");
+                intent.setDataAndType(mImageCaptureUri, "image/*");
+                if(Build.VERSION.SDK_INT >=Build.VERSION_CODES.LOLLIPOP){
+
+                }
+                intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                intent.addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
 
                 // CROP할 이미지를 200*200 크기로 저장
-                intent.putExtra("outputX",200);
-                intent.putExtra("outputY",200);
-                intent.putExtra("aspectX",1);
-                intent.putExtra("aspectY",1);
-                intent.putExtra("scale",true);
-                intent.putExtra("return-data",true);
-                startActivityForResult(intent,CROP_FROM_IMAGE);
+                intent.putExtra("outputX", 200);
+                intent.putExtra("outputY", 200);
+                intent.putExtra("aspectX", 1);
+                intent.putExtra("aspectY", 1);
+                intent.putExtra("scale", true);
+                intent.putExtra("return-data", true);
+                startActivityForResult(intent, CROP_FROM_IMAGE);
                 break;
             }
-            case CROP_FROM_IMAGE:{
+            case CROP_FROM_IMAGE: {
                 // 크롭된 이후의 이미지를 넘겨 받습니다.
-                if(resultCode != RESULT_OK)return;
+                if (resultCode != RESULT_OK) return;
                 final Bundle extras = data.getExtras();
 
                 // CROP된 이미지를 저장하기 위한 FILE경로
                 String filePath = Environment.getExternalStorageDirectory().getAbsolutePath() + "/HealthFree/" + System.currentTimeMillis() + ".jpg";
 
-                if(extras != null){
+                if (extras != null) {
                     Bitmap photo = extras.getParcelable("data"); //CROP된 BITMAP
-                    Glide.with(this).load(photo)
+                    storeCropImage(photo, filePath); // CROP된 이미지를 외부저장소, 앨범에 저장한다.
+                    absolutePath = filePath;
+
+                    Glide.with(this).load(Uri.fromFile(new File(absolutePath)))
                             .bitmapTransform(new CropCircleTransformation(this))
                             .placeholder(R.drawable.blank_profile)
                             .error(R.drawable.blank_profile)
                             .into(mViewUserImage);
 
-                    storeCropImage(photo,filePath); // CROP된 이미지를 외부저장소, 앨범에 저장한다.
-                    absolutePath = filePath;
+                    mPref.edit().putString("userImage", absolutePath).apply();
+
                     break;
                 }
 
                 // 임시 파일 삭제
                 File f = new File(mImageCaptureUri.getPath());
-                if(f.exists()){
+                if (f.exists()) {
                     f.delete();
                 }
             }
         }
     }
 
-    private void storeCropImage(Bitmap bitmap, String filePath){
+    private void storeCropImage(Bitmap bitmap, String filePath) {
         // HealthFree 폴더를 생성하여 이미지를 저장하는 방식
         String dirPath = Environment.getExternalStorageDirectory().getAbsolutePath() + "/HealthFree";
         File directory_HealthFree = new File(dirPath);
 
-        if(!directory_HealthFree.exists()){
+        if (!directory_HealthFree.exists()) {
             directory_HealthFree.mkdir();
         }
 
         File copyFile = new File(filePath);
         BufferedOutputStream out = null;
-        try{
+        try {
             copyFile.createNewFile();
             out = new BufferedOutputStream(new FileOutputStream(copyFile));
             bitmap.compress(Bitmap.CompressFormat.JPEG, 100, out);
 
             // sandBroadcast를 통해 Crop된 사진을 앨범에 보이도록 갱신한다
-            sendBroadcast(new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE,Uri.fromFile(copyFile)));
+//            sendBroadcast(new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, Uri.fromFile(copyFile)));
 
             out.flush();
             out.close();
 
-        }catch (Exception ex){
+        } catch (Exception ex) {
             ex.printStackTrace();
         }
     }
@@ -517,7 +528,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         // 뷰 이벤트 등록
         mViewUserImage.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View v) {
+            public void onClick(final View v) {
 
                 // 권한
                 PermissionListener readExtraListener = new PermissionListener() {
@@ -536,6 +547,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
                                 // 앨범
+                                doTakeAlbumAction();
                             }
                         };
 
@@ -547,7 +559,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                             }
                         };
 
-                        new AlertDialog.Builder(getApplicationContext())
+                        new AlertDialog.Builder(v.getContext())
                                 .setTitle("Select Upload Image")
                                 .setPositiveButton("Camera", cameraListener)
                                 .setNeutralButton("Gallery", albumListener)
@@ -557,20 +569,33 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
                     @Override
                     public void onPermissionDenied(ArrayList<String> deniedPermissions) {
-
+                        Log.d("readExtraListener", "Permission Denied\n" + deniedPermissions.toString());
                     }
                 };
 
-                new TedPermission(getApplicationContext())
+                new TedPermission(v.getContext())
                         .setPermissionListener(readExtraListener)
                         .setDeniedMessage("If you reject permission, you can not use this service\n\nPlease turn on permissions at [Setting] > [Permission]")
-                        .setPermissions(Manifest.permission.CAMERA, Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                        .setPermissions(Manifest.permission.CAMERA,
+                                Manifest.permission.READ_EXTERNAL_STORAGE,
+                                Manifest.permission.WRITE_EXTERNAL_STORAGE)
                         .check();
-
 
             }
         });
 
+    }
+
+    private File createImageFile(String filename) throws IOException {
+        // create an image file name
+        String imagefilename = filename + "_" + String.valueOf(System.currentTimeMillis()) + ".jpg";
+
+        File storageDir = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/HealthFree/" + imagefilename);
+
+        // Save a file path
+        absolutePath = storageDir.getAbsolutePath();
+        Log.i("createImageFile", storageDir.getAbsolutePath());
+        return storageDir;
     }
 
     public void doTakeCameraAction() {
@@ -578,10 +603,26 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         // 임시로 사용할 파일의 경로를 생성
         String url = "tmp_" + String.valueOf(System.currentTimeMillis()) + ".jpg";
-        mImageCaptureUri = Uri.fromFile(new File(Environment.getExternalStorageDirectory(), url));
+        File photoFile = null;
+        try {
+            photoFile = createImageFile("tmp");
+        } catch (IOException ex) {
 
-        intent.putExtra(MediaStore.EXTRA_OUTPUT, mImageCaptureUri);
-        startActivityForResult(intent, PICK_FROM_CAMERA);
+        }
+
+        if (photoFile != null) {
+            // getUriForFile의 두 번째 인자는 Manifest provier의 authorites와 일치해야함
+            // photoURI : file://로 시작, FileProvider (Content Provider 하위)는 content://로 시작
+            // 누가(7.0)이상부터는 file://로 시작되는 Uri의 값을 다른 앱과 주고받기
+            String pkgname = this.getPackageName();
+            mImageCaptureUri = FileProvider.getUriForFile(this, pkgname, photoFile);
+
+            Log.i("photoFile",photoFile.toString());
+            Log.i("mImageCaptureUri",mImageCaptureUri.toString());
+
+            intent.putExtra(MediaStore.EXTRA_OUTPUT, mImageCaptureUri);
+            startActivityForResult(intent, PICK_FROM_CAMERA);
+        }
     }
 
     public void doTakeAlbumAction() {
@@ -598,7 +639,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 //        BitmapDrawable pDrawable = (BitmapDrawable) getResources().getDrawable(R.drawable.img_kongyu);
 //        RoundedAvatarDrawable pRoundDrawable = new RoundedAvatarDrawable(pDrawable.getBitmap());
 //        Glide.with(this).load(R.drawable.img_kongyu).into(mViewUserImage);
-        Glide.with(this).load(R.drawable.img_kongyu)
+        String imgPath = mPref.getString("userImage", "image");
+
+        Glide.with(this).load(Uri.fromFile(new File(imgPath)))
                 .bitmapTransform(new CropCircleTransformation(this))
                 .placeholder(R.drawable.blank_profile)
                 .error(R.drawable.blank_profile)

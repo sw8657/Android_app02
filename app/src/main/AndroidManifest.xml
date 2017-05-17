@@ -26,6 +26,10 @@
     <uses-permission android:name="android.permission.READ_PROFILE" />
     <uses-permission android:name="android.permission.READ_CONTACTS" />
 
+    <!-- 사진 카메라 접근권한 -->
+    <uses-permission android:name="android.permission.CAMERA"/>
+    <uses-feature android:name="android.hardware.camera2"/>
+
     <!-- OpenGL 사용 설정 -->
     <uses-feature
         android:glEsVersion="0x00020000"
@@ -46,6 +50,16 @@
             android:name="com.google.android.geo.API_KEY"
             android:value="@string/google_maps_key" />
 
+        <!--파일프로바이더 등록-->
+        <provider
+            android:name="android.support.v4.content.FileProvider"
+            android:authorities="com.point.eslee.health_free"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths"/>
+        </provider>
         <!-- GMS 라이브러리 버전 설정
         <meta-data
             android:name="com.google.android.gms.version"
