@@ -152,7 +152,7 @@ public class RankFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_rank, container, false);
-        getActivity().setTitle("Rank");
+        getActivity().setTitle("Ranking");
         // Inflate the layout for this fragment
 
         // 레이아웃 초기화

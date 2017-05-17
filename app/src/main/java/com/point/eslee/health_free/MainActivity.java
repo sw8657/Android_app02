@@ -31,6 +31,7 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.View;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
@@ -315,7 +316,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         @Override
         public void onPermissionDenied(ArrayList<String> deniedPermissions) {
-            Toast.makeText(MainActivity.this, "Permission Denied\n" + deniedPermissions.toString(), Toast.LENGTH_SHORT).show();
+            Toast.makeText(MainActivity.this, "Permission Denied\n" + deniedPermissions.toString(), Toast.LENGTH_SHORT).setGravity(Gravity.BOTTOM, 0, 30);
         }
     };
 
@@ -517,11 +518,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             long tempTime = System.currentTimeMillis();
             long intervalTime = tempTime - backPressedTime;
 
-            if(0 <= intervalTime && FINISH_INTERVAL_TIME >= intervalTime){
+            if (0 <= intervalTime && FINISH_INTERVAL_TIME >= intervalTime) {
                 super.onBackPressed();
-            }else {
+            } else {
                 backPressedTime = tempTime;
-                Toast.makeText(getApplicationContext(),"Please click BACK again to exit", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getApplicationContext(), "Please click BACK again to exit", Toast.LENGTH_SHORT).show();
             }
         }
     }
@@ -817,7 +818,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             double distance = Math.round(distance1 * 10.0) / 10.0; // 소수점 1자리 표시
             values.Distance = values.Distance + distance; //총 이동거리
             values.Distance = Math.round(values.Distance * 10.0) / 10.0; // 소수점 1자리 표시
-            Log.d("Main", "onLocationChanged, distance: "  + distance + ", total distance: "+ values.Distance);
+            Log.d("Main", "onLocationChanged, distance: " + distance + ", total distance: " + values.Distance);
 
             old_latitude = latitude;
             old_longitude = longitude;
