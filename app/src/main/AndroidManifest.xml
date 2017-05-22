@@ -42,6 +42,9 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
 
+        <!--페이스북 사용 설정-->
+        <meta-data android:name="com.facebook.sdk.ApplicationId" android:value="@string/facebook_app_id"/>
+
         <!-- 라이브러리 사용 설정 -->
         <uses-library android:name="com.google.android.maps" />
 
@@ -87,6 +90,11 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="com.point.eslee.health_free.MainActivity" />
         </activity>
+
+        <activity android:name="com.facebook.FacebookActivity"
+            android:configChanges="keyboard|keyboardHidden|screenLayout|screenSize|orientation"
+            android:theme="@android:style/Theme.Translucent.NoTitleBar"
+            android:label="@string/app_name"/>
 
         <service
             android:name=".steps.StepBackgroundService"

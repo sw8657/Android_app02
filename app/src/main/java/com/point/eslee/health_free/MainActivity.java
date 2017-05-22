@@ -18,25 +18,19 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.drawable.BitmapDrawable;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.net.Uri;
-import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
-import android.os.HardwarePropertiesManager;
 import android.preference.PreferenceManager;
 import android.provider.MediaStore;
-import android.provider.Settings;
 import android.support.annotation.RequiresApi;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentTransaction;
-import android.support.v4.content.ContextCompat;
 import android.support.v4.content.FileProvider;
 import android.util.Log;
 import android.view.Gravity;
@@ -54,11 +48,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
-import com.bumptech.glide.GlideBuilder;
-import com.bumptech.glide.load.Transformation;
-import com.bumptech.glide.load.resource.bitmap.CenterCrop;
-import com.bumptech.glide.load.resource.bitmap.FitCenter;
-import com.google.android.gms.common.server.converter.StringToIntConverter;
 import com.google.android.gms.maps.MapsInitializer;
 import com.google.android.gms.maps.model.LatLng;
 import com.gun0912.tedpermission.PermissionListener;
@@ -77,29 +66,11 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.concurrent.CountDownLatch;
 
 import jp.wasabeef.glide.transformations.CropCircleTransformation;
 
 public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
-    private static final String[] INITIAL_PERMS = {
-            android.Manifest.permission.ACCESS_FINE_LOCATION,
-            android.Manifest.permission.READ_CONTACTS
-    };
-    private static final String[] CAMERA_PERMS = {
-            android.Manifest.permission.CAMERA
-    };
-    private static final String[] CONTACTS_PERMS = {
-            android.Manifest.permission.READ_CONTACTS
-    };
-    private static final String[] LOCATION_PERMS = {
-            android.Manifest.permission.ACCESS_FINE_LOCATION
-    };
-    private static final int INITIAL_REQUEST = 1337;
-    private static final int CAMERA_REQUEST = INITIAL_REQUEST + 1;
-    private static final int CONTACTS_REQUEST = INITIAL_REQUEST + 2;
-    private static final int LOCATION_REQUEST = INITIAL_REQUEST + 3;
 
     private final long FINISH_INTERVAL_TIME = 2000;
     private long backPressedTime = 0;
@@ -136,6 +107,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private START_TYPE mStartType = START_TYPE.First;
     private LOGIN_TYPE mLoginType = LOGIN_TYPE.First;
 
+    // 플로팅액션버튼
+    FloatingActionButton mFab = null;
+
     // 네비뷰 컨트롤뷰
     private ImageView mViewUserImage = null;
     private TextView mViewUserEmail = null;
@@ -167,8 +141,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         setSupportActionBar(toolbar);
 
         // 플로팅액션버튼
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
+        mFab = (FloatingActionButton) findViewById(R.id.fab);
+        mFab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 Intent mainIntent = new Intent(MainActivity.this, BarcodeActivity.class);
@@ -246,11 +220,12 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 // 이후에 이미지 크롭어플리케이션을 호출
                 Intent intent = new Intent("com.android.camera.action.CROP");
                 intent.setDataAndType(mImageCaptureUri, "image/*");
-                if(Build.VERSION.SDK_INT >=Build.VERSION_CODES.LOLLIPOP){
+                if(Build.VERSION.SDK_INT <= Build.VERSION_CODES.M){
 
+                }else {
+                    intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                    intent.addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
                 }
-                intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-                intent.addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
 
                 // CROP할 이미지를 200*200 크기로 저장
                 intent.putExtra("outputX", 200);
@@ -472,9 +447,17 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         registerReceiver(mIntentReceiverMap, mIntentReceiverMap.getFilter());
     }
 
+    // 플로팅버튼 보임/안보임
+    private void setVisibleFab(boolean bVisible){
+        if(mFab != null){
+            mFab.setVisibility(bVisible ? View.VISIBLE : View.INVISIBLE);
+        }
+    }
+
     // 플래그 화면 전환
     public void replaceFragment(Fragments frag) {
         Fragment fragment = null;
+        setVisibleFab(true);
         switch (frag) {
             case Home: {
                 fragment = new HomeFragment();
@@ -482,6 +465,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             }
             case MyPoint: {
                 fragment = new MypointFragment();
+                setVisibleFab(false);
                 break;
             }
             case Map: {
@@ -490,6 +474,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             }
             case Rank: {
                 fragment = new RankFragment();
+                setVisibleFab(false);
                 break;
             }
             case Statistics: {
@@ -819,65 +804,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         @Override
         public void onReceive(Context context, Intent intent) {
             m_serviceData = intent.getStringExtra("serviceData");
-        }
-    }
-
-    private void checkDangerousPermissions() {
-        String[] permissions = {
-                android.Manifest.permission.ACCESS_FINE_LOCATION,
-                android.Manifest.permission.ACCESS_COARSE_LOCATION,
-                android.Manifest.permission.READ_EXTERNAL_STORAGE,
-                android.Manifest.permission.WRITE_EXTERNAL_STORAGE
-        };
-
-        int permissionCheck = PackageManager.PERMISSION_GRANTED;
-        for (int i = 0; i < permissions.length; i++) {
-            permissionCheck = ContextCompat.checkSelfPermission(this, permissions[i]);
-            if (permissionCheck == PackageManager.PERMISSION_DENIED) {
-                break;
-            }
-        }
-
-        if (permissionCheck == PackageManager.PERMISSION_GRANTED) {
-            //Toast.makeText(this, "권한 있음", Toast.LENGTH_LONG).show();
-        } else {
-            //Toast.makeText(this, "권한 없음", Toast.LENGTH_LONG).show();
-
-            if (ActivityCompat.shouldShowRequestPermissionRationale(this, permissions[0])) {
-                //Toast.makeText(this, "권한 설명 필요함.", Toast.LENGTH_LONG).show();
-            } else {
-                ActivityCompat.requestPermissions(this, permissions, 1);
-            }
-        }
-    }
-
-    private boolean canAccessLocation() {
-        return (hasPermission(android.Manifest.permission.ACCESS_FINE_LOCATION));
-    }
-
-    private boolean canAccessCamera() {
-        return (hasPermission(android.Manifest.permission.CAMERA));
-    }
-
-    private boolean canAccessContacts() {
-        return (hasPermission(Manifest.permission.READ_CONTACTS));
-    }
-
-    @TargetApi(Build.VERSION_CODES.M)
-    private boolean hasPermission(String perm) {
-        return (PackageManager.PERMISSION_GRANTED == checkSelfPermission(perm));
-    }
-
-    @Override
-    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
-        if (requestCode == 1) {
-            for (int i = 0; i < permissions.length; i++) {
-                if (grantResults[i] == PackageManager.PERMISSION_GRANTED) {
-                    Toast.makeText(this, permissions[i] + " 권한이 승인됨.", Toast.LENGTH_LONG).show();
-                } else {
-                    Toast.makeText(this, permissions[i] + " 권한이 승인되지 않음.", Toast.LENGTH_LONG).show();
-                }
-            }
         }
     }
 
