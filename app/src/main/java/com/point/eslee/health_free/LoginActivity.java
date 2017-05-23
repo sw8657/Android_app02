@@ -415,9 +415,9 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
                 JSONArray jArr = json.getJSONArray("result");
 
                 result = jArr.getJSONObject(0).getString("successYn").equals("SUCCESS");
-                mUserName = jArr.getJSONObject(2).getString("userNm");
+                mUserName = jArr.getJSONObject(3).getString("userNm");
                 try{
-                    mUserId = Integer.valueOf(jArr.getJSONObject(3).getString("user_id"));
+                    mUserId = Integer.valueOf(jArr.getJSONObject(1).getString("user_id"));
                 }catch (Exception ex){
 
                 }
