@@ -1,6 +1,11 @@
 <resources>
     <string name="app_name">Health Free</string>
 
+    <!--헬스프리 서버 API-->
+    <string name="svr_url">http://dream.miraens.com:58080/</string>
+    <string name="svr_login">homeMain01.do</string>
+    <string name="svr_updateUserInfo">updateUserInfo.do</string>
+
     <!--페이스북 app ID-->
     <string name="facebook_app_id">154262271778449</string>
 

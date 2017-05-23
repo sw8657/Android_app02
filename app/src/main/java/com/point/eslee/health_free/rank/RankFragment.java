@@ -96,6 +96,8 @@ public class RankFragment extends Fragment {
         mMyName = (TextView) view.findViewById(R.id.rank_my_name); // 내 이름
         mMyValue = (TextView) view.findViewById(R.id.rank_myvalue); // 내 포인트값
 
+        // 서버에 랭킹정보 업데이트
+
         // 리스트뷰 초기화
         mAdapter = new ListViewRankAdapter();
         mListView.setAdapter(mAdapter);

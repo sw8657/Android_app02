@@ -374,7 +374,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
 
             try {
                 // Simulate network access.
-                String url = "http://dream.miraens.com:58080/homeMain01.do?" +
+                String url = R.string.svr_url + "homeMain01.do?" +
 //                String url = "http://192.168.1.160:8087/homeMain01.do?" +
                         "user_id=" + mEmail + "&user_pw=" + mPassword;
 
