@@ -374,7 +374,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
 
             try {
                 // Simulate network access.
-                String url = R.string.svr_url + "homeMain01.do?" +
+                String url = "http://dream.miraens.com:58080/homeMain01.do?" +
 //                String url = "http://192.168.1.160:8087/homeMain01.do?" +
                         "user_id=" + mEmail + "&user_pw=" + mPassword;
 
@@ -415,9 +415,9 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
                 JSONArray jArr = json.getJSONArray("result");
 
                 result = jArr.getJSONObject(0).getString("successYn").equals("SUCCESS");
-                mUserName = jArr.getJSONObject(3).getString("userNm");
+                mUserName = jArr.getJSONObject(0).getString("userNm");
                 try{
-                    mUserId = Integer.valueOf(jArr.getJSONObject(1).getString("user_id"));
+                    mUserId = Integer.valueOf(jArr.getJSONObject(0).getString("user_id"));
                 }catch (Exception ex){
 
                 }

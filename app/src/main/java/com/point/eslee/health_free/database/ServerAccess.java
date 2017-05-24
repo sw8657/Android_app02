@@ -26,8 +26,8 @@ public class ServerAccess {
             HttpURLConnection con = (HttpURLConnection) url.openConnection();
             int responseCode;
 
-            con.setConnectTimeout(3000);
-            con.setReadTimeout(3000);
+            con.setConnectTimeout(5000);
+            con.setReadTimeout(5000);
 
             responseCode = con.getResponseCode();
 

@@ -2,6 +2,7 @@ package com.point.eslee.health_free.rank;
 
 import android.content.Context;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.widget.SwipeRefreshLayout;
@@ -107,7 +108,7 @@ public class RankFragment extends Fragment {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 // TODO: 서버에서 랭킹 조회하기
-                setRank();
+                new SelectRankServer().execute((Void) null);
             }
 
             @Override
@@ -141,11 +142,11 @@ public class RankFragment extends Fragment {
             @Override
             public void onRefresh() {
                 // 새로고침
-                setRank();
+                new SelectRankServer().execute((Void) null);
 
                 // 새로고침 완료
                 mSwipeRefresh.setRefreshing(false);
-                Toast.makeText(getContext(),"Refresh",Toast.LENGTH_SHORT).show();
+                Toast.makeText(getContext(), "Refresh", Toast.LENGTH_SHORT).show();
             }
         });
 
@@ -164,34 +165,74 @@ public class RankFragment extends Fragment {
         return view;
     }
 
-    private void setRank() {
-        mAdapter.clearItem();
+    public class SelectRankServer extends AsyncTask<Void, Void, Boolean> {
         RankVO myRank = null;
         ArrayList<RankVO> rankVOs = null;
+        String sMenu = null;
 
-        try {
-            String sMenu = String.valueOf(mMenuSpinner.getSelectedItem());
-            myRank = new RankDB(this.getContext()).SelectMyRank(sMenu);
-            rankVOs = new RankDB(this.getContext()).SelectRank(sMenu);
-
-            // 내 순위 입력
-            mMyNum.setText(String.valueOf(myRank.getNum()));
-            Glide.with(this).load(myRank.getImgUrl())
-                    .bitmapTransform(new CropCircleTransformation(getContext()))
-                    .placeholder(R.drawable.blank_profile)
-                    .error(R.drawable.blank_profile)
-                    .into(mMyImg);
-
-            mMyName.setText(myRank.getTitle());
-            mMyValue.setText(myRank.getValue());
-            // 친구 순위 입력
-            mAdapter.addItemList(rankVOs);
-
-        } catch (Exception ex) {
-            Log.e("setRank", ex.getMessage());
+        @Override
+        protected void onPreExecute() {
+            mAdapter.clearItem();
+            try {
+                sMenu = String.valueOf(mMenuSpinner.getSelectedItem());
+            } catch (Exception ex) {
+                Log.e("setRank", ex.getMessage());
+            }
+            super.onPreExecute();
         }
 
-        mAdapter.notifyDataSetChanged();
+        @Override
+        protected Boolean doInBackground(Void... params) {
+            Boolean result = false;
+            try {
+                rankVOs = new RankDB(getContext()).SelectRank(sMenu);
+                myRank = new RankVO(1, 1, values.UserImageUrl, values.UserName, "nothing value");
+
+                for(int i=0; i<rankVOs.size(); i++){
+                    if(rankVOs.get(i).get_ID() == values.UserId){
+                        myRank = rankVOs.get(i);
+                        break;
+                    }
+                }
+
+                result = true;
+            } catch (Exception ex) {
+                Log.e("setRank", ex.getMessage());
+            }
+            return result;
+        }
+
+        @Override
+        protected void onPostExecute(Boolean aBoolean) {
+            if (aBoolean) {
+                mAdapter.clearItem();
+
+                // 내 순위 입력
+                try{
+                    mMyNum.setText(String.valueOf(myRank.getNum()));
+                    Glide.with(getContext()).load(myRank.getImgUrl())
+                            .bitmapTransform(new CropCircleTransformation(getContext()))
+                            .placeholder(R.drawable.blank_profile)
+                            .error(R.drawable.blank_profile)
+                            .into(mMyImg);
+
+                    mMyName.setText(myRank.getTitle());
+                    mMyValue.setText(myRank.getValue());
+                    // 친구 순위 입력
+
+                }catch (Exception ex){
+
+                }
+
+                try{
+                    mAdapter.addItemList(rankVOs);
+                }catch (Exception ex){
+
+                }
+            }
+            mAdapter.notifyDataSetChanged();
+            super.onPostExecute(aBoolean);
+        }
     }
 
     @Override
