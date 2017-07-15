@@ -9,6 +9,7 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.preference.PreferenceActivity;
 import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.support.design.widget.Snackbar;
@@ -38,12 +39,22 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.facebook.CallbackManager;
+import com.facebook.FacebookCallback;
+import com.facebook.FacebookException;
+import com.facebook.FacebookSdk;
+import com.facebook.GraphRequest;
+import com.facebook.GraphResponse;
+import com.facebook.login.LoginManager;
+import com.facebook.login.LoginResult;
+import com.facebook.login.widget.LoginButton;
 import com.point.eslee.health_free.database.ServerAccess;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import static android.Manifest.permission.READ_CONTACTS;
@@ -78,9 +89,14 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
     private CheckBox mRememberLoginCheck;
     private SharedPreferences mPref;
 
+    private Button mCFBLogin;
+    private LoginButton mFBLogin;
+    private CallbackManager callbackManager;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        FacebookSdk.sdkInitialize(getApplicationContext());
         setContentView(R.layout.activity_login);
         // Set up the login form.
         mEmailView = (AutoCompleteTextView) findViewById(R.id.email);
@@ -95,6 +111,62 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
                     return true;
                 }
                 return false;
+            }
+        });
+        callbackManager = CallbackManager.Factory.create();  //로그인 응답을 처리할 콜백 관리자
+        // 페이스북 퍼미션추가
+        mCFBLogin = (Button)findViewById(R.id.facebook_log_in_button);
+        mCFBLogin.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                LoginManager.getInstance().logInWithReadPermissions(LoginActivity.this, Arrays.asList("public_profile","user_friends","email"));
+                LoginManager.getInstance().registerCallback(callbackManager, new FacebookCallback<LoginResult>() {
+                    @Override
+                    public void onSuccess(LoginResult loginResult) {
+                        Log.e("토큰",loginResult.getAccessToken().getToken());
+                        Log.e("유저아이디",loginResult.getAccessToken().getUserId());
+                        Log.e("퍼미션 리스트",loginResult.getAccessToken().getPermissions()+"");
+
+                        GraphRequest request = GraphRequest.newMeRequest(loginResult.getAccessToken(), new GraphRequest.GraphJSONObjectCallback() {
+                            @Override
+                            public void onCompleted(JSONObject object, GraphResponse response) {
+                                try{
+                                    Log.e("user profile",object.toString());
+                                    String fb_id = "";
+                                    String email  ="";
+                                    String user_name = "";
+                                    String sex = "";
+                                    String birthday = "";
+                                    String friends = "";
+
+                                    fb_id = object.getString("id");
+                                    email = object.isNull("email") ? fb_id + "@test.com" : object.getString("email");
+                                    user_name = object.isNull("name") ? "username" : object.getString("name");
+                                    sex = object.isNull("gender") ? "male" : object.getString("gender");
+                                    birthday = object.isNull("birthday") ? "2017-01-01" : object.getString("birthday");
+                                    friends = object.isNull("friends") ? "" : object.getString("friends");
+                                }catch (Exception ex){
+                                    ex.printStackTrace();
+                                }
+                            }
+                        });
+
+                        Bundle param = new Bundle();
+                        param.putString("fields","id,name,email,gender,birthday,friends");
+                        request.setParameters(param);
+                        request.executeAsync();
+                    }
+
+                    @Override
+                    public void onCancel() {
+
+                    }
+
+                    @Override
+                    public void onError(FacebookException error) {
+
+                    }
+                });
             }
         });
 
@@ -130,6 +202,12 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
             mEmailView.setText(mPref.getString("savedEmailText", ""));
             mPasswordView.setText(mPref.getString("savedPwText", ""));
         }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        callbackManager.onActivityResult(requestCode,resultCode,data);
     }
 
     // 로그인 인증정보 초기화
@@ -236,7 +314,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
             // perform the user login attempt.
             showProgress(true);
             mAuthTask = new UserLoginTask(email, password);
-            mAuthTask.execute((Void) null);
+            mAuthTask.execute((JSONObject) null);
         }
     }
 
@@ -355,7 +433,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
      * Represents an asynchronous login/registration task used to authenticate
      * the user.
      */
-    public class UserLoginTask extends AsyncTask<Void, Void, Boolean> {
+    public class UserLoginTask extends AsyncTask<JSONObject, Void, Boolean> {
 
         private final String mEmail;
         private final String mPassword;
@@ -369,27 +447,33 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         }
 
         @Override
-        protected Boolean doInBackground(Void... params) {
+        protected Boolean doInBackground(JSONObject... params) {
             boolean sResult = false;
 
-            try {
-                // Simulate network access.
-                String url = "http://dream.miraens.com:58080/homeMain01.do?" +
-//                String url = "http://192.168.1.160:8087/homeMain01.do?" +
-                        "user_id=" + mEmail + "&user_pw=" + mPassword;
+            if(params != null){
+                // facebook login
 
-                // 사용자 인증 (서버 인증)
-                jsonResult = ServerAccess.getData(url);
-                // 인증 및 사용자 정보 읽기
-                sResult = VailidateLogin(jsonResult);
+            }else {
+                // email login
+                try {
+                    // Simulate network access.
+                    String url = "http://dream.miraens.com:58080/homeMain01.do?" +
+//                String url = "http://192.168.1.160:8087/homeMain01.do?" +
+                            "user_id=" + mEmail + "&user_pw=" + mPassword;
+
+                    // 사용자 인증 (서버 인증)
+                    jsonResult = ServerAccess.getData(url);
+                    // 인증 및 사용자 정보 읽기
+                    sResult = VailidateLogin(jsonResult);
 
 //                // 디버그 테스트 모드 (샘플 사용자ID 사용)
 //                sResult = true;
 //                mUserId = 1;
 //                mUserName = "HelloAndroid";
 
-            } catch (Exception e) {
-                Log.e("LoginTask:", e.getMessage());
+                } catch (Exception e) {
+                    Log.e("LoginTask:", e.getMessage());
+                }
             }
 
             for (String credential : DUMMY_CREDENTIALS) {
@@ -466,7 +550,6 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
             showProgress(false);
         }
     }
-
 
 }
 

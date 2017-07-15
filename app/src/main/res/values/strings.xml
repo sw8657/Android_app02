@@ -7,7 +7,7 @@
     <string name="svr_updateUserInfo">updateUserInfo.do</string>
 
     <!--페이스북 app ID-->
-    <string name="facebook_app_id">154262271778449</string>
+    <string name="facebook_app_id">236147466870608</string>
 
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
@@ -111,6 +111,7 @@
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="action_log_in_short">Log in</string>
+    <string name="action_facebook_log_in">Facebook Login</string>
     <string name="action_remember_log_in">Remember Login</string>
     <string name="action_sign_up">Sign up</string>
     <string name="nav_menuname_home">Home</string>
