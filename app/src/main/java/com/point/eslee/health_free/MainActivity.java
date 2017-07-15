@@ -470,6 +470,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             }
             case Map: {
                 fragment = new MapFragment();
+                setVisibleFab(false);
                 break;
             }
             case Rank: {
