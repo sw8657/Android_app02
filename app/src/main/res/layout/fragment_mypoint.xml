@@ -8,154 +8,154 @@
 
     <!-- TODO: Update blank fragment layout -->
 
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical">
+            android:layout_height="80dp"
+            android:orientation="vertical"
+            android:background="@color/colorContentOpacity80">
 
             <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="80dp"
-                android:orientation="vertical"
-                android:background="@color/colorContentOpacity80">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="0dp"
-                    android:layout_weight="3"
-                    android:orientation="horizontal">
-                    <LinearLayout
-                        android:layout_weight="2"
-                        android:layout_width="0dp"
-                        android:layout_height="match_parent"
-                        android:gravity="center_vertical"
-                        android:paddingLeft="10dp">
-                        <TextView
-                            android:textColor="@color/colorWhite"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Current"
-                            android:textSize="20sp"/>
-                    </LinearLayout>
-                    <LinearLayout
-                        android:layout_weight="3"
-                        android:layout_width="0dp"
-                        android:layout_height="match_parent"
-                        android:gravity="center_vertical|right">
-
-                        <TextView
-                            android:id="@+id/mypoint_current_point"
-                            android:text="0"
-                            android:textColor="@color/colorAccent"
-                            android:textSize="@dimen/myinfo_current_point_textsize"
-                            android:layout_marginRight="10dp"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content" />
-                        <TextView
-                            android:text="P"
-                            android:textColor="@color/colorAccent"
-                            android:textSize="@dimen/myinfo_current_point_textsize"
-                            android:layout_marginRight="10dp"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content" />
-                        <LinearLayout
-                            android:id="@+id/mypoint_refresh_point"
-                            android:layout_width="30dp"
-                            android:layout_height="match_parent"
-                            android:gravity="center">
-                            <ImageView
-                                android:layout_width="24dp"
-                                android:layout_height="match_parent"
-                                app:srcCompat="@drawable/ic_replay_white_24dp"/>
-                        </LinearLayout>
-                    </LinearLayout>
-                </LinearLayout>
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="0dp"
-                    android:layout_weight="2"
-                    android:visibility="gone"
-                    android:orientation="horizontal">
-                    <LinearLayout
-                        android:layout_weight="2"
-                        android:layout_width="0dp"
-                        android:layout_height="match_parent"
-                        android:gravity="center_vertical"
-                        android:paddingLeft="10dp">
-                        <TextView
-                            android:textColor="@color/colorWhite"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Total point"
-                            android:textSize="20sp"/>
-                    </LinearLayout>
-                    <LinearLayout
-                        android:layout_weight="3"
-                        android:layout_width="0dp"
-                        android:layout_height="match_parent"
-                        android:paddingRight="20dp"
-                        android:gravity="center_vertical|right">
-
-                        <TextView
-                            android:id="@+id/mypoint_total_point"
-                            android:text="0"
-                            android:textColor="@color/colorGray"
-                            android:textSize="@dimen/myinfo_total_point_textsize"
-                            android:layout_marginRight="10dp"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content" />
-                        <TextView
-                            android:text="P"
-                            android:textColor="@color/colorGray"
-                            android:textSize="@dimen/myinfo_total_point_textsize"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content" />
-                    </LinearLayout>
-                </LinearLayout>
-            </LinearLayout>
-
-            <LinearLayout
-                android:background="@color/colorAccent"
-                android:layout_width="match_parent"
-                android:layout_height="40dp"
-                android:gravity="center_vertical"
+                android:layout_height="0dp"
+                android:layout_weight="3"
                 android:orientation="horizontal">
-
-                <TextView
-                    android:layout_marginLeft="10dp"
-                    android:gravity="center"
-                    android:text="details of usage"
-                    android:layout_width="wrap_content"
-                    android:layout_height="match_parent" />
-                <View
+                <LinearLayout
+                    android:layout_weight="2"
                     android:layout_width="0dp"
-                    android:layout_height="0dp"
-                    android:layout_weight="1"></View>
-
-                <Spinner
-                    android:id="@+id/mypoint_search_option_year"
-                    android:layout_width="100dp"
                     android:layout_height="match_parent"
-                    android:entries="@array/search_month_option1"></Spinner>
-
-                <Spinner
-                    android:id="@+id/mypoint_search_option_month"
-                    android:layout_width="120dp"
+                    android:gravity="center_vertical"
+                    android:paddingLeft="10dp">
+                    <TextView
+                        android:textColor="@color/colorWhite"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Current"
+                        android:textSize="20sp"/>
+                </LinearLayout>
+                <LinearLayout
+                    android:layout_weight="3"
+                    android:layout_width="0dp"
                     android:layout_height="match_parent"
-                    android:entries="@array/search_month_option"></Spinner>
+                    android:gravity="center_vertical|right">
 
-
+                    <TextView
+                        android:id="@+id/mypoint_current_point"
+                        android:text="0"
+                        android:textColor="@color/colorAccent"
+                        android:textSize="@dimen/myinfo_current_point_textsize"
+                        android:layout_marginRight="10dp"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content" />
+                    <TextView
+                        android:text="P"
+                        android:textColor="@color/colorAccent"
+                        android:textSize="@dimen/myinfo_current_point_textsize"
+                        android:layout_marginRight="10dp"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content" />
+                    <LinearLayout
+                        android:id="@+id/mypoint_refresh_point"
+                        android:layout_width="30dp"
+                        android:layout_height="match_parent"
+                        android:gravity="center">
+                        <ImageView
+                            android:layout_width="24dp"
+                            android:layout_height="match_parent"
+                            app:srcCompat="@drawable/ic_replay_white_24dp"/>
+                    </LinearLayout>
+                </LinearLayout>
             </LinearLayout>
-            <android.support.v4.widget.SwipeRefreshLayout
-                android:id="@+id/mypoint_swipe_refresh"
+            <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="match_parent">
-                <ScrollView
-                    android:id="@+id/mypoint_scroll"
-                    android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="2"
+                android:visibility="gone"
+                android:orientation="horizontal">
+                <LinearLayout
+                    android:layout_weight="2"
+                    android:layout_width="0dp"
                     android:layout_height="match_parent"
-                    android:scrollbars="vertical"
-                    android:fillViewport="true">
+                    android:gravity="center_vertical"
+                    android:paddingLeft="10dp">
+                    <TextView
+                        android:textColor="@color/colorWhite"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Total point"
+                        android:textSize="20sp"/>
+                </LinearLayout>
+                <LinearLayout
+                    android:layout_weight="3"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:paddingRight="20dp"
+                    android:gravity="center_vertical|right">
+
+                    <TextView
+                        android:id="@+id/mypoint_total_point"
+                        android:text="0"
+                        android:textColor="@color/colorGray"
+                        android:textSize="@dimen/myinfo_total_point_textsize"
+                        android:layout_marginRight="10dp"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content" />
+                    <TextView
+                        android:text="P"
+                        android:textColor="@color/colorGray"
+                        android:textSize="@dimen/myinfo_total_point_textsize"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content" />
+                </LinearLayout>
+            </LinearLayout>
+        </LinearLayout>
+
+        <LinearLayout
+            android:background="@color/colorAccent"
+            android:layout_width="match_parent"
+            android:layout_height="40dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_marginLeft="10dp"
+                android:gravity="center"
+                android:text="details of usage"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent" />
+            <View
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:layout_weight="1"></View>
+
+            <Spinner
+                android:id="@+id/mypoint_search_option_year"
+                android:layout_width="100dp"
+                android:layout_height="match_parent"
+                android:entries="@array/search_month_option1"></Spinner>
+
+            <Spinner
+                android:id="@+id/mypoint_search_option_month"
+                android:layout_width="120dp"
+                android:layout_height="match_parent"
+                android:entries="@array/search_month_option"></Spinner>
+
+
+        </LinearLayout>
+        <android.support.v4.widget.SwipeRefreshLayout
+            android:id="@+id/mypoint_swipe_refresh"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+            <ScrollView
+                android:id="@+id/mypoint_scroll"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:scrollbars="vertical"
+                android:fillViewport="true">
                 <ListView
                     android:id="@+id/mypoint_details_listview"
                     android:layout_width="match_parent"
@@ -171,22 +171,22 @@
                 <!--android:layout_width="wrap_content"-->
                 <!--android:layout_height="wrap_content"-->
                 <!--android:layout_gravity="center"/>-->
-                </ScrollView>
-                <LinearLayout
-                    android:id="@android:id/empty"
+            </ScrollView>
+            <LinearLayout
+                android:id="@android:id/empty"
+                android:layout_width="match_parent"
+                android:layout_height="100dp"
+                android:background="@color/colorGraySecondaryOpacity50">
+                <TextView
                     android:layout_width="match_parent"
-                    android:layout_height="100dp"
-                    android:background="@color/colorGraySecondaryOpacity50">
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:text="No Search results are currently selected."
-                        android:gravity="center"/>
-                </LinearLayout>
+                    android:layout_height="match_parent"
+                    android:text="No Search results are currently selected."
+                    android:gravity="center"/>
+            </LinearLayout>
 
-            </android.support.v4.widget.SwipeRefreshLayout>
+        </android.support.v4.widget.SwipeRefreshLayout>
 
-        </LinearLayout>
+    </LinearLayout>
 
 
 

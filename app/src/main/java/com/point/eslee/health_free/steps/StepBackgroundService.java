@@ -27,6 +27,7 @@ import com.point.eslee.health_free.MainActivity;
 import com.point.eslee.health_free.VO.MyPointVO;
 import com.point.eslee.health_free.VO.RecordVO;
 import com.point.eslee.health_free.database.MyPointDB;
+import com.point.eslee.health_free.database.RankDB;
 import com.point.eslee.health_free.database.RecordDB;
 import com.point.eslee.health_free.values;
 
@@ -49,6 +50,7 @@ public class StepBackgroundService extends Service implements SensorEventListene
 
     // 운동시간 체크
     Timer m_runningTimer;
+    Timer m_updateRankTimer;
     Timer m_datecheckTimer;
     private int m_runstep = 0;
     private Calendar m_runStartTime = null;
@@ -135,6 +137,15 @@ public class StepBackgroundService extends Service implements SensorEventListene
                 Log.i("runTimer E", "Running:" + m_isRunning + ", runstep:" + m_runstep + ", second:" + values.RunningSec + ", calorie:" + values.Calorie);
             }
         }, 0, 5000); // 5초마다 실행
+
+        // 사용자 랭킹정보 서버에 업데이트 실행 타이머
+        m_updateRankTimer = new Timer();
+        m_updateRankTimer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                new UpdateUserRankInfo().execute((Void) null);
+            }
+        }, 0, 1000 * 60 * 10); // 10분마다 실행
     }
 
     // 백그라운드에서 실행되는 동작들이 들어가는 곳입니다.
@@ -146,8 +157,8 @@ public class StepBackgroundService extends Service implements SensorEventListene
             sensorManager.registerListener(this, accelerormeterSensor, SensorManager.SENSOR_DELAY_GAME);
 
         // 로그인하면 저장된 기록 복구
-        boolean isLoadRecord = intent.getBooleanExtra("load_record",false);
-        if(isLoadRecord){
+        boolean isLoadRecord = intent.getBooleanExtra("load_record", false);
+        if (isLoadRecord) {
             LoadRecord();
         }
 
@@ -337,6 +348,37 @@ public class StepBackgroundService extends Service implements SensorEventListene
 //                mToastCnt.show();
 //            }
 
+        }
+    }
+
+    // 랭킹전 정보 서버에 업데이트
+    public class UpdateUserRankInfo extends AsyncTask<Void, Void, Boolean> {
+        Integer step, Calorie, r_time, t_point;
+        Double distance;
+        Boolean iReady = false;
+
+        @Override
+        protected void onPreExecute() {
+            try {
+                step = values.Step;
+                Calorie = values.Calorie;
+                r_time = values.RunningSec;
+                distance = values.Distance;
+                t_point = new MyPointDB(getApplicationContext()).SelectTotalPoint();
+                iReady = true;
+            } catch (Exception ex) {
+
+            }
+
+            super.onPreExecute();
+        }
+
+        @Override
+        protected Boolean doInBackground(Void... params) {
+            if (iReady) {
+                new RankDB(getApplicationContext()).UpdateRankInfo(step, distance, Calorie, t_point, r_time);
+            }
+            return null;
         }
     }
 

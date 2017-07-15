@@ -12,8 +12,6 @@ import com.bumptech.glide.Glide;
 import com.point.eslee.health_free.R;
 import com.point.eslee.health_free.VO.RankVO;
 
-import org.w3c.dom.Text;
-
 import java.util.ArrayList;
 
 import jp.wasabeef.glide.transformations.CropCircleTransformation;
@@ -75,12 +73,12 @@ public class ListViewRankAdapter extends BaseAdapter {
                 .placeholder(R.drawable.blank_profile)
                 .error(R.drawable.blank_profile)
                 .into(imgView);
-        
+
         return view;
     }
 
-    public void addItem(int _ID, int num, String imgUrl, String Title, String Value){
-        RankVO item = new RankVO(_ID,num,imgUrl,Title,Value);
+    public void addItem(int _ID, int user_id, int num, String imgUrl, String Title, String Value){
+        RankVO item = new RankVO(_ID, user_id, num,imgUrl,Title,Value);
         listViewItemList.add(item);
     }
 

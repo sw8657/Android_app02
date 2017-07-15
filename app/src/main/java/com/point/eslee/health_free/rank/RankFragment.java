@@ -1,7 +1,5 @@
 package com.point.eslee.health_free.rank;
 
-import android.content.Context;
-import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -21,13 +19,11 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
-import com.bumptech.glide.disklrucache.DiskLruCache;
 import com.point.eslee.health_free.R;
 import com.point.eslee.health_free.VO.RankVO;
+import com.point.eslee.health_free.database.MyPointDB;
 import com.point.eslee.health_free.database.RankDB;
 import com.point.eslee.health_free.values;
-
-import org.w3c.dom.Text;
 
 import java.util.ArrayList;
 
@@ -107,7 +103,8 @@ public class RankFragment extends Fragment {
         mMenuSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                // TODO: 서버에서 랭킹 조회하기
+                new UpdateUserRankInfo().execute((Void) null);
+                // 서버에서 랭킹 조회하기
                 new SelectRankServer().execute((Void) null);
             }
 
@@ -141,6 +138,7 @@ public class RankFragment extends Fragment {
         mSwipeRefresh.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
+                new UpdateUserRankInfo().execute((Void) null);
                 // 새로고침
                 new SelectRankServer().execute((Void) null);
 
@@ -165,6 +163,37 @@ public class RankFragment extends Fragment {
         return view;
     }
 
+    public class UpdateUserRankInfo extends AsyncTask<Void, Void, Boolean> {
+        Integer step, Calorie, r_time, t_point;
+        Double distance;
+        Boolean iReady = false;
+
+        @Override
+        protected void onPreExecute() {
+            try {
+                step = values.Step;
+                Calorie = values.Calorie;
+                r_time = values.RunningSec;
+                distance = values.Distance;
+                t_point = new MyPointDB(getContext()).SelectTotalPoint();
+                iReady = true;
+            } catch (Exception ex) {
+
+            }
+
+            super.onPreExecute();
+        }
+
+        @Override
+        protected Boolean doInBackground(Void... params) {
+            if (iReady) {
+                new RankDB(getContext()).UpdateRankInfo(step, distance, Calorie, t_point, r_time);
+            }
+            return null;
+        }
+    }
+
+
     public class SelectRankServer extends AsyncTask<Void, Void, Boolean> {
         RankVO myRank = null;
         ArrayList<RankVO> rankVOs = null;
@@ -185,11 +214,11 @@ public class RankFragment extends Fragment {
         protected Boolean doInBackground(Void... params) {
             Boolean result = false;
             try {
+                myRank = new RankVO(0, -1, 1, values.UserImageUrl, values.UserName, "nothing value");
                 rankVOs = new RankDB(getContext()).SelectRank(sMenu);
-                myRank = new RankVO(1, 1, values.UserImageUrl, values.UserName, "nothing value");
 
-                for(int i=0; i<rankVOs.size(); i++){
-                    if(rankVOs.get(i).get_ID() == values.UserId){
+                for (int i = 0; i < rankVOs.size(); i++) {
+                    if (rankVOs.get(i).getUserId() == values.UserId) {
                         myRank = rankVOs.get(i);
                         break;
                     }
@@ -208,7 +237,7 @@ public class RankFragment extends Fragment {
                 mAdapter.clearItem();
 
                 // 내 순위 입력
-                try{
+                try {
                     mMyNum.setText(String.valueOf(myRank.getNum()));
                     Glide.with(getContext()).load(myRank.getImgUrl())
                             .bitmapTransform(new CropCircleTransformation(getContext()))
@@ -220,13 +249,13 @@ public class RankFragment extends Fragment {
                     mMyValue.setText(myRank.getValue());
                     // 친구 순위 입력
 
-                }catch (Exception ex){
+                } catch (Exception ex) {
 
                 }
 
-                try{
+                try {
                     mAdapter.addItemList(rankVOs);
-                }catch (Exception ex){
+                } catch (Exception ex) {
 
                 }
             }
