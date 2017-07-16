@@ -204,6 +204,7 @@ public class RankFragment extends Fragment {
             mAdapter.clearItem();
             try {
                 sMenu = String.valueOf(mMenuSpinner.getSelectedItem());
+                sMenu = values.FacebookId == "" ? sMenu + "Total" : sMenu;
             } catch (Exception ex) {
                 Log.e("setRank", ex.getMessage());
             }

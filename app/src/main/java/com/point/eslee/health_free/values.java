@@ -9,6 +9,7 @@ import java.util.Calendar;
 public class values {
     public static final String STEP_SERVICE_NAME = "com.eslee.healthfree.step";
     public static int UserId = -1;
+    public static String FacebookId = "";
     public static String UserEmail = "Nothing Email";
     public static String UserName = "Nothing Name";
     public static String UserImageUrl = "image";

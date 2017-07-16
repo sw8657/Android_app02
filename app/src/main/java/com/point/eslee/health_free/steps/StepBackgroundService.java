@@ -46,7 +46,7 @@ public class StepBackgroundService extends Service implements SensorEventListene
     private SharedPreferences mPref;
 
     // 포인트 적립
-    ArrayList<Integer> STEP_POINTs = new ArrayList<>(Arrays.asList(50, 100, 200, 500, 1000, 1500, 2000, 3000, 5000));
+    ArrayList<Integer> STEP_POINTs = new ArrayList<>(Arrays.asList(1000, 2000, 3000, 4000, 5000, 6000, 7000, 8000, 9000, 10000));
 
     // 운동시간 체크
     Timer m_runningTimer;
@@ -293,7 +293,7 @@ public class StepBackgroundService extends Service implements SensorEventListene
                     // 포인트 적립 - 걸음수 달성마다 포인트
                     if (STEP_POINTs.contains(values.Step)) {
                         int steps = values.Step;
-                        int point = steps / 10; // 10% 포인트 적립
+                        int point = 100; // steps / 10; // 10% 포인트 적립
                         new InsertPointUpTask().execute("Save Walking", steps + " steps", point);
                     }
                 }

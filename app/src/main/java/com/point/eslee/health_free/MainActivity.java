@@ -20,6 +20,8 @@ import android.graphics.BitmapFactory;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.media.Ringtone;
+import android.media.RingtoneManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -37,6 +39,7 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.Menu;
@@ -47,7 +50,14 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
+import com.facebook.AccessToken;
+import com.facebook.FacebookSdk;
+import com.facebook.GraphRequest;
+import com.facebook.GraphResponse;
+import com.facebook.LoginStatusCallback;
+import com.facebook.login.LoginManager;
 import com.google.android.gms.maps.MapsInitializer;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.gun0912.tedpermission.PermissionListener;
 import com.gun0912.tedpermission.TedPermission;
@@ -59,6 +69,9 @@ import com.point.eslee.health_free.database.StoreDB;
 import com.point.eslee.health_free.point.MypointFragment;
 import com.point.eslee.health_free.rank.RankFragment;
 import com.point.eslee.health_free.steps.StepBackgroundService;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 import java.io.BufferedOutputStream;
 import java.io.File;
@@ -82,6 +95,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private int id_view;
     private String absolutePath;
 
+    private LoginManager mLoginManager;
+    private AccessToken mAccessToken;
     private SharedPreferences mPref;
 
     public enum Fragments {
@@ -134,7 +149,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
+        FacebookSdk.sdkInitialize(getApplicationContext());
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -173,16 +188,71 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         mStartType = mPref.getBoolean("START_FIRST", true) ? START_TYPE.First : START_TYPE.Continue;
         mLoginType = mPref.getBoolean("LOGIN_FIRST", true) ? LOGIN_TYPE.First : LOGIN_TYPE.Continue;
 
-        // 로그인정보 확인
-        if (mLoginType.equals(LOGIN_TYPE.First)) {
-            Intent mainIntent = new Intent(MainActivity.this, LoginActivity.class);
-            MainActivity.this.startActivityForResult(mainIntent, 1004);
-            Log.i("Main:", "onCreate, 수동로그인");
-            Log_value();
+        mAccessToken = AccessToken.getCurrentAccessToken();
+        if (mAccessToken == null || mAccessToken.isExpired()) {
+            Log.i("Main:", "mLoginManager, 토큰없음");
+            // 로그인정보 확인
+            if (mLoginType.equals(LOGIN_TYPE.First)) {
+                Intent mainIntent = new Intent(MainActivity.this, LoginActivity.class);
+                MainActivity.this.startActivityForResult(mainIntent, 1004);
+                Log.i("Main:", "onCreate, 수동로그인");
+                Log_value();
+            } else {
+                Log.i("Main:", "onCreate, 자동로그인");
+                Log_value();
+                SetStart(mStartType, mLoginType);
+            }
         } else {
-            Log.i("Main:", "onCreate, 자동로그인");
-            Log_value();
-            SetStart(mStartType, mLoginType);
+            Log.i("Main:", "mLoginManager, 토큰있음");
+            GraphRequest request = GraphRequest.newMeRequest(mAccessToken, new GraphRequest.GraphJSONObjectCallback() {
+                @Override
+                public void onCompleted(JSONObject object, GraphResponse response) {
+                    String fb_id = "";
+                    String email = "";
+                    String user_name = "";
+                    String sex = "";
+                    String birthday = "";
+                    String friends = "";
+                    try {
+                        // 로그인정보 확인
+                        // 사용자정보 갱신
+
+                        if (mLoginType.equals(LOGIN_TYPE.First)) {
+                            LoginManager.getInstance().logOut(); // 페이스북 로그아웃
+                            Intent mainIntent = new Intent(MainActivity.this, LoginActivity.class);
+                            MainActivity.this.startActivityForResult(mainIntent, 1004);
+                            Log.i("Main:", "onCreate, 수동로그인");
+                            Log_value();
+                        } else {
+                            Log.i("Main:", "onCreate, 자동로그인");
+                            Log_value();
+                            SetStart(mStartType, mLoginType);
+
+                            fb_id = object.getString("id");
+                            email = object.isNull("email") ? fb_id + "@test.com" : object.getString("email");
+                            user_name = object.isNull("name") ? "username" : object.getString("name");
+                            sex = object.isNull("gender") ? "male" : object.getString("gender");
+                            birthday = object.isNull("birthday") ? "20170101" : object.getString("birthday");
+                            ArrayList<String> friendsList = new ArrayList<String>();
+                            if (object.isNull("friends") == false) {
+                                JSONArray pFriends = object.getJSONObject("friends").getJSONArray("data");
+                                for (int i = 0; i < pFriends.length(); i++) {
+                                    friendsList.add("'" + pFriends.getJSONObject(i).getString("id") + "'");
+                                }
+                            }
+                            friends = TextUtils.join(",", friendsList);
+
+                            // TODO : 친구목록 갱신
+                        }
+                    } catch (Exception ex) {
+
+                    }
+                }
+            });
+            Bundle param = new Bundle();
+            param.putString("fields", "id,name,email,gender,birthday,friends");
+            request.setParameters(param);
+            request.executeAsync();
         }
 
         // 기본 플래그 화면 홈으로 설정
@@ -219,9 +289,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 // 이후에 이미지 크롭어플리케이션을 호출
                 Intent intent = new Intent("com.android.camera.action.CROP");
                 intent.setDataAndType(mImageCaptureUri, "image/*");
-                if(Build.VERSION.SDK_INT <= Build.VERSION_CODES.M){
+                if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.M) {
 
-                }else {
+                } else {
                     intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
                     intent.addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
                 }
@@ -296,7 +366,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         }
     }
 
-
     // 메인 액티비티 초기화 절차
     private void SetStart(START_TYPE startType, LOGIN_TYPE loginType) {
         if (startType.equals(START_TYPE.First)) {
@@ -304,6 +373,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             // 프레프런스에 저장된 아이디를 values에 저장
             mPref = PreferenceManager.getDefaultSharedPreferences(this);
             values.UserId = mPref.getInt("user_id", -1);
+            values.FacebookId = mPref.getString("fb_id", "");
+            // 페이스북 이미지 https://graph.facebook.com/122841724958395/picture?type=large
+            values.UserImageUrl = values.FacebookId == "" ? "image" : "https://graph.facebook.com/" + values.FacebookId + "/picture?type=large";
             values.UserEmail = mPref.getString("user_email", "Nothing Email");
             values.UserName = mPref.getString("user_name", "Nothing Name");
             // 네비에 사용자 정보 표시
@@ -312,16 +384,14 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             StartStepService(true);
             // 지도 서비스 시작
             StartStoreService();
-            if (loginType.equals(LOGIN_TYPE.First)) {
-
-            } else {
-
-            }
         } else {
             // 메인을 처음실행하는게 아니면
             // 프레프런스에 저장된 아이디를 values에 저장
             mPref = PreferenceManager.getDefaultSharedPreferences(this);
             values.UserId = mPref.getInt("user_id", -1);
+            values.FacebookId = mPref.getString("fb_id", "");
+            // 페이스북 이미지 https://graph.facebook.com/122841724958395/picture?type=large
+            values.UserImageUrl = values.FacebookId == "" ? "image" : "https://graph.facebook.com/" + values.FacebookId + "/picture?type=large";
             values.UserEmail = mPref.getString("user_email", "Nothing Email");
             values.UserName = mPref.getString("user_name", "Nothing Name");
             // 네비에 사용자 정보 표시
@@ -344,7 +414,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         // 프레프런스에 로그인상태 저장
         mPref.edit().putBoolean("START_FIRST", false).apply();
         mPref.edit().putBoolean("LOGIN_FIRST", false).apply();
-
+        mLoginType = LOGIN_TYPE.Continue;
+        mStartType = START_TYPE.Continue;
 //        mLatch = new CountDownLatch(1); // 스레드 작동 카운트
 //        // 사용자 기록조회
 //        new UserInfoAsyncTask(this).execute();
@@ -395,6 +466,22 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         @Override
         public void onPermissionGranted() {
             Toast.makeText(MainActivity.this, "Permission Granted", Toast.LENGTH_SHORT).show();
+            ArrayList<StoreVO> storeVOs = null;
+            StoreDB storeDB = null;
+            // 위치 확인하여 위치 표시 시작
+            startLocationService();
+            // 위치 관리자 객체 참조
+            mLocationManager = (LocationManager) getApplicationContext().getSystemService(Context.LOCATION_SERVICE);
+            mPendingIntentList = new ArrayList();
+            // 가맹점 위치 서비스 등록
+            storeDB = new StoreDB(getApplicationContext());
+            storeVOs = storeDB.SelectAllStore();
+            for (StoreVO store : storeVOs) {
+                register(store.StoreID, store.Y, store.X, 500, store.StoreName, store.URL, -1);
+            }
+            // 수신자 객체 생성하여 등록
+            mIntentReceiverMap = new CoffeeIntentReceiver(m_mapIntentKey);
+            registerReceiver(mIntentReceiverMap, mIntentReceiverMap.getFilter());
         }
 
         @Override
@@ -405,8 +492,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     @TargetApi(Build.VERSION_CODES.M)
     private void StartStoreService() {
-        ArrayList<StoreVO> storeVOs = null;
-        StoreDB storeDB = null;
         // 지도 일부 단말의 문제로 인해 초기화 코드 추가
         try {
             MapsInitializer.initialize(this);
@@ -420,35 +505,12 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 .setDeniedMessage("If you reject permission, you can not use this service\n\nPlease turn on permissions at [Setting] > [Permission]")
                 .setPermissions(Manifest.permission.READ_CONTACTS, Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION)
                 .check();
-//
-//        checkDangerousPermissions();
-//        if(Build.VERSION.SDK_INT < Build.VERSION_CODES.M){
-//
-//        }else {
-//            if (!canAccessLocation() || !canAccessContacts()) {
-//                requestPermissions(INITIAL_PERMS, INITIAL_REQUEST);
-//            }
-//        }
 
-        // 위치 확인하여 위치 표시 시작
-        startLocationService();
-        // 위치 관리자 객체 참조
-        mLocationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
-        mPendingIntentList = new ArrayList();
-        // 가맹점 위치 서비스 등록
-        storeDB = new StoreDB(this);
-        storeVOs = storeDB.SelectAllStore();
-        for (StoreVO store : storeVOs) {
-            register(store.StoreID, store.Y, store.X, 500, store.StoreName, store.URL, -1);
-        }
-        // 수신자 객체 생성하여 등록
-        mIntentReceiverMap = new CoffeeIntentReceiver(m_mapIntentKey);
-        registerReceiver(mIntentReceiverMap, mIntentReceiverMap.getFilter());
     }
 
     // 플로팅버튼 보임/안보임
-    private void setVisibleFab(boolean bVisible){
-        if(mFab != null){
+    private void setVisibleFab(boolean bVisible) {
+        if (mFab != null) {
             mFab.setVisibility(bVisible ? View.VISIBLE : View.INVISIBLE);
         }
     }
@@ -602,8 +664,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             String pkgname = this.getPackageName();
             mImageCaptureUri = FileProvider.getUriForFile(this, pkgname, photoFile);
 
-            Log.i("photoFile",photoFile.toString());
-            Log.i("mImageCaptureUri",mImageCaptureUri.toString());
+            Log.i("photoFile", photoFile.toString());
+            Log.i("mImageCaptureUri", mImageCaptureUri.toString());
 
             intent.putExtra(MediaStore.EXTRA_OUTPUT, mImageCaptureUri);
             startActivityForResult(intent, PICK_FROM_CAMERA);
@@ -626,11 +688,19 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 //        Glide.with(this).load(R.drawable.img_kongyu).into(mViewUserImage);
         String imgPath = mPref.getString("userImage", "image");
 
-        Glide.with(this).load(Uri.fromFile(new File(imgPath)))
-                .bitmapTransform(new CropCircleTransformation(this))
-                .placeholder(R.drawable.blank_profile)
-                .error(R.drawable.blank_profile)
-                .into(mViewUserImage);
+        if (values.FacebookId == "") {
+            Glide.with(this).load(Uri.fromFile(new File(imgPath)))
+                    .bitmapTransform(new CropCircleTransformation(this))
+                    .placeholder(R.drawable.blank_profile)
+                    .error(R.drawable.blank_profile)
+                    .into(mViewUserImage);
+        } else {
+            Glide.with(this).load(values.UserImageUrl)
+                    .bitmapTransform(new CropCircleTransformation(this))
+                    .placeholder(R.drawable.blank_profile)
+                    .error(R.drawable.blank_profile)
+                    .into(mViewUserImage);
+        }
 //        mViewUserImage.setImageDrawable(pRoundDrawable);
 
         mViewUserEmail.setText(values.UserEmail);
@@ -783,11 +853,13 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         values.RunningSec = 0;
         values.Calorie = 0;
         values.UserId = -1;
+        values.FacebookId = "";
         values.UserEmail = "Nothing Email";
         values.UserName = "Nothing Name";
         // 리레퍼런스 LOGIN_TYPE false로 변경
         if (mPref == null) mPref = PreferenceManager.getDefaultSharedPreferences(this);
         mPref.edit().putBoolean("LOGIN_FIRST", true).apply();
+        LoginManager.getInstance().logOut(); // 페이스북 로그아웃
     }
 
     public boolean isServiceRunningCheck() {
@@ -814,16 +886,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         if (mPendingIntentList != null) {
             for (int i = 0; i < mPendingIntentList.size(); i++) {
                 PendingIntent curIntent = (PendingIntent) mPendingIntentList.get(i);
-                if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-                    // TODO: Consider calling
-                    //    ActivityCompat#requestPermissions
-                    // here to request the missing permissions, and then overriding
-                    //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-                    //                                          int[] grantResults)
-                    // to handle the case where the user grants the permission. See the documentation
-                    // for ActivityCompat#requestPermissions for more details.
-                    return;
-                }
+
                 mLocationManager.removeProximityAlert(curIntent);
                 mPendingIntentList.remove(i);
             }
@@ -847,16 +910,12 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         proximityIntent.putExtra("url", url);
         PendingIntent intent = PendingIntent.getBroadcast(this, id, proximityIntent, PendingIntent.FLAG_UPDATE_CURRENT);
 
-        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            // TODO: Consider calling
-            //    ActivityCompat#requestPermissions
-            // here to request the missing permissions, and then overriding
-            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-            //                                          int[] grantResults)
-            // to handle the case where the user grants the permission. See the documentation
-            // for ActivityCompat#requestPermissions for more details.
+        if (Build.VERSION.SDK_INT >= 23 &&
+                ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
+                ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             return;
         }
+
         mLocationManager.addProximityAlert(latitude, longitude, radius, expiration, intent);
         mPendingIntentList.add(intent);
     }
@@ -1010,13 +1069,45 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 Notification.Builder builder = new Notification.Builder(MainActivity.this);
                 //Notification.Builder에게 Notification 제목, 내용, 이미지 등을 설정//////////////////////////////////////
                 builder.setSmallIcon(android.R.drawable.ic_menu_myplaces);//상태표시줄에 보이는 아이콘 모양
+//                builder.setSmallIcon(R.mipmap.ic_launcher_main); // 메인아이콘으로 변경
+
                 builder.setTicker("There is a partner of HeathFree around!"); //알림이 발생될 때 잠시 보이는 글씨
                 //상태바를 드래그하여 아래로 내리면 보이는 알림창(확장 상태바)의 아이콘 모양 지정
-                builder.setLargeIcon(BitmapFactory.decodeResource(getResources(), android.R.drawable.ic_menu_myplaces));
+                builder.setLargeIcon(BitmapFactory.decodeResource(getResources(), R.mipmap.ic_launcher_main));
+
+                Boolean isNoti_sound = mPref.getBoolean("notifications_new_message", false);
+                String noti_sound = mPref.getString("notifications_new_message_ringtone", "");
+                Boolean isVibration = mPref.getBoolean("notifications_new_message_vibrate", false);
+
+                if(isNoti_sound) {
+                    // 알림소리 설정
+                    if(TextUtils.isEmpty(noti_sound)){
+                        // 무음
+                    }else {
+                        Ringtone ringtone = RingtoneManager.getRingtone(getApplicationContext(),Uri.parse(noti_sound));
+                        if(ringtone == null){
+
+                        }else {
+                            builder.setSound(Uri.parse(noti_sound)); // 알림소리 설정
+                        }
+                    }
+
+                    if(isVibration){
+                        // 진동설정
+                        builder.setVibrate(new long[]{1000, 1000});
+                        builder.setDefaults(Notification.DEFAULT_SOUND | Notification.DEFAULT_VIBRATE);
+                    }else {
+                        builder.setVibrate(new long[]{1000, 0});
+                        builder.setDefaults(Notification.DEFAULT_SOUND);
+                    }
+
+                }else {
+                    // 알림소리 off
+                    builder.setDefaults(0);
+                }
 
                 builder.setContentTitle("There is  " + name + "  around.");    //알림창에서의 제목
                 builder.setContentText("Touch it.");   //알림창에서의 글씨
-                builder.setVibrate(new long[]{1000, 1000});
                 Intent naver = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
                 PendingIntent pi = PendingIntent.getActivity(MainActivity.this, (int) System.currentTimeMillis(), naver, 0);
                 builder.setContentIntent(pi);

@@ -15,6 +15,7 @@ import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
@@ -30,6 +31,7 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.MapsInitializer;
 import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
@@ -44,6 +46,7 @@ public class MapFragment extends Fragment {
     private GoogleMap m_googleMap;
     private MapView m_mapView;
 
+    static final LatLng SEOUL = new LatLng(37.5546741, 126.9218087);
     private static final String TAG = "MapFragment";
 
     // TODO: Rename parameter arguments, choose names that match
@@ -103,49 +106,56 @@ public class MapFragment extends Fragment {
                 m_googleMap = googleMap;
 
                 //        checkDangerousPermissions(); //Main에서 수행
+                if (Build.VERSION.SDK_INT >= 23 &&
+                        ActivityCompat.checkSelfPermission(getContext(), android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
+                        ActivityCompat.checkSelfPermission(getContext(), android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                } else {
+                    m_googleMap.setMyLocationEnabled(true);
+                }
                 m_googleMap.setMyLocationEnabled(true);
+                m_googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(SEOUL, 15)); // 초기위치
 
                 // 지도 유형 설정. 지형도인 경우에는 GoogleMap.MAP_TYPE_TERRAIN, 위성 지도인 경우에는 GoogleMap.MAP_TYPE_SATELLITE
                 m_googleMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
 
-                m_googleMap.addMarker(new MarkerOptions().position(new LatLng(37.5571895, 126.923642)).title("스타벅스 홍대역점"));
-                m_googleMap.addMarker(new MarkerOptions().position(new LatLng(37.5568004, 126.9199674)).title("스타벅스 동교점"));
-                m_googleMap.addMarker(new MarkerOptions().position(new LatLng(37.5532579, 126.9248262)).title("스타벅스 홍대갤러리점"));
-                m_googleMap.addMarker(new MarkerOptions().position(new LatLng(37.5518991, 126.9232424)).title("스타벅스 홍대공원점"));
-                m_googleMap.addMarker(new MarkerOptions().position(new LatLng(37.558898, 126.9275124)).title("스타벅스 동교삼거리점"));
-                m_googleMap.addMarker(new MarkerOptions().position(new LatLng(37.5529804, 126.9218637)).title("스타벅스 홍대로데오점"));
-                m_googleMap.addMarker(new MarkerOptions().position(new LatLng(37.5501915, 126.9232343)).title("스타벅스 홍대삼거리점"));
-                m_googleMap.addMarker(new MarkerOptions().position(new LatLng(37.5513451, 126.9169083)).title("스타벅스 서교점"));
-                m_googleMap.addMarker(new MarkerOptions().position(new LatLng(37.5533397, 126.918578)).title("스타벅스 서교동사거리점"));
-                m_googleMap.addMarker(new MarkerOptions().position(new LatLng(37.5523765, 126.9377746)).title("스타벅스 서강대점"));
-                m_googleMap.addMarker(new MarkerOptions().position(new LatLng(37.55649, 126.9371201)).title("스타벅스 신촌점"));
-                m_googleMap.addMarker(new MarkerOptions().position(new LatLng(37.5586535, 126.9366775)).title("스타벅스 연대점"));
-                m_googleMap.addMarker(new MarkerOptions().position(new LatLng(37.5587566, 126.9402234)).title("스타벅스 신촌기차역점"));
-                m_googleMap.addMarker(new MarkerOptions().position(new LatLng(37.5577519, 126.9381461)).title("스타벅스 신촌명물거리점"));
-                m_googleMap.addMarker(new MarkerOptions().position(new LatLng(37.5561264, 126.9392538)).title("스타벅스 신촌대로점"));
-                m_googleMap.addMarker(new MarkerOptions().position(new LatLng(37.5584238, 126.9265576)).title("카페베네 동교동로터리점"));
-                m_googleMap.addMarker(new MarkerOptions().position(new LatLng(37.5567823, 126.9199795)).title("카페베네 동교중앙점"));
-                m_googleMap.addMarker(new MarkerOptions().position(new LatLng(37.5546741, 126.9218087)).title("카페베네 홍대역점"));
-                m_googleMap.addMarker(new MarkerOptions().position(new LatLng(37.5592297, 126.9398063)).title("카페베네 신촌점"));
-                m_googleMap.addMarker(new MarkerOptions().position(new LatLng(37.557535, 126.9190876)).title("파리바게트 서교점"));
-                m_googleMap.addMarker(new MarkerOptions().position(new LatLng(37.5557298, 126.9203644)).title("파리바게트 홍대점"));
-                m_googleMap.addMarker(new MarkerOptions().position(new LatLng(37.5516471, 126.9163089)).title("파리바게트 합정역점"));
-                m_googleMap.addMarker(new MarkerOptions().position(new LatLng(37.5530505, 126.933188)).title("파리바게트 마포창천"));
-                m_googleMap.addMarker(new MarkerOptions().position(new LatLng(37.5585631, 126.9278075)).title("파리바게트"));
-                m_googleMap.addMarker(new MarkerOptions().position(new LatLng(37.5554523, 126.9233054)).title("커피빈 홍대역점"));
-                m_googleMap.addMarker(new MarkerOptions().position(new LatLng(37.5585482, 126.9367567)).title("맥도날드 연세대점"));
-                m_googleMap.addMarker(new MarkerOptions().position(new LatLng(37.5556182, 126.937167)).title("맥도날드 신촌점"));
-                m_googleMap.addMarker(new MarkerOptions().position(new LatLng(37.5550759, 126.9219723)).title("맥도날드 홍익대점"));
-                m_googleMap.addMarker(new MarkerOptions().position(new LatLng(37.5560626, 126.9097254)).title("맥도날드 망원점"));
-                m_googleMap.addMarker(new MarkerOptions().position(new LatLng(37.5529559, 126.9238713)).title("롯데리아 홍대점"));
-                m_googleMap.addMarker(new MarkerOptions().position(new LatLng(37.554606, 126.9356838)).title("롯데리아 신촌로터리점"));
-                m_googleMap.addMarker(new MarkerOptions().position(new LatLng(37.5556735, 126.9235575)).title("버거킹 홍대역점"));
-                m_googleMap.addMarker(new MarkerOptions().position(new LatLng(37.555599, 126.9372851)).title("버거킹 신촌점"));
-                m_googleMap.addMarker(new MarkerOptions().position(new LatLng(37.5559796, 126.9351688)).title("KFC 신촌점"));
-                m_googleMap.addMarker(new MarkerOptions().position(new LatLng(37.5559796, 126.923115)).title("KFC 홍대점"));
-                m_googleMap.addMarker(new MarkerOptions().position(new LatLng(37.5556458, 126.936585)).title("투썸플레이스 신촌점"));
-                m_googleMap.addMarker(new MarkerOptions().position(new LatLng(37.5511761, 126.9392511)).title("투썸플레이스 서강대점"));
-                m_googleMap.addMarker(new MarkerOptions().position(new LatLng(37.558814, 126.9419172)).title("투썸플레이스 신촌기차역점"));
+                m_googleMap.addMarker(new MarkerOptions().position(new LatLng(37.5571895, 126.923642)).title("스타벅스 홍대역점").icon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_coffee)));
+                m_googleMap.addMarker(new MarkerOptions().position(new LatLng(37.5568004, 126.9199674)).title("스타벅스 동교점").icon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_coffee)));
+                m_googleMap.addMarker(new MarkerOptions().position(new LatLng(37.5532579, 126.9248262)).title("스타벅스 홍대갤러리점").icon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_coffee)));
+                m_googleMap.addMarker(new MarkerOptions().position(new LatLng(37.5518991, 126.9232424)).title("스타벅스 홍대공원점").icon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_coffee)));
+                m_googleMap.addMarker(new MarkerOptions().position(new LatLng(37.558898, 126.9275124)).title("스타벅스 동교삼거리점").icon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_coffee)));
+                m_googleMap.addMarker(new MarkerOptions().position(new LatLng(37.5529804, 126.9218637)).title("스타벅스 홍대로데오점").icon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_coffee)));
+                m_googleMap.addMarker(new MarkerOptions().position(new LatLng(37.5501915, 126.9232343)).title("스타벅스 홍대삼거리점").icon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_coffee)));
+                m_googleMap.addMarker(new MarkerOptions().position(new LatLng(37.5513451, 126.9169083)).title("스타벅스 서교점").icon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_coffee)));
+                m_googleMap.addMarker(new MarkerOptions().position(new LatLng(37.5533397, 126.918578)).title("스타벅스 서교동사거리점").icon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_coffee)));
+                m_googleMap.addMarker(new MarkerOptions().position(new LatLng(37.5523765, 126.9377746)).title("스타벅스 서강대점").icon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_coffee)));
+                m_googleMap.addMarker(new MarkerOptions().position(new LatLng(37.55649, 126.9371201)).title("스타벅스 신촌점").icon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_coffee)));
+                m_googleMap.addMarker(new MarkerOptions().position(new LatLng(37.5586535, 126.9366775)).title("스타벅스 연대점").icon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_coffee)));
+                m_googleMap.addMarker(new MarkerOptions().position(new LatLng(37.5587566, 126.9402234)).title("스타벅스 신촌기차역점").icon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_coffee)));
+                m_googleMap.addMarker(new MarkerOptions().position(new LatLng(37.5577519, 126.9381461)).title("스타벅스 신촌명물거리점").icon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_coffee)));
+                m_googleMap.addMarker(new MarkerOptions().position(new LatLng(37.5561264, 126.9392538)).title("스타벅스 신촌대로점").icon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_coffee)));
+                m_googleMap.addMarker(new MarkerOptions().position(new LatLng(37.5584238, 126.9265576)).title("카페베네 동교동로터리점").icon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_coffee)));
+                m_googleMap.addMarker(new MarkerOptions().position(new LatLng(37.5567823, 126.9199795)).title("카페베네 동교중앙점").icon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_coffee)));
+                m_googleMap.addMarker(new MarkerOptions().position(new LatLng(37.5546741, 126.9218087)).title("카페베네 홍대역점").icon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_coffee)));
+                m_googleMap.addMarker(new MarkerOptions().position(new LatLng(37.5592297, 126.9398063)).title("카페베네 신촌점").icon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_coffee)));
+                m_googleMap.addMarker(new MarkerOptions().position(new LatLng(37.557535, 126.9190876)).title("파리바게트 서교점").icon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_croissant)));
+                m_googleMap.addMarker(new MarkerOptions().position(new LatLng(37.5557298, 126.9203644)).title("파리바게트 홍대점").icon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_croissant)));
+                m_googleMap.addMarker(new MarkerOptions().position(new LatLng(37.5516471, 126.9163089)).title("파리바게트 합정역점").icon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_croissant)));
+                m_googleMap.addMarker(new MarkerOptions().position(new LatLng(37.5530505, 126.933188)).title("파리바게트 마포창천").icon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_croissant)));
+                m_googleMap.addMarker(new MarkerOptions().position(new LatLng(37.5585631, 126.9278075)).title("파리바게트").icon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_croissant)));
+                m_googleMap.addMarker(new MarkerOptions().position(new LatLng(37.5554523, 126.9233054)).title("커피빈 홍대역점").icon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_coffee)));
+                m_googleMap.addMarker(new MarkerOptions().position(new LatLng(37.5585482, 126.9367567)).title("맥도날드 연세대점").icon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_hamburger)));
+                m_googleMap.addMarker(new MarkerOptions().position(new LatLng(37.5556182, 126.937167)).title("맥도날드 신촌점").icon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_hamburger)));
+                m_googleMap.addMarker(new MarkerOptions().position(new LatLng(37.5550759, 126.9219723)).title("맥도날드 홍익대점").icon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_hamburger)));
+                m_googleMap.addMarker(new MarkerOptions().position(new LatLng(37.5560626, 126.9097254)).title("맥도날드 망원점").icon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_hamburger)));
+                m_googleMap.addMarker(new MarkerOptions().position(new LatLng(37.5529559, 126.9238713)).title("롯데리아 홍대점").icon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_hamburger)));
+                m_googleMap.addMarker(new MarkerOptions().position(new LatLng(37.554606, 126.9356838)).title("롯데리아 신촌로터리점").icon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_hamburger)));
+                m_googleMap.addMarker(new MarkerOptions().position(new LatLng(37.5556735, 126.9235575)).title("버거킹 홍대역점").icon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_hamburger)));
+                m_googleMap.addMarker(new MarkerOptions().position(new LatLng(37.555599, 126.9372851)).title("버거킹 신촌점").icon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_hamburger)));
+                m_googleMap.addMarker(new MarkerOptions().position(new LatLng(37.5559796, 126.9351688)).title("KFC 신촌점").icon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_hamburger)));
+                m_googleMap.addMarker(new MarkerOptions().position(new LatLng(37.5559796, 126.923115)).title("KFC 홍대점").icon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_hamburger)));
+                m_googleMap.addMarker(new MarkerOptions().position(new LatLng(37.5556458, 126.936585)).title("투썸플레이스 신촌점").icon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_coffee)));
+                m_googleMap.addMarker(new MarkerOptions().position(new LatLng(37.5511761, 126.9392511)).title("투썸플레이스 서강대점").icon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_coffee)));
+                m_googleMap.addMarker(new MarkerOptions().position(new LatLng(37.558814, 126.9419172)).title("투썸플레이스 신촌기차역점").icon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_coffee)));
 
 
                 m_googleMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
@@ -327,9 +337,6 @@ public class MapFragment extends Fragment {
     }
 
 
-
-
-
     private View.OnClickListener onClickSearchButton = new View.OnClickListener() {
 
         @Override
@@ -354,6 +361,8 @@ public class MapFragment extends Fragment {
         if (bAnimateCamera) {
             m_googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(newPoint, 15));
         }
+
+        m_googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(newPoint, 15)); // 내위치 중심이동
 
         m_googleMap.addPolyline(new PolylineOptions().geodesic(true)
                 .add(new LatLng(old_latitude, old_longitude))

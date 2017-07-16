@@ -53,9 +53,12 @@ import com.point.eslee.health_free.database.ServerAccess;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
+import java.util.PriorityQueue;
 
 import static android.Manifest.permission.READ_CONTACTS;
 
@@ -96,7 +99,6 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        FacebookSdk.sdkInitialize(getApplicationContext());
         setContentView(R.layout.activity_login);
         // Set up the login form.
         mEmailView = (AutoCompleteTextView) findViewById(R.id.email);
@@ -115,44 +117,38 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         });
         callbackManager = CallbackManager.Factory.create();  //로그인 응답을 처리할 콜백 관리자
         // 페이스북 퍼미션추가
-        mCFBLogin = (Button)findViewById(R.id.facebook_log_in_button);
+        mCFBLogin = (Button) findViewById(R.id.facebook_log_in_button);
         mCFBLogin.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
-                LoginManager.getInstance().logInWithReadPermissions(LoginActivity.this, Arrays.asList("public_profile","user_friends","email"));
+                LoginManager.getInstance().logInWithReadPermissions(LoginActivity.this, Arrays.asList("public_profile", "user_friends", "email"));
                 LoginManager.getInstance().registerCallback(callbackManager, new FacebookCallback<LoginResult>() {
                     @Override
                     public void onSuccess(LoginResult loginResult) {
-                        Log.e("토큰",loginResult.getAccessToken().getToken());
-                        Log.e("유저아이디",loginResult.getAccessToken().getUserId());
-                        Log.e("퍼미션 리스트",loginResult.getAccessToken().getPermissions()+"");
+                        Log.e("토큰", loginResult.getAccessToken().getToken());
+                        Log.e("유저아이디", loginResult.getAccessToken().getUserId());
+                        Log.e("퍼미션 리스트", loginResult.getAccessToken().getPermissions() + "");
 
                         GraphRequest request = GraphRequest.newMeRequest(loginResult.getAccessToken(), new GraphRequest.GraphJSONObjectCallback() {
                             @Override
                             public void onCompleted(JSONObject object, GraphResponse response) {
-                                try{
-                                    Log.e("user profile",object.toString());
-                                    String fb_id = "";
-                                    String email  ="";
-                                    String user_name = "";
-                                    String sex = "";
-                                    String birthday = "";
-                                    String friends = "";
-
-                                    fb_id = object.getString("id");
+                                String fb_id = "";
+                                String email = "";
+                                try {
+                                    fb_id = object.isNull("id") ? "" : object.getString("id");
                                     email = object.isNull("email") ? fb_id + "@test.com" : object.getString("email");
-                                    user_name = object.isNull("name") ? "username" : object.getString("name");
-                                    sex = object.isNull("gender") ? "male" : object.getString("gender");
-                                    birthday = object.isNull("birthday") ? "2017-01-01" : object.getString("birthday");
-                                    friends = object.isNull("friends") ? "" : object.getString("friends");
-                                }catch (Exception ex){
-                                    ex.printStackTrace();
+                                } catch (Exception ex) {
+
                                 }
+
+                                mAuthTask = new UserLoginTask(email, "f1234");
+                                mAuthTask.execute((JSONObject) object);
+
                             }
                         });
 
                         Bundle param = new Bundle();
-                        param.putString("fields","id,name,email,gender,birthday,friends");
+                        param.putString("fields", "id,name,email,gender,birthday,friends");
                         request.setParameters(param);
                         request.executeAsync();
                     }
@@ -182,7 +178,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         mSignUpButton.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(LoginActivity.this,SignActivity.class);
+                Intent intent = new Intent(LoginActivity.this, SignActivity.class);
                 LoginActivity.this.startActivity(intent);
             }
         });
@@ -207,7 +203,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        callbackManager.onActivityResult(requestCode,resultCode,data);
+        callbackManager.onActivityResult(requestCode, resultCode, data);
     }
 
     // 로그인 인증정보 초기화
@@ -440,6 +436,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         private String jsonResult = "";
         private String mUserName = "";
         private int mUserId = -1;
+        private String mFacebookId = "";
 
         UserLoginTask(String email, String password) {
             mEmail = email;
@@ -450,10 +447,45 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         protected Boolean doInBackground(JSONObject... params) {
             boolean sResult = false;
 
-            if(params != null){
+            if (params != null && params.length > 0) {
                 // facebook login
+                JSONObject object = params[0];
+                try {
+                    Log.e("user profile", object.toString());
+                    String fb_id = "";
+                    String email = "";
+                    String user_name = "";
+                    String sex = "";
+                    String birthday = "";
+                    String friends = "";
 
-            }else {
+                    fb_id = object.getString("id");
+                    email = object.isNull("email") ? fb_id + "@test.com" : object.getString("email");
+                    user_name = object.isNull("name") ? "username" : object.getString("name");
+                    sex = object.isNull("gender") ? "male" : object.getString("gender");
+                    birthday = object.isNull("birthday") ? "01/01/2017" : object.getString("birthday");
+                    ArrayList<String> friendsList = new ArrayList<String>();
+                    if (object.isNull("friends") == false) {
+                        JSONArray pFriends = object.getJSONObject("friends").getJSONArray("data");
+                        for (int i = 0; i < pFriends.length(); i++) {
+                            friendsList.add(pFriends.getJSONObject(i).getString("id"));
+                        }
+                    }
+                    friends = TextUtils.join(",", friendsList);
+
+                    mFacebookId = fb_id;
+
+                    // 페이스북 사용자 로그인 (서버 인증) http://dream.miraens.com:58080/faceRegistProc.do
+                    String url = "http://dream.miraens.com:58080/faceRegistProc.do?" +
+                            "USER_NAME=" + URLEncoder.encode(user_name) + "&sex=" + sex + "&FB_KEY=" + fb_id + "&friends=" + friends + "&EMAIL=" + email + "&birthday=" + birthday;
+                    jsonResult = ServerAccess.getData(url);
+                    // 인증 및 사용자 정보 읽기
+                    sResult = VailidateLogin(jsonResult);
+
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
+            } else {
                 // email login
                 try {
                     // Simulate network access.
@@ -498,11 +530,11 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
                 JSONObject json = new JSONObject(jsonString);
                 JSONArray jArr = json.getJSONArray("result");
 
-                result = jArr.getJSONObject(0).getString("successYn").equals("SUCCESS");
-                mUserName = jArr.getJSONObject(0).getString("userNm");
-                try{
+                result = jArr.getJSONObject(0).isNull("successYn") ? false : jArr.getJSONObject(0).getString("successYn").equals("SUCCESS");
+                mUserName = jArr.getJSONObject(0).isNull("userNm") ? "" : jArr.getJSONObject(0).getString("userNm");
+                try {
                     mUserId = Integer.valueOf(jArr.getJSONObject(0).getString("user_id"));
-                }catch (Exception ex){
+                } catch (Exception ex) {
 
                 }
             } catch (Exception ex) {
@@ -522,12 +554,14 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
                 loginIntent.putExtra("email", mEmail);
                 loginIntent.putExtra("user_name", mUserName);
                 loginIntent.putExtra("user_id", mUserId);
+                loginIntent.putExtra("fb_id", mFacebookId);
 
                 // 로그인확인 FLAG 저장
                 mPref.edit().putBoolean("LOGIN_FIRST", true).apply();
-                mPref.edit().putInt("user_id",mUserId).apply();
-                mPref.edit().putString("user_email",mEmail).apply();
-                mPref.edit().putString("user_name",mUserName).apply();
+                mPref.edit().putInt("user_id", mUserId).apply();
+                mPref.edit().putString("user_email", mEmail).apply();
+                mPref.edit().putString("user_name", mUserName).apply();
+                mPref.edit().putString("fb_id", mFacebookId).apply();
 
                 // ID, PW 저장
                 if (mRememberLoginCheck.isChecked()) {
